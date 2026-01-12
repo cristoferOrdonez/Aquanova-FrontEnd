@@ -745,7 +745,7 @@ function FormCreation() {
   return (
     <div 
       ref={mainContainerRef}
-      className="bg-[var(--bg-color-main)] font-work w-screen h-screen flex flex-col items-center justify-start pt-10 gap-3 overflow-y-auto"
+      className="bg-[var(--bg-color-main)] font-work w-screen h-screen flex flex-col items-center justify-start pt-10 gap-3 overflow-y-auto text-left"
     >
       
       <div className="relative flex flex-col tablet:items-end tablet:w-auto w-[90%]">
