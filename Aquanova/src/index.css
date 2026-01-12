@@ -1,1 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
+
+
+:root {
+  --bg-color-main: #F8FAFC;
+  --card-bg: #FFFFFF;
+  --card-stroke: #CBD5E1;
+  --instruction-text:#000000;
+  --text:#000000;
+  --stroke-selectors-and-search-bars: #CBD5E1;
+  --selectors-and-search-bars: #EDEDED;
+}
+
+
+@theme {
+  --font-work: "Work Sans", sans-serif; 
+  --breakpoint-tablet: 1075px;
+  --breakpoint-phone: 700px;
+}
+
+/* index.css */
+
+@keyframes smoothEntry {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-entry {
+  /* Usamos la misma duración y curva que tu botón verde para consistencia */
+  animation: smoothEntry 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
