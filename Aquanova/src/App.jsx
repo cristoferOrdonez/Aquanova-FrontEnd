@@ -5,6 +5,7 @@ import './App.css'
 import FormList from './components/FormList'
 import Navbar from './components/Navbar'
 import FormCreation from './components/FormCreation'
+import NeighborhoodList from './components/NeighborhoodList'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
 function App() {
@@ -15,10 +16,11 @@ function App() {
   return (
     <div className='App'>
       {!hideNavbar && <Navbar />}
-        <Routes>
-          <Route path='/' element={<FormList />} />
-          <Route path='/form_creation' element={<FormCreation />} />
-        </Routes>
+      <Routes>
+        <Route path='/' element={<FormList />} />
+        <Route path='/form_creation' element={<FormCreation />} />
+        <Route path='/neighborhoods' element={<NeighborhoodList />} />
+      </Routes>
     </div>
   )
 }

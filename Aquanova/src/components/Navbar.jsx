@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import logo from './../assets/images/logo_frog.png'
 import { UserCircleIcon } from '@heroicons/react/24/outline' 
+import { useNavigate } from 'react-router-dom'
 
 const navItems = [
     {name:'Inicio', href:''},
@@ -10,6 +11,7 @@ const navItems = [
 function Navbar() {
   const[menuOpen, setMenuOpen]= useState(false)
   const menuRef = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(()=>{
 
@@ -53,14 +55,41 @@ function Navbar() {
   }
 
   return (
-    <nav className='flex flex-row items-center w-full bg-[var(--blue-navbar)] p-2 gap-10 pr-10'>
+    <nav className='flex flex-row items-center w-full bg-(--blue-navbar) p-2 gap-10 pr-10'>
       <div>
-        <img src={logo} width={87} height={87} className='shrink-0 ' alt='Logo'></img>
+        <img
+          src={logo}
+          width={87}
+          height={87}
+          className='shrink-0 '
+          alt='Logo'
+          onClick={() => navigate('/')}
+          style={{ cursor: 'pointer' }}
+        />
       </div>
 
       <div className='flex flex-1 gap-10'>
-        <button className='text-xl text-bold text-white hover:opacity-80 transition-opacity'>Inicio</button>
-        <button className='text-xl text-bold text-white hover:opacity-80 transition-opacity'>Campañas</button>
+        <button
+          type='button'
+          onClick={() => navigate('/')}
+          className='text-xl text-bold text-white hover:opacity-80 transition-opacity'
+        >
+          Inicio
+        </button>
+        <button
+          type='button'
+          onClick={() => navigate('/')}
+          className='text-xl text-bold text-white hover:opacity-80 transition-opacity'
+        >
+          Campañas
+        </button>
+        <button
+          type='button'
+          onClick={() => navigate('/neighborhoods')}
+          className='text-xl text-bold text-white hover:opacity-80 transition-opacity'
+        >
+          Barrios
+        </button>
       </div>
 
 
