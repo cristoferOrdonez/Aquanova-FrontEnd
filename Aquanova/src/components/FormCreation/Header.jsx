@@ -330,16 +330,16 @@ function Header() {
             </div>
             </div>
             <div className="
-            tablet:absolute tablet:z-10 w-wrap h-wrap 
-            bg-transparent 
-            tablet:translate-x-full
-            tablet:pl-[31px]
-            tablet:tablet:mt-0 mt-4
-            flex tablet:flex-col flex-box gap-4
+                tablet:absolute tablet:z-10 w-wrap h-wrap 
+                bg-transparent 
+                tablet:translate-x-full
+                tablet:pl-[31px]
+                tablet:tablet:mt-0 mt-4
+                flex tablet:flex-col flex-box gap-4
             ">
             <button 
                 className="
-                    pr-4 pl-2.5 py-1 bg-[#10B981]/10 rounded-[30px] border-[1.5px] border-[#10B981]
+                    w-fit pr-4 pl-2.5 py-1 bg-[#10B981]/10 rounded-[30px] border-[1.5px] border-[#10B981]
                     hover:bg-[#10B981]/20 text-[#10B981] transition-colors transform hover:scale-110
                     flex flex-row items-center gap-2 cursor-pointer
 
@@ -369,6 +369,41 @@ function Header() {
 
                 <span className="text-xs">
                 Guardar y salir
+                </span>
+            </button>
+
+            <button 
+                className="
+                    w-fit pr-4 pl-2.5 py-1 bg-red-50 rounded-[30px] border-[1.5px] border-red-900
+                    hover:bg-red-100 text-red-900 transition-colors transform hover:scale-110
+                    flex flex-row items-center gap-2 cursor-pointer
+
+                    [@media(pointer:coarse)]:active:bg-red-100
+                    [@media(pointer:coarse)]:active:scale-110
+                "
+            >
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="w-7 h-7"
+            >
+            {/* Marco de la puerta (Lado izquierdo) */}
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                
+                {/* Punta de la flecha */}
+                <polyline points="16 17 21 12 16 7" />
+                
+                {/* Línea de la flecha */}
+                <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+
+                <span className="text-xs">
+                Salir
                 </span>
             </button>
 
