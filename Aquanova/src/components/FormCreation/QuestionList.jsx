@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EditingSection from "./EditingSection";
 
 function QuestionList({ 
     questions, setQuestions,
@@ -6,14 +7,18 @@ function QuestionList({
     justCreatedId,
     editingQuestionId, setEditingQuestionId,
     isCreationOn,
-    setQuestionTitle,
-    setSelectedTypeQuestionOption,
-    setOptionsList,
-    setIsMandatoryOn,
-    setIsEditingSectionOpen,
-    setIsFastOutEditingFrame,
+    questionTitle, setQuestionTitle,
+    selectedTypeQuestionOption, setSelectedTypeQuestionOption,
+    optionsList, setOptionsList,
+    isMandatoryOn, setIsMandatoryOn,
+    isEditingSectionOpen, setIsEditingSectionOpen,
+    isFastOutEditingFrame, setIsFastOutEditingFrame,
     setRotation,
-    mainContainerRef
+    mainContainerRef,
+    setJustUpdatedQuestionId,
+    setJustCreatedId,
+    setIsCreationOn,
+    isTypeQuestionSelectorOpen, setIsTypeQuestionSelectorOpen
  }) {
 
     const [exitingQuestionId, setExitingQuestionId] = useState(null);
@@ -51,31 +56,22 @@ function QuestionList({
         // Opcional: Rotar el botón verde para indicar que está activo
         setRotation(prev => prev + 360);
 
-        // 4. Scroll suave hacia el editor
-        setTimeout(() => {
-        if (mainContainerRef.current) {
-            mainContainerRef.current.scrollTo({
-            top: mainContainerRef.current.scrollHeight,
-            behavior: "smooth",
-            });
-        }
-        }, 100);
     };
 
     const renderCreatedQuestions = () => {
         return questions.map((q) => {
         
         // VARIABLES DE ESTADO PARA ESTA TARJETA
-        const isEditingThis = editingQuestionId === q.id;     // Es la que estoy editando
-        const isEditingAny = editingQuestionId !== null;      // Hay alguna edición ocurriendo
-        const isJustUpdated = justUpdatedQuestionId === q.id; // Acaba de ser guardada
+        const isEditingThis = editingQuestionId === q.id && editingQuestionId !== -1;     // Es la que estoy editando
+        const isEditingAny = editingQuestionId !== null && editingQuestionId !== -1;      // Hay alguna edición ocurriendo
+        const isJustUpdated = justUpdatedQuestionId === q.id && editingQuestionId !== -1; // Acaba de ser guardada
 
         return (
-            <div 
+        <div
             key={q.id}
             id={`question-card-${q.id}`} // ID necesario para el scroll automático
             className={`
-                relative tablet:w-[653px] w-[90%] flex tablet:flex-row flex-col gap-4 tablet:items-center justify-end
+                flex flex-col tablet:w-[653px] w-[90%]
                 transition-all duration-500 ease-in-out
                 
                 ${/* 1. Lógica de Salida (Eliminar) */ ''}
@@ -91,7 +87,28 @@ function QuestionList({
                 ${/* Solo animamos si NO está saliendo y NO se acaba de actualizar (para no chocar con el destello) */ ''}
                 ${justCreatedId === q.id ? 'animate-card-entry' : ''}
             `}
-            >
+        >
+        <div 
+            className={`
+                relative tablet:w-[653px] w-[100%] flex tablet:flex-row flex-col gap-4 tablet:items-center justify-end
+                transition-all duration-500 ease-in-out
+                
+                ${/* 1. Lógica de Salida (Eliminar) */ ''}
+                ${exitingQuestionId === q.id ? 'opacity-50 -translate-x-full max-h-0 scale-10 pointer-events-none' : 'max-h-[500px]'}
+                
+                ${/* 2. Lógica de Bloqueo durante edición */ ''}
+                ${(isEditingAny && !isEditingThis) || isCreationOn 
+                ? 'opacity-40 grayscale scale-95 pointer-events-none blur-[1px]' // ESTADO BLOQUEADO
+                : '' // ESTADO NORMAL
+                }
+
+                ${/* 3. CORRECCIÓN AQUÍ: Animación de entrada */ ''}
+                ${/* Solo animamos si NO está saliendo y NO se acaba de actualizar (para no chocar con el destello) */ ''}
+                ${justCreatedId === q.id ? 'animate-card-entry' : ''}
+
+                ${isEditingThis ? 'opacity-0 h-0 p-0 mb-0 invisible translate-y-9' : ''}
+            `}
+        >
             
             {/* TARJETA DE PREGUNTA */}
             <div className={`
@@ -162,7 +179,7 @@ function QuestionList({
             {/* BOTONES DE ACCIÓN (Editar / Eliminar) */}
             {/* Aquí la magia: Si es la tarjeta que edito, Oculto los botones */}
             <div className={`
-                tablet:absolute tablet:z-40 flex tablet:pl-0 pl-2 
+                tablet:absolute tablet:z-10 flex tablet:pl-0 pl-2 
                 ${q.type == 'Sólo texto (sin respuestas)'? 'flex-row': 'tablet:flex-col flex-row'} 
                 gap-2 tablet:translate-x-full tablet:pl-[15px] mb-3 tablet:mb-0
                 transition-all duration-300
@@ -226,8 +243,25 @@ function QuestionList({
                     </span>
                 </button>
             </div>
-
-            </div>
+        </div>
+        <EditingSection
+            optionsList={optionsList} setOptionsList={setOptionsList}
+            mainContainerRef={mainContainerRef}
+            isMandatoryOn={isMandatoryOn} setIsMandatoryOn={setIsMandatoryOn}
+            isFastOutEditingFrame={isFastOutEditingFrame} setIsFastOutEditingFrame={setIsFastOutEditingFrame}
+            setRotation={setRotation}
+            questionTitle={questionTitle} setQuestionTitle={setQuestionTitle}
+            selectedTypeQuestionOption={selectedTypeQuestionOption} setSelectedTypeQuestionOption={setSelectedTypeQuestionOption}
+            editingQuestionId={editingQuestionId} setEditingQuestionId={setEditingQuestionId}
+            questions={questions} setQuestions={setQuestions}
+            setJustUpdatedQuestionId={setJustUpdatedQuestionId}
+            setJustCreatedId={setJustCreatedId}
+            setIsCreationOn={setIsCreationOn}
+            isEditingSectionOpen={isEditingSectionOpen} setIsEditingSectionOpen={setIsEditingSectionOpen}
+            isTypeQuestionSelectorOpen={isTypeQuestionSelectorOpen} setIsTypeQuestionSelectorOpen={setIsTypeQuestionSelectorOpen}
+            id={q.id}
+        />
+        </div>
         );
         });
     };

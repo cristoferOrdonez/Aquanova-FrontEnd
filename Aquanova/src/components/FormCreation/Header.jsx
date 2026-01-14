@@ -330,7 +330,7 @@ function Header() {
             </div>
             </div>
             <div className="
-                tablet:absolute tablet:z-10 w-wrap h-wrap 
+                tablet:absolute tablet:z-10 w-wrap h-wrap flex-wrap 
                 bg-transparent 
                 tablet:translate-x-full
                 tablet:pl-[31px]

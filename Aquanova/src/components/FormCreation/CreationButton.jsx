@@ -7,10 +7,13 @@ function CreationButton({
     setSelectedTypeQuestionOption,
     setOptionsList,
     setIsMandatoryOn,
-    mainContainerRef
+    mainContainerRef,
+    setEditingQuestionId
 }) {
 
     const handleCreation = () => {
+
+        setEditingQuestionId(-1); // Asegura que no haya ninguna pregunta en edición
 
         setIsCreationOn(true);
 

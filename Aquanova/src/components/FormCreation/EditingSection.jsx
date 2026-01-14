@@ -14,7 +14,8 @@ function EditingSection({
     setJustCreatedId,
     setIsCreationOn,
     isEditingSectionOpen, setIsEditingSectionOpen,
-    isTypeQuestionSelectorOpen, setIsTypeQuestionSelectorOpen
+    isTypeQuestionSelectorOpen, setIsTypeQuestionSelectorOpen,
+    id
 }) {
 
     const typeQuestionOptions = [
@@ -93,7 +94,7 @@ function EditingSection({
             required: selectedTypeQuestionOption == "Sólo texto (sin respuestas)" ? false : isMandatoryOn
         };
 
-        if (editingQuestionId !== null) {
+        if (editingQuestionId !== null && editingQuestionId !== -1) {
             // --- MODO EDICIÓN ---
             const currentId = editingQuestionId; // Guardamos el ID antes de limpiarlo
 
@@ -189,12 +190,13 @@ function EditingSection({
 
     return (
         <div alt="editing_frame" className={`
-            tablet:w-[653px] w-[90%] h-wrap bg-[var(--card-bg)] drop-shadow-md border-[1.5px] border-[var(--card-stroke)] rounded-[5px]
-            px-6 py-4 mb-10
-            flex flex-col justify-between gap-2
+            tablet:w-[653px] ${id == -1 ? 'w-[90%]' : 'w-[100%]'} bg-[var(--card-bg)] drop-shadow-md border-[1.5px] border-[var(--card-stroke)] rounded-[5px]
+            flex flex-col justify-between gap-2 ${!isEditingSectionOpen ? 'overflow-hidden' : 'overflow-visible'}
+
             
             transition-all ${isFastOutEditingFrame ? 'duration-0' : 'duration-500'} ease-in-out
-            ${isEditingSectionOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}
+            ${isEditingSectionOpen && editingQuestionId === id ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}
+            ${isEditingSectionOpen && editingQuestionId === id ? 'h-auto px-6 py-4 mb-10' : 'h-0 p-0 mb-0'}
         `}>
             <div className="flex tablet:flex-row flex-col gap-2">
             <textarea 
@@ -262,7 +264,7 @@ function EditingSection({
                 </div>
 
                 <div className={`
-                absolute z-10 tablet:w-[121%] w-[100%] -mt-1.5
+                absolute z-20 tablet:w-[121%] w-[100%] -mt-1.5
                 bg-white 
                 border-[1.5px] border-[var(--card-stroke)] 
                 rounded-[14px] 

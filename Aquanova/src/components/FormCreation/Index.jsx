@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import Header from './Header';
-import Questions from './QuestionList';
+import QuestionList from './QuestionList';
 import EditingSection from './EditingSection';
 import CreationButton from './CreationButton';
 
@@ -47,20 +47,24 @@ function Index() {
     >
 
     <Header /> 
-    <Questions
+    <QuestionList
       questions={questions} setQuestions={setQuestions}
       justUpdatedQuestionId={justUpdatedQuestionId}
       justCreatedId={justCreatedId}
       editingQuestionId={editingQuestionId} setEditingQuestionId={setEditingQuestionId}
       isCreationOn={isCreationOn}
-      setQuestionTitle={setQuestionTitle}
-      setSelectedTypeQuestionOption={setSelectedTypeQuestionOption}
-      setOptionsList={setOptionsList}
-      setIsMandatoryOn={setIsMandatoryOn}
-      setIsEditingSectionOpen={setIsEditingSectionOpen}
-      setIsFastOutEditingFrame={setIsFastOutEditingFrame}
+      questionTitle={questionTitle} setQuestionTitle={setQuestionTitle}
+      selectedTypeQuestionOption={selectedTypeQuestionOption} setSelectedTypeQuestionOption={setSelectedTypeQuestionOption}
+      optionsList={optionsList} setOptionsList={setOptionsList}
+      isMandatoryOn={isMandatoryOn} setIsMandatoryOn={setIsMandatoryOn}
+      isEditingSectionOpen={isEditingSectionOpen} setIsEditingSectionOpen={setIsEditingSectionOpen}
+      isFastOutEditingFrame={isFastOutEditingFrame} setIsFastOutEditingFrame={setIsFastOutEditingFrame}
       setRotation={setRotation}
       mainContainerRef={mainContainerRef}
+      setJustUpdatedQuestionId={setJustUpdatedQuestionId}
+      setJustCreatedId={setJustCreatedId}
+      setIsCreationOn={setIsCreationOn}
+      isTypeQuestionSelectorOpen={isTypeQuestionSelectorOpen} setIsTypeQuestionSelectorOpen={setIsTypeQuestionSelectorOpen}
     /> 
     <EditingSection
       optionsList={optionsList} setOptionsList={setOptionsList}
@@ -77,6 +81,8 @@ function Index() {
       setIsCreationOn={setIsCreationOn}
       isEditingSectionOpen={isEditingSectionOpen} setIsEditingSectionOpen={setIsEditingSectionOpen}
       isTypeQuestionSelectorOpen={isTypeQuestionSelectorOpen} setIsTypeQuestionSelectorOpen={setIsTypeQuestionSelectorOpen}
+      id={-1}
+      
     />
     <CreationButton
       setIsCreationOn={setIsCreationOn}
@@ -88,6 +94,7 @@ function Index() {
       setOptionsList={setOptionsList}
       setIsMandatoryOn={setIsMandatoryOn}
       mainContainerRef={mainContainerRef}
+      setEditingQuestionId={setEditingQuestionId}
     />  
     </div>
   )

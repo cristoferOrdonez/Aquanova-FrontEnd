@@ -32,10 +32,6 @@ export function MultipleOptionsInput({
             { id: Date.now(), value: "Opción sin título" }
         ]);
 
-        mainContainerRef.current.scrollTo({
-            top: mainContainerRef.current.scrollHeight,
-            behavior: "instant",
-        });
         }, 125);
 
     };
