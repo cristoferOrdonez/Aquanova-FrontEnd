@@ -8,7 +8,8 @@ function FormList(){
   return(
     <div className="p-4 m-7">
       <div className="flex flex-row flex-1">
-        <div className="w-full">
+        <div className="flex w-full gap-5">
+          <SearchBar/>
           <SearchBar/>
         </div>
 

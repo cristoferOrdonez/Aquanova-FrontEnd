@@ -4,6 +4,7 @@ import FormList from './components/FormList'
 import Navbar from './components/Navbar'
 import FormCreation from './components/FormCreation/Index'
 import Login from './components/Login/Index'
+import NeighborhoodList from './components/NeighborhoodList'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path='/' element={<FormList />} />
           <Route path='/form_creation' element={<FormCreation />} />
           <Route path='/login' element={<Login />} />
+          <Route path='/neighborhoods' element={<NeighborhoodList />} />
         </Routes>
     </div>
   )
