@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import Header from './Header';
-import QuestionList from './QuestionList';
-import EditingSection from './EditingSection';
-import CreationButton from './CreationButton';
+import Header from './components/Header';
+import QuestionList from './components/QuestionList';
+import EditingSection from './components/EditingSection';
+import CreationButton from './components/CreationButton';
 
 //import {Bars3BottomLeftIcon} from '@heroicons/react/24/outline';
 

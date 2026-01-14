@@ -33,6 +33,7 @@ function FormCard({
         font-work
         shadow-md hover:shadow-xl
         transition-all hover:-translate-y-1 duration-300
+        text-center
       "
     >
       <div className="relative h-48 overflow-hidden bg-gray-100">

@@ -1,4 +1,4 @@
-import Logo from './../../assets/images/logo_frog.png'
+import Logo from './../../../assets/images/logo_frog.png'
 import { useState } from 'react';
 
 function SignInSection() {

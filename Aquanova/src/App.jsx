@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import './App.css'
 import FormList from './components/FormList'
 import Navbar from './components/Navbar'
 import FormCreation from './components/FormCreation/Index'
