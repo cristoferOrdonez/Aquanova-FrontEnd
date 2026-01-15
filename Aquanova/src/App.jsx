@@ -3,14 +3,15 @@ import FormList from './components/FormList'
 import Navbar from './components/Navbar'
 import FormCreation from './components/FormCreation/Index'
 import Login from './components/Login/Index'
-import NeighborhoodList from './components/NeighborhoodList'
+import NeighborhoodList from './components/NeighborhoodList/NeighborhoodList'
+import NeighborhoodCreation from './components/NeighborhoodCreation/Index'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
 function App() {
   const [count, setCount] = useState(0)
   const location = useLocation()
   const hideNavbar = 
-    location.pathname === '/form_creation' || location.pathname === '/login'
+    location.pathname === '/form_creation' || location.pathname === '/login' || location.pathname === '/neighborhood_creation'
 
   return (
     <div className='App'>
@@ -20,6 +21,7 @@ function App() {
           <Route path='/form_creation' element={<FormCreation />} />
           <Route path='/login' element={<Login />} />
           <Route path='/neighborhoods' element={<NeighborhoodList />} />
+          <Route path='/neighborhood_creation' element={<NeighborhoodCreation />} />
         </Routes>
     </div>
   )

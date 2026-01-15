@@ -41,3 +41,4 @@
   /* Usamos la misma duración y curva que tu botón verde para consistencia */
   animation: smoothEntry 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+

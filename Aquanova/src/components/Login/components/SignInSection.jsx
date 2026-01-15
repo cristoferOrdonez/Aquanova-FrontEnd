@@ -1,3 +1,4 @@
+import CommonField from './../../ui/CommonField';
 import Logo from './../../../assets/images/logo_frog.png'
 import { useState } from 'react';
 
@@ -27,7 +28,7 @@ function SignInSection() {
     }
 
     return (
-        <div className="py-6 px-12 bg-[var(--bg-main)] h-screen flex flex-col">
+        <div className="py-6 px-12 bg-[var(--bg-main)] h-screen flex flex-col text-center">
             <div className = "text-sm flex flex-row justify-end gap-2 mb-6">
                 <span className="text-[#4E5A68]">¿Tiene algún inconveniente?</span>
                 <span className="text-[#0D448A] hover:font-semibold hover:underline">Soporte técnico</span>
@@ -43,48 +44,13 @@ function SignInSection() {
                     </div>
                 </div>
                 <div className="flex flex-col justify-center gap-8">
-                    <div className="flex flex-col group">
-                        <span
-                            className="
-                                text-sm font-semibold
-                                transition-all duration-300 ease-in-out
-                                group-hover:scale-[1.07]
-                                group-hover-:translate-y-1
-                            "
-                        >
-                            Cedula:
-                        </span>
-                        <input
-                            type="number"
-                            placeholder="Digite su cédula"
-                            className="
-                                /* --- Diseño Base --- */
-                                border border-[#0000004d]
-                                bg-[#EDEDED]
-                                text-center
-                                rounded-[10px] p-2
-                                outline-none
-
-                                /* --- La Magia de la Animación --- */
-                                transition-all duration-300 ease-in-out
-                                
-                                /* Efecto al enfocar (Focus) */
-                                focus:bg-[#f0f0f0]
-                                focus:border-[#1361C5]          /* Cambia el borde a color (puedes cambiar indigo por tu color) */
-                                focus:ring-4 focus:ring-[#1361C5]/20 /* Añade un anillo difuminado alrededor */
-                                focus:shadow-lg                  /* Añade sombra para dar profundidad */
-                                group-hover:scale-[1.03]               /* Crece un 3% para destacar */
-                                group-hover:translate-y-1
-
-                                /* --- Ocultar Flechas (Tu código) --- */
-                                [appearance:textfield] 
-                                [&::-webkit-outer-spin-button]:appearance-none 
-                                [&::-webkit-inner-spin-button]:appearance-none
-                            "
-                            onInput={cedulaInputOnInput}
-                            onKeyDown={cedulaInputOnKeyDown}
-                        />
-                    </div>
+                    <CommonField 
+                        label="Cédula:"
+                        placeholder="Digite su cédula"
+                        type="number"
+                        onInput={cedulaInputOnInput}
+                        onKeyDown={cedulaInputOnKeyDown}
+                    />
                     <div className="flex flex-col group">
                         <span
                             className="

@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import ExitButton from './../../ui/ExitButton';
+import CommonSelector from './../../ui/CommonSelector';
 
 function Header() {
 
@@ -7,8 +9,6 @@ function Header() {
     const [imagePreview, setImagePreview] = useState(null);
 
     const [isDragging, setIsDragging] = useState(false);
-
-    const [isNeighborhoodSelectorOpen, setIsNeighborhoodSelectorOpen] = useState(false);
 
     const [selectedNeighborhoodOption, setSelectedNeighborhoodOption] = useState("Seleccione un barrio");
 
@@ -222,73 +222,16 @@ function Header() {
 
                 {/* Selector de Barrio */}
                 <div className="flex flex-col gap-1">
-                <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
-                    Barrio de la campaña
-                </span>
-                <div className="tablet:w-64 w-auto relative">
-                    <div 
-                    onClick={() => setIsNeighborhoodSelectorOpen(!isNeighborhoodSelectorOpen)}
-                    className="
-                        bg-[var(--selectors-and-search-bars)] 
-                        border-[1.5px] border-[var(--stroke-selectors-and-search-bars)] 
-                        rounded-[14px] 
-                        px-2.5
-                        py-1.5 
-                        flex items-center justify-between 
-                        cursor-pointer 
-                        hover:bg-[var(--stroke-selectors-and-search-bars)]
-                        [@media(pointer:coarse)]:active:bg-[var(--stroke-selectors-and-search-bars)] 
-                        transition-colors
-                    "
-                    >
-                    <span className="tablet:text-base text-[15px] text-[var(--text)] opacity-90 truncate max-w-[85%]">
-                        {selectedNeighborhoodOption}
+                    <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
+                        Barrio de la campaña
                     </span>
-
-                    <svg 
-                        className={`w-3 h-3 text-[#000000] opacity-30 transition-transform duration-300 ${isNeighborhoodSelectorOpen ? 'rotate-180' : ''}`}
-                        viewBox="0 0 24 24" 
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path d="M12 18L4 6H20L12 18Z"/>
-                    </svg>
-                    </div>
-
-                    <div className={`
-                    absolute z-10 tablet:w-[121%] w-full -mt-1.5 
-                    bg-white 
-                    border-[1.5px] border-[var(--card-stroke)] 
-                    rounded-[14px] 
-                    tablet:translate-x-4
-                    shadow-lg 
-                    overflow-hidden
-                    
-                    transition-all duration-300 ease-out origin-top
-                    ${isNeighborhoodSelectorOpen 
-                        ? 'opacity-100 scale-100 translate-y-0 visible' 
-                        : 'opacity-0 scale-95 -translate-y-2 invisible pointer-events-none'}
-                    `}>
-                    {neighborhoodOptions.map((option, index) => (
-                        <div 
-                        key={index}
-                        onClick={() => {
-                            setSelectedNeighborhoodOption(option);
-                            setIsNeighborhoodSelectorOpen(false);
-                        }}
-                        className="
-                            px-4 py-2 
-                            tablet:text-normal text-[15px] text-[var(--text)] opacity-90 
-                            hover:bg-[var(--stroke-selectors-and-search-bars)]
-                            [@media(pointer:coarse)]:active:bg-[var(--stroke-selectors-and-search-bars)]
-                            cursor-pointer 
-                            transition-colors"
-                        >
-                        {option}
-                        </div>
-                    ))}
-                    </div>
-                </div>
+                    <CommonSelector
+                        options={neighborhoodOptions}
+                        selectedOption={selectedNeighborhoodOption} setSelectedOption={setSelectedNeighborhoodOption}
+                        widthSelector={64}
+                        scaleOptions={121}
+                        translateX={4}
+                    />
                 </div>
             </div>
             <div className="w-full h-wrap flex flex-col justify-between gap-4">
@@ -372,40 +315,7 @@ function Header() {
                 </span>
             </button>
 
-            <button 
-                className="
-                    w-fit pr-4 pl-2.5 py-1 bg-red-50 rounded-[30px] border-[1.5px] border-red-900
-                    hover:bg-red-100 text-red-900 transition-colors transform hover:scale-110
-                    flex flex-row items-center gap-2 cursor-pointer
-
-                    [@media(pointer:coarse)]:active:bg-red-100
-                    [@media(pointer:coarse)]:active:scale-110
-                "
-            >
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="w-7 h-7"
-            >
-            {/* Marco de la puerta (Lado izquierdo) */}
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                
-                {/* Punta de la flecha */}
-                <polyline points="16 17 21 12 16 7" />
-                
-                {/* Línea de la flecha */}
-                <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-
-                <span className="text-xs">
-                Salir
-                </span>
-            </button>
+            <ExitButton />
 
             <div 
                 onClick={handlePublishToggle} 
