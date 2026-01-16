@@ -38,7 +38,7 @@ export function useLoginForm() {
       })
 
       authService.saveSession({ token: result.token, user: result.user })
-      navigate('/')
+      navigate('/home')
     } catch (err) {
       setError(err?.message || 'No fue posible iniciar sesión.')
     } finally {

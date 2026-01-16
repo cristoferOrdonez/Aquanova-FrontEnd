@@ -71,14 +71,14 @@ function Navbar() {
       <div className='flex flex-1 gap-10'>
         <button
           type='button'
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
           className='text-xl text-bold text-white hover:opacity-80 transition-opacity'
         >
           Inicio
         </button>
         <button
           type='button'
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/forms')}
           className='text-xl text-bold text-white hover:opacity-80 transition-opacity'
         >
           Campañas

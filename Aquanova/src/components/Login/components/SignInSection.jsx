@@ -1,22 +1,20 @@
 import CommonField from './../../ui/CommonField'
 import Logo from './../../../assets/images/logo_frog.png'
 import PasswordField from './PasswordField'
-import { useLoginForm } from '../hooks/useLoginForm'
 
-function SignInSection() {
-  const {
-    showPassword,
-    documentNumber,
-    password,
-    loading,
-    error,
-    setDocumentNumber,
-    setPassword,
-    togglePasswordVisibility,
-    cedulaInputOnInput,
-    cedulaInputOnKeyDown,
-    submit,
-  } = useLoginForm()
+function SignInSection({
+  showPassword,
+  documentNumber,
+  password,
+  loading,
+  error,
+  setDocumentNumber,
+  setPassword,
+  togglePasswordVisibility,
+  cedulaInputOnInput,
+  cedulaInputOnKeyDown,
+  submit
+}) {
 
   return (
     <form

@@ -43,6 +43,12 @@ export default function CommonField({
           focus:border-[#1361C5]
           focus:ring-4 focus:ring-[#1361C5]/20
           focus:shadow-lg
+          
+          /* --- Clases para ocultar las flechas numéricas --- */
+          [appearance:textfield]
+          [&::-webkit-outer-spin-button]:appearance-none
+          [&::-webkit-inner-spin-button]:appearance-none
+          
           ${className}
         `}
       />
