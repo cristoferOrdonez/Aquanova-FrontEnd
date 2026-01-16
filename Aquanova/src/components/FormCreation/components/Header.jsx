@@ -228,9 +228,6 @@ function Header() {
                     <CommonSelector
                         options={neighborhoodOptions}
                         selectedOption={selectedNeighborhoodOption} setSelectedOption={setSelectedNeighborhoodOption}
-                        widthSelector={64}
-                        scaleOptions={121}
-                        translateX={4}
                     />
                 </div>
             </div>

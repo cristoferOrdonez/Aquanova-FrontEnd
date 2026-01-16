@@ -3,15 +3,12 @@ import React, { useState } from 'react';
 const CommonSelector = ({
     options,
     selectedOption, setSelectedOption,
-    widthSelector,
-    scaleOptions,
-    translateX
 }) => {
 
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
     return (
-        <div className={`tablet:w-${widthSelector} w-auto relative`}>
+        <div className="tablet:w-64 w-auto relative">
             <div 
             onClick={() => setIsSelectorOpen(!isSelectorOpen)}
             className="
@@ -42,11 +39,11 @@ const CommonSelector = ({
             </div>
 
             <div className={`
-            absolute z-10 tablet:w-[${scaleOptions}%] w-full -mt-1.5 
+            absolute z-10 tablet:w-[121%] w-full -mt-1.5 
             bg-white 
             border-[1.5px] border-[var(--card-stroke)] 
             rounded-[14px] 
-            tablet:translate-x-${translateX}
+            tablet:translate-x-4
             shadow-lg 
             overflow-hidden
             

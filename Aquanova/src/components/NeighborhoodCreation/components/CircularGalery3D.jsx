@@ -1,27 +1,49 @@
 import React, { useState, useRef } from 'react';
 import NeighborhoodBackground from './../../../assets/images/bg_neighborhood.jpg';
+import LocalityBackground from './../../../assets/images/bg_locality.jpg'; 
+import PropertyBackground from './../../../assets/images/bg_property.jpg';
+import { PROPERTY_OPTION, NEIGHBORHOOD_OPTION, LOCALITY_OPTION } from './GeoLevelSelector.jsx';
 
-const ZeroGGyroGallery = ({ selectedType = "Inmueble" }) => {
-  // --- LÓGICA ORIGINAL ---
-  const SLOTS_QUANTITY = 5;
-  const ANGLE_PER_SLOT = 360 / SLOTS_QUANTITY;
+const ModernGallery = ({ selectedType = "Inmueble" }) => {
+  const SLOTS_QUANTITY = 5; 
 
+  // --- CONFIGURACIÓN DE FONDOS ---
+  // Mapeamos cada tipo con su imagen correspondiente
+  const backgroundConfig = [
+    { 
+      id: PROPERTY_OPTION, 
+      src: PropertyBackground 
+    },
+    { 
+      id: NEIGHBORHOOD_OPTION, 
+      src: NeighborhoodBackground 
+    },
+    { 
+      id: LOCALITY_OPTION, 
+      src: LocalityBackground 
+    }
+  ];
+
+  // Estado
   const [slots, setSlots] = useState(Array(SLOTS_QUANTITY).fill(null));
-  const [currentDeg, setCurrentDeg] = useState(0);
-  const [dragActiveIndex, setDragActiveIndex] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const inputRefs = useRef([]);
 
-  const rotate = (direction) => {
-    setCurrentDeg((prev) => (direction === 'next' ? prev - ANGLE_PER_SLOT : prev + ANGLE_PER_SLOT));
+  // --- Lógica de Navegación Circular ---
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % SLOTS_QUANTITY);
   };
 
-  const getActiveIndex = () => {
-    const steps = Math.round(currentDeg / ANGLE_PER_SLOT);
-    const activeIndex = ((-steps % SLOTS_QUANTITY) + SLOTS_QUANTITY) % SLOTS_QUANTITY;
-    return activeIndex;
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + SLOTS_QUANTITY) % SLOTS_QUANTITY);
   };
-  const activeIndex = getActiveIndex();
 
+  const goToSlide = (index) => {
+    setActiveIndex(index);
+  };
+
+  // --- Manejo de Archivos ---
   const handleFile = (file, index) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
@@ -29,36 +51,49 @@ const ZeroGGyroGallery = ({ selectedType = "Inmueble" }) => {
         const newSlots = [...slots];
         newSlots[index] = reader.result;
         setSlots(newSlots);
+        setActiveIndex(index);
+        setIsDragging(false); 
       };
       reader.readAsDataURL(file);
     } else {
-      alert("Archivo no válido.");
+      alert("Formato no válido. Por favor sube una imagen (JPG, PNG).");
+      setIsDragging(false);
     }
   };
 
   const handleInputChange = (e, index) => {
-    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0], index);
+    const file = e.target.files[0];
+    if (file) handleFile(file, index);
   };
 
-  const triggerInput = (index) => inputRefs.current[index]?.click();
+  const triggerInput = (index) => {
+    inputRefs.current[index]?.click();
+  };
 
-  const handleDragEnter = (e, index) => {
-    e.preventDefault(); e.stopPropagation();
-    setDragActiveIndex(index);
-  };
-  const handleDragLeave = (e, index) => {
-    e.preventDefault(); e.stopPropagation();
-    if (e.currentTarget.contains(e.relatedTarget)) return;
-    setDragActiveIndex(null);
-  };
-  const handleDragOver = (e) => e.preventDefault();
-  
+  // --- Drag & Drop ---
   const handleDrop = (e, index) => {
-    e.preventDefault(); e.stopPropagation();
-    setDragActiveIndex(null);
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], index);
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0], index);
+    }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setIsDragging(false);
+  };
+
+  // --- Acciones de Tarjeta ---
   const handleRemoveImage = (e, index) => {
     e.stopPropagation();
     const newSlots = [...slots];
@@ -69,211 +104,199 @@ const ZeroGGyroGallery = ({ selectedType = "Inmueble" }) => {
 
   const handleOpenNewTab = (e, imgUrl) => {
     e.stopPropagation();
-    if (imgUrl) window.open(imgUrl, '_blank');
-  };
-
-  const filledCount = slots.filter(Boolean).length;
-
-  // --- LÓGICA DE ÓRBITA FLOTANTE ---
-  const getOrbitalStyle = (index) => {
-    // Calculamos el ángulo absoluto actual de este slot
-    const angle = (index * ANGLE_PER_SLOT) + currentDeg;
-    // Normalizamos el ángulo para cálculos de distancia (0 a 360)
-    const normalizedAngle = ((angle % 360) + 360) % 360;
-    
-    // Distancia al frente (0 grados es frente)
-    let distFromFront = Math.abs(normalizedAngle);
-    if (distFromFront > 180) distFromFront = 360 - distFromFront;
-    
-    const isFront = distFromFront < 30; // Tolerancia para considerar "frente"
-    
-    // OSCILACIÓN VERTICAL (WAVE)
-    // Usamos seno para que suban y bajen suavemente mientras giran
-    const verticalOffset = Math.sin((angle * Math.PI) / 180) * 80; 
-
-    // Radio de la órbita
-    const radius = 350;
-
-    return {
-      // La transformación combina rotación en Y con oscilación en Y
-      transform: `rotateY(${angle}deg) translateZ(${radius}px) translateY(${verticalOffset}px) rotateY(${-angle}deg)`, 
-      // El último rotateY(-angle) es el truco de "Billboard": deshace la rotación para mirar al frente
-      
-      zIndex: 1000 - Math.floor(distFromFront),
-      opacity: isFront ? 1 : 0.5 - (distFromFront * 0.001),
-      filter: isFront ? 'none' : `blur(${distFromFront * 0.04}px) brightness(60%)`,
-      scale: isFront ? 1.1 : 0.8,
-      pointerEvents: isFront ? 'auto' : 'none',
-    };
+    if (imgUrl) {
+      const newWindow = window.open();
+      newWindow.document.writeln(
+        `<body style="margin:0;display:flex;align-items:center;justify-content:center;background:#111;">
+          <img src="${imgUrl}" style="max-width:100%;max-height:100vh;box-shadow:0 0 20px rgba(0,0,0,0.5);" />
+         </body>`
+      );
+    }
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0a0a0a] font-sans flex flex-col items-center justify-center selection:bg-purple-500/30">
+    <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden bg-gray-900">
       
-      {/* --- BACKGROUND CÓSMICO --- */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <img 
-          src={NeighborhoodBackground} 
-          alt="Atmosphere"
-          className="w-full h-full object-cover opacity-20 filter blur-xl contrast-150 saturate-0" 
-        />
-        {/* Viñeta radial para dar profundidad infinita */}
-        <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#0a0a0a]/90 to-[#0a0a0a]"></div>
-        {/* Partículas estáticas (estrellas) */}
-        <div className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:50px_50px] opacity-10"></div>
+      {/* --- BACKGROUND ANIMADO --- */}
+      <div className="absolute inset-0 z-0">
+        {backgroundConfig.map((bg, index) => {
+          // Determinamos si este fondo debe estar visible
+          // Comprobamos si el selectedType coincide con el ID o con alguno de sus alias
+          const isActive = selectedType === bg.id;
+
+          return (
+            <img 
+              key={bg.id || index}
+              src={bg.src} 
+              alt={`Fondo ${bg.id}`}
+              className={`
+                absolute inset-0 w-full h-full object-cover 
+                scale-110 blur-sm brightness-[0.4]
+                transition-opacity duration-1000 ease-in-out
+                ${isActive ? 'opacity-100' : 'opacity-0'}
+              `} 
+            />
+          );
+        })}
+        {/* Capa oscura superpuesta siempre visible para unificar el tono */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none"></div>
       </div>
 
-      {/* --- HEADER FLOTANTE --- */}
-      <div className="absolute top-10 z-30 text-center mix-blend-screen">
-        <h1 className="text-5xl md:text-6xl font-thin tracking-tighter text-white/90">
-          O R B I T <span className="text-purple-400 font-bold">.</span> {selectedType}
-        </h1>
-        <div className="flex items-center justify-center gap-2 mt-2">
-            <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
-            <span className="text-xs text-purple-200/50 tracking-[0.5em] uppercase">
-                Sincronización: {Math.round((filledCount / SLOTS_QUANTITY) * 100)}%
-            </span>
-        </div>
+      {/* --- HEADER --- */}
+      <div className="relative z-10 text-center mb-8 max-w-lg px-4 animate-fade-in-down">
+        <h2 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-xl mb-2">
+          Galería {selectedType === 'localidad'? 'de la ' : 'del '} <span className="text-blue-400">{selectedType}</span>
+        </h2>
+        <p className="text-gray-300 text-base font-light leading-relaxed">
+          Sube hasta 5 fotografías para destacar este espacio. 
+          <br/> Selecciona una tarjeta para empezar.
+        </p>
       </div>
 
-      {/* --- GYROSCOPE STAGE (ESCENARIO 3D) --- */}
-      <div className="relative w-full h-[600px] flex items-center justify-center perspective-container z-20">
+      {/* --- CAROUSEL MODERNO (Coverflow Style) --- */}
+      <div className="relative w-full max-w-6xl h-[450px] flex items-center justify-center z-10 perspective-1000">
         
-        {/* Anillos Decorativos del Giroscopio (Fijos o rotando lento) */}
-        <div className="absolute w-[700px] h-[700px] border border-white/5 rounded-full animate-[spin_60s_linear_infinite] pointer-events-none transform-style-3d rotate-x-60"></div>
-        <div className="absolute w-[600px] h-[600px] border border-dashed border-purple-500/10 rounded-full animate-[spin_40s_linear_infinite_reverse] pointer-events-none transform-style-3d rotate-x-60"></div>
-        <div className="absolute w-[200px] h-[200px] bg-purple-900/10 blur-3xl rounded-full animate-pulse pointer-events-none"></div>
+        {slots.map((imagePreview, index) => {
+          let offset = (index - activeIndex);
+          if (offset < -2) offset += SLOTS_QUANTITY;
+          if (offset > 2) offset -= SLOTS_QUANTITY;
+          
+          const isActive = offset === 0;
+          const isPrev = offset === -1;
+          const isNext = offset === 1;
+          const isVisible = Math.abs(offset) <= 2; 
+          const showDragOverlay = isActive && isDragging;
 
-        {/* CONTENEDOR DE CARTAS (Inclinado para efecto orbital) */}
-        <div className="relative w-0 h-0 transform-style-3d" style={{ transform: 'rotateX(-10deg)' }}> {/* Leve inclinación de cámara */}
-            
-            {slots.map((imagePreview, index) => {
-                const style = getOrbitalStyle(index);
-                const isActive = activeIndex === index;
-                const isDragging = dragActiveIndex === index;
-                const hasImage = !!imagePreview;
+          if (!isVisible) return null;
 
-                return (
-                    <div
-                        key={index}
-                        // Aplicamos el estilo calculado + transición suave
-                        style={{ ...style, transition: 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), z-index 0s' }} 
-                        className={`
-                            absolute top-[-220px] left-[-150px] /* Centrar elemento de 300x440 */
-                            w-[300px] h-[440px] rounded-3xl
-                            /* Estilo Vidrio Espacial */
-                            bg-gradient-to-br from-white/10 to-transparent backdrop-blur-md
-                            border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]
-                            flex flex-col overflow-hidden group
-                            ${isActive && isDragging ? 'ring-2 ring-purple-400 bg-purple-900/20' : ''}
-                        `}
-                        onDragEnter={(e) => isActive && handleDragEnter(e, index)}
-                        onDragLeave={(e) => isActive && handleDragLeave(e, index)}
-                        onDragOver={(e) => isActive && e.preventDefault()}
-                        onDrop={(e) => isActive && handleDrop(e, index)}
-                        onClick={() => isActive && !hasImage && triggerInput(index)}
-                    >
-                        <input type="file" ref={(el) => (inputRefs.current[index] = el)} onChange={(e) => handleInputChange(e, index)} accept="image/*" className="hidden" />
+          return (
+            <div
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`
+                absolute transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
+                w-[300px] h-[400px] rounded-3xl
+                ${isActive ? 'z-30 opacity-100 cursor-default shadow-2xl shadow-blue-900/20' : ''}
+                ${isActive && !showDragOverlay ? 'scale-100' : ''} 
+                ${showDragOverlay ? 'scale-105' : ''}
+                ${isPrev ? 'z-20 -translate-x-[260px] scale-[0.85] opacity-60 cursor-pointer hover:opacity-80 blur-[1px]' : ''}
+                ${isNext ? 'z-20 translate-x-[260px] scale-[0.85] opacity-60 cursor-pointer hover:opacity-80 blur-[1px]' : ''}
+                ${Math.abs(offset) >= 2 ? 'z-10 opacity-0 scale-50' : ''}
+              `}
+            >
+               {/* Input oculto */}
+               <input
+                type="file"
+                ref={(el) => (inputRefs.current[index] = el)}
+                onChange={(e) => handleInputChange(e, index)}
+                accept="image/*"
+                className="hidden"
+              />
 
-                        {/* Brillo en el borde superior (luz ambiental) */}
-                        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-
-                        {hasImage ? (
-                            // CON IMAGEN
-                            <div className="relative w-full h-full">
-                                <img src={imagePreview} alt="Orbital Item" className="w-full h-full object-cover opacity-90 transition-opacity group-hover:opacity-100" />
-                                
-                                {isActive && (
-                                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-30 translate-x-10 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                                        <button onClick={(e) => handleOpenNewTab(e, imagePreview)} className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-purple-600 hover:border-purple-400 transition-colors">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                                        </button>
-                                        <button onClick={(e) => handleRemoveImage(e, index)} className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-red-400 flex items-center justify-center hover:bg-red-600 hover:text-white hover:border-red-400 transition-colors">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </button>
-                                    </div>
-                                )}
-                                
-                                {/* Info Overlay Bottom */}
-                                <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <p className="text-white text-sm font-medium">Archivo cargado</p>
-                                    <p className="text-white/40 text-xs font-mono mt-1">ID: IMG-{index}X8</p>
-                                </div>
-                            </div>
-                        ) : (
-                            // VACÍO (ESTRUCTURA DE ALAMBRE)
-                            <div className={`w-full h-full flex flex-col items-center justify-center relative ${isActive ? 'cursor-pointer' : ''}`}>
-                                <div className="absolute inset-4 border border-dashed border-white/10 rounded-2xl"></div>
-                                
-                                {/* Círculo central animado */}
-                                <div className="relative w-24 h-24 flex items-center justify-center mb-6">
-                                    <div className={`absolute inset-0 border border-purple-500/30 rounded-full ${isActive ? 'animate-ping' : ''}`} style={{animationDuration: '3s'}}></div>
-                                    <div className="absolute inset-2 border border-white/10 rounded-full"></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className={`w-8 h-8 text-white/50 ${isDragging && isActive ? 'text-purple-400 scale-125' : ''} transition-all`}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                    </svg>
-                                </div>
-
-                                {isActive ? (
-                                    <div className="text-center z-10">
-                                        <p className="text-purple-300 text-xs font-bold tracking-widest uppercase mb-1">
-                                            {isDragging ? 'Soltar Enlace' : 'Inicializar'}
-                                        </p>
-                                        <p className="text-white/30 text-[10px]">Click para explorar archivos</p>
-                                    </div>
-                                ) : (
-                                    <span className="text-white/10 font-mono text-4xl font-bold">0{index + 1}</span>
-                                )}
-                            </div>
-                        )}
+              {/* --- TARJETA CONTENEDOR --- */}
+              <div 
+                className={`
+                  w-full h-full rounded-3xl overflow-hidden relative group
+                  bg-white/5 backdrop-blur-md border border-white/10
+                  transition-all duration-300 flex items-center justify-center
+                  ${showDragOverlay ? 'border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.3)]' : ''}
+                `}
+                onDragOver={isActive ? handleDragOver : undefined}
+                onDragLeave={isActive ? handleDragLeave : undefined}
+                onDrop={(e) => isActive && handleDrop(e, index)}
+              >
+                
+                {/* --- LÓGICA PRINCIPAL DE VISUALIZACIÓN --- */}
+                {showDragOverlay ? (
+                    // ESTADO: ARRASTRANDO
+                    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-gray-900/95 backdrop-blur-md border-2 border-dashed border-blue-400 m-1 rounded-2xl animate-pulse pointer-events-none transition-all duration-300">
+                        <div className="bg-blue-500/20 p-4 rounded-full mb-3 animate-bounce">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-blue-300">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                        </div>
+                        <h3 className="text-white text-lg font-bold tracking-wide drop-shadow-md">Suelta la imagen aquí</h3>
+                        <p className="text-blue-200 text-xs mt-1">Se actualizará instantáneamente</p>
                     </div>
-                );
-            })}
-        </div>
+                ) : (
+                    // ESTADO NORMAL
+                    <>
+                        {!imagePreview && (
+                          <div 
+                            onClick={() => isActive && triggerInput(index)}
+                            className={`
+                              flex flex-col items-center justify-center h-full w-full
+                              text-gray-400 hover:text-white transition-colors
+                              ${isActive ? 'cursor-pointer' : 'cursor-default pointer-events-none'}
+                            `}
+                          >
+                            <div className={`
+                              w-20 h-20 rounded-full flex items-center justify-center mb-4 transition-all duration-300
+                              ${isActive ? 'bg-white/10 group-hover:bg-blue-600 group-hover:scale-110 shadow-lg' : 'bg-white/5'}
+                            `}>
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                              </svg>
+                            </div>
+                            
+                            {isActive && (
+                               <div className="text-center animate-fade-in-up">
+                                 <p className="font-medium text-lg">Añadir foto</p>
+                                 <p className="text-xs text-gray-500 mt-1">Arrastra o haz clic</p>
+                               </div>
+                            )}
+                          </div>
+                        )}
+
+                        {imagePreview && (
+                          <>
+                            <img 
+                              src={imagePreview} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            />
+                            
+                            {isActive && (
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                <button onClick={(e) => handleOpenNewTab(e, imagePreview)} className="w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-gray-900 backdrop-blur-md flex items-center justify-center transition-all transform hover:scale-110 shadow-lg" title="Ver pantalla completa">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); triggerInput(index); }} className="w-12 h-12 rounded-full bg-blue-600/80 hover:bg-blue-500 text-white backdrop-blur-md flex items-center justify-center transition-all transform hover:scale-110 shadow-lg" title="Reemplazar">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+                                <button onClick={(e) => handleRemoveImage(e, index)} className="w-12 h-12 rounded-full bg-red-600/80 hover:bg-red-500 text-white backdrop-blur-md flex items-center justify-center transition-all transform hover:scale-110 shadow-lg" title="Eliminar">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
+                    </>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* --- CONTROLES DE NAVEGACIÓN --- */}
-      <div className="absolute bottom-12 z-30 flex items-center justify-center w-full gap-20">
-            {/* Botón Orbita Izquierda */}
-            <button 
-                onClick={() => rotate('prev')}
-                className="group relative w-16 h-16 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-purple-500/50 transition-all active:scale-95 flex items-center justify-center"
-            >
-                <div className="absolute inset-0 rounded-full border-t border-purple-500/50 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity"></div>
-                <svg className="w-6 h-6 text-white/70 group-hover:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            
-            {/* Indicador de posición (Puntos) */}
-            <div className="flex gap-3">
-                {slots.map((_, i) => (
-                    <div key={i} className={`h-1 rounded-full transition-all duration-500 ${activeIndex === i ? 'w-8 bg-purple-500 shadow-[0_0_10px_#a855f7]' : 'w-1 bg-white/20'}`}></div>
-                ))}
-            </div>
+      <div className="relative z-20 flex gap-6 mt-8">
+        <button onClick={handlePrev} className="group w-14 h-14 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all active:scale-95">
+          <svg className="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        
+        <div className="flex items-center gap-2 px-4 py-2 bg-black/20 rounded-full backdrop-blur-sm border border-white/5">
+          {slots.map((_, i) => (
+            <div key={i} onClick={() => goToSlide(i)} className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${i === activeIndex ? 'w-8 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'w-2 bg-white/30 hover:bg-white/60'}`}/>
+          ))}
+        </div>
 
-            {/* Botón Orbita Derecha */}
-            <button 
-                onClick={() => rotate('next')}
-                className="group relative w-16 h-16 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-purple-500/50 transition-all active:scale-95 flex items-center justify-center"
-            >
-                <div className="absolute inset-0 rounded-full border-t border-purple-500/50 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity" style={{animationDirection: 'reverse'}}></div>
-                <svg className="w-6 h-6 text-white/70 group-hover:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" /></svg>
-            </button>
+        <button onClick={handleNext} className="group w-14 h-14 rounded-full bg-white/5 border border-white/10 hover:bg-white/20 backdrop-blur-md flex items-center justify-center transition-all active:scale-95">
+          <svg className="w-6 h-6 text-white group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
       </div>
-
-      <style>{`
-        .perspective-container {
-            perspective: 1000px;
-        }
-        .transform-style-3d {
-            transform-style: preserve-3d;
-        }
-        /* Animación suave para los anillos de fondo */
-        .rotate-x-60 {
-            transform: rotateX(60deg);
-        }
-      `}</style>
     </div>
   );
 };
 
-export default ZeroGGyroGallery;
+export default ModernGallery;
