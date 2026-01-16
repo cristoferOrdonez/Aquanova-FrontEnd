@@ -1,4 +1,4 @@
-import defaultImage from './../assets/images/humedal.jpg'
+import defaultImage from './../../../assets/images/humedal.jpg'
 import FormStateElement from './FormStateElement'
 import { TrashIcon, PencilIcon, EyeIcon } from '@heroicons/react/24/outline'
 
