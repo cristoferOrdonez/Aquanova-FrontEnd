@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import FormList from './components/FormList'
-import Navbar from './components/Navbar'
+import FormList from './components/FormList/Index'
+import Navbar from './components/ui/Navbar'
 import FormCreation from './components/FormCreation/Index'
 import Login from './components/Login/Index'
 import NeighborhoodList from './components/NeighborhoodList/NeighborhoodList'

@@ -1,6 +1,6 @@
 import NeighborhoodCard from './NeighborhoodCard'
 import { PlusIcon } from '@heroicons/react/24/outline'
-import SearchBar from '../SearchBar'
+import SearchBar from '../ui/SearchBar'
 import { useNavigate } from 'react-router-dom'
 
 function NeighborhoodList() {

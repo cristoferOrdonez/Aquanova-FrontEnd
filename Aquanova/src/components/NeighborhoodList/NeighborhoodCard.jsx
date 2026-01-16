@@ -1,5 +1,5 @@
 import defaultImage from './../../assets/images/humedal.jpg'
-import FormStateElement from '../FormStateElement'
+import FormStateElement from '../FormList/components/FormStateElement'
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
 
 function NeighborhoodCard({
