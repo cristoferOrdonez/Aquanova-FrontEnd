@@ -60,7 +60,7 @@ const CommonSelector = ({
                 transition-all duration-200 ease-out origin-top
                 ${isGeoLevelParentSelectorOpen
                     ? 'opacity-100 scale-100 translate-y-0 visible'
-                    : 'opacity-0 scale-95 -translate-y-1 invisible pointer-events-none'}
+                    : 'opacity-0 scale-95 -translate-y-1 h-0 invisible pointer-events-none'}
             `}>
                 <div className="max-h-60 overflow-y-auto py-1 custom-scrollbar">
                     {options.map((option, index) => {
