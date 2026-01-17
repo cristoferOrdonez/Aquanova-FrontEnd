@@ -4,7 +4,7 @@ import Navbar from './components/ui/Navbar'
 import FormCreation from './components/FormCreation/Index'
 import Login from './components/Login/Index'
 import NeighborhoodList from './components/NeighborhoodList/NeighborhoodList'
-import NeighborhoodCreation from './components/NeighborhoodCreation/Index'
+import NeighborhoodCreation from './components/GeoLevelCreation/Index'
 import Home from './components/Home/Index'
 import { Routes, Route, useLocation } from 'react-router-dom'
 

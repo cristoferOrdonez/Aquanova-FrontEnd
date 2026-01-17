@@ -1,8 +1,11 @@
-import React from 'react';
+import { useGeoLevelSelectionContext } from '../hooks/useGeoLevelCreationContext.js';
 
 function ExitButton() {
+    const { exitToList } = useGeoLevelSelectionContext();
+
     return (
         <button 
+            onClick={exitToList}
             className="
                 group
                 flex items-center gap-2
