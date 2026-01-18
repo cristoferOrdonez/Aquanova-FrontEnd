@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const CommonSelector = ({
+const NeighborhoodSelector = ({
     options,
     selectedOption, setSelectedOption,
 }) => {
@@ -20,7 +20,6 @@ const CommonSelector = ({
                 flex items-center justify-between 
                 cursor-pointer 
                 hover:bg-[var(--stroke-selectors-and-search-bars)]
-                [@media(pointer:coarse)]:active:bg-[var(--stroke-selectors-and-search-bars)] 
                 transition-colors
             "
             >
@@ -63,7 +62,6 @@ const CommonSelector = ({
                     px-4 py-2 
                     tablet:text-normal text-[15px] text-[var(--text)] opacity-90 
                     hover:bg-[var(--stroke-selectors-and-search-bars)]
-                    [@media(pointer:coarse)]:active:bg-[var(--stroke-selectors-and-search-bars)]
                     cursor-pointer 
                     transition-colors"
                 >
@@ -75,4 +73,4 @@ const CommonSelector = ({
     )
 }
 
-export default CommonSelector;
+export default NeighborhoodSelector;

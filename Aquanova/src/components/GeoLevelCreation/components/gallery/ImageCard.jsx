@@ -1,4 +1,4 @@
-import { useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import { useImageGalleryContext } from '../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente ImageCard - Tarjeta individual de imagen en el carrusel

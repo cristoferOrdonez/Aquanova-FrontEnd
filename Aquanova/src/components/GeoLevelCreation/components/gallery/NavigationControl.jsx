@@ -1,5 +1,5 @@
 import SlideDot from './SlideDot.jsx';
-import { useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import { useImageGalleryContext } from '../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente NavigationControl - Controles de navegación del carrusel

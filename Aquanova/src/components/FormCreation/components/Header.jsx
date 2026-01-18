@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import ExitButton from './../../ui/ExitButton';
-import CommonSelector from './../../ui/CommonSelector';
+import { useState, useRef } from 'react';
+import ExitButton from './controls/ExitButton';
+import NeighborhoodSelector from './NeighborhoodSelector';
 
 function Header() {
 
@@ -225,7 +225,7 @@ function Header() {
                     <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
                         Barrio de la campaña
                     </span>
-                    <CommonSelector
+                    <NeighborhoodSelector
                         options={neighborhoodOptions}
                         selectedOption={selectedNeighborhoodOption} setSelectedOption={setSelectedNeighborhoodOption}
                     />

@@ -1,6 +1,6 @@
 import React from 'react';
-import GeoLevelCompactButton from './GeoLevelCompactButton.jsx';
-import { useGeoLevelSelectionContext } from '../hooks/useGeoLevelCreationContext.js';
+import GeoLevelCompactButton from '../buttons/GeoLevelCompactButton.jsx';
+import { useGeoLevelSelectionContext } from '../../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente CompactGeoLevelControl - Control compacto de selección de nivel geográfico

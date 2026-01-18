@@ -1,6 +1,5 @@
-import React from 'react';
 import ImageCard from './ImageCard.jsx';
-import { useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import { useImageGalleryContext } from '../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente Carousel - Carrusel de imágenes

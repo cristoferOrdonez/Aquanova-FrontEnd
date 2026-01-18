@@ -1,9 +1,9 @@
-import Gallery from "./Gallery.jsx";
+import Gallery from "./GallerySection.jsx";
 import DataSection from "./DataSection.jsx";
 import { 
     useGeoLevelSelectionContext, 
     useResizablePanelContext 
-} from "../hooks/useGeoLevelCreationContext.js";
+} from "../../hooks/useGeoLevelCreationContext.js";
 
 /**
  * Componente GeoLevelCreationContent - Contenido principal que consume contextos

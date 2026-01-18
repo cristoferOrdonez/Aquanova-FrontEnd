@@ -1,17 +1,17 @@
-import CommonSelector from "./CommonSelector";
-import CommonField from "./CommonField";
-import SaveButton from "./SaveButton";
-import { useGeoLevelSelectionContext, useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import CommonSelector from "../../ui/selectors/ParentSelector.jsx";
+import CommonField from "../../ui/fields/CommonField.jsx";
+import SaveButton from "../../ui/buttons/SaveButton.jsx";
+import { useGeoLevelSelectionContext, useImageGalleryContext } from '../../../hooks/useGeoLevelCreationContext.js';
 
 /**
- * Componente NeighborhoodForm - Formulario de registro de barrio
+ * Componente PropertyForm - Formulario de registro de predio
  * Consume el contexto directamente
  */
-function NeighborhoodForm() {
+function PropertyForm() {
     const {
-        parentLocalityOptions,
-        selectedParentLocalityOption,
-        setSelectedParentLocalityOption,
+        parentNeighborhoodOptions,
+        selectedParentNeighborhoodOption,
+        setSelectedParentNeighborhoodOption,
         isGeoLevelParentSelectorOpen,
         setIsGeoLevelParentSelectorOpen,
         formCode,
@@ -29,7 +29,7 @@ function NeighborhoodForm() {
         <div className="w-full flex justify-center items-start animate-fade-in-up">
             <div className="w-full max-w-lg p-8 flex flex-col gap-6 bg-gray-800/30 border border-white/5 rounded-2xl">
                 <div className="text-center mb-1">
-                    <h3 className="text-lg font-bold text-white">Registro del barrio</h3>
+                    <h3 className="text-lg font-bold text-white">Registro del predio</h3>
                     <p className="text-xs text-gray-500 mt-1">Detalles y ubicación</p>
                 </div>
 
@@ -41,8 +41,8 @@ function NeighborhoodForm() {
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pertenece a</label>
                         <CommonSelector
-                            options={parentLocalityOptions}
-                            selectedOption={selectedParentLocalityOption} setSelectedOption={setSelectedParentLocalityOption}
+                            options={parentNeighborhoodOptions}
+                            selectedOption={selectedParentNeighborhoodOption} setSelectedOption={setSelectedParentNeighborhoodOption}
                             isGeoLevelParentSelectorOpen={isGeoLevelParentSelectorOpen} setIsGeoLevelParentSelectorOpen={setIsGeoLevelParentSelectorOpen}
                         />
                     </div>
@@ -51,13 +51,13 @@ function NeighborhoodForm() {
                 <SaveButton
                     onClick={async () => {
                         const metadata = buildMetadata();
-                        const parent_id = selectedParentLocalityOption?.id ?? null;
+                        const parent_id = selectedParentNeighborhoodOption?.id ?? null;
                         try {
                             const res = await createGeoLevel({ parent_id, metadata });
-                            const msg = res?.message || 'Barrio creado exitosamente';
+                            const msg = res?.message || 'Predio creado exitosamente';
                             alert(msg);
                         } catch (err) {
-                            alert(err?.message || err?.data?.message || 'Error al crear el barrio');
+                            alert(err?.message || err?.data?.message || 'Error al crear el predio');
                         }
                     }}
                     disabled={isSubmitting}
@@ -67,4 +67,4 @@ function NeighborhoodForm() {
     );
 }
 
-export default NeighborhoodForm;
+export default PropertyForm;

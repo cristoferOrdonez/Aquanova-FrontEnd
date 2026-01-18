@@ -1,7 +1,7 @@
-import Carousel from './Carousel.jsx';
-import NavigationControl from './NavigationControl.jsx';
-import AnimatedBackground from './AnimatedBackground.jsx';
-import { useGeoLevelSelectionContext, useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import Carousel from './../gallery/Carousel.jsx';
+import NavigationControl from './../gallery/NavigationControl.jsx';
+import AnimatedBackground from './../gallery/AnimatedBackground.jsx';
+import { useGeoLevelSelectionContext, useImageGalleryContext } from './../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente Gallery - Muestra la galería de imágenes con fondo animado

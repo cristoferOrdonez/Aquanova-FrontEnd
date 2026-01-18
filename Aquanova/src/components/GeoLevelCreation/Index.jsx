@@ -1,5 +1,5 @@
 import { GeoLevelCreationProvider } from "./context/GeoLevelCreationProvider.jsx";
-import GeoLevelCreationContent from "./components/GeoLevelCreationContent.jsx";
+import GeoLevelCreationContent from "./components/containers/GeoLevelCreationContent.jsx";
 
 /**
  * Componente principal de creación de niveles geográficos

@@ -1,11 +1,11 @@
-import InitialGeoLevelSelectorGrid from './InicialGeoLevelSelectorGrid.jsx';
-import CompactGeoLevelControl from './CompactGeoLevelControl.jsx'
-import ExitButton from './ExitButton';
-import PropertyForm from './PropertyForm';
-import NeighborhoodForm from './NeighborhoodForm';
-import LocalityForm from './LocalityForm';
-import { useGeoLevelSelectionContext } from '../hooks/useGeoLevelCreationContext.js';
-import { GEO_LEVEL_TYPES } from '../config/geolevelConfig.js';
+import InitialGeoLevelSelectorGrid from '../ui/selectors/InicialGeoLevelSelectorGrid.jsx';
+import CompactGeoLevelControl from '../ui/selectors/CompactGeoLevelSelector.jsx'
+import ExitButton from '../ui/buttons/ExitButton.jsx';
+import PropertyForm from './forms/PropertyForm.jsx';
+import NeighborhoodForm from './forms/NeighborhoodForm.jsx';
+import LocalityForm from './forms/LocalityForm.jsx';
+import { useGeoLevelSelectionContext } from '../../hooks/useGeoLevelCreationContext.js';
+import { GEO_LEVEL_TYPES } from './../../config/geolevelConfig.js';
 
 /**
  * Componente DataSection - Sección de datos y formularios

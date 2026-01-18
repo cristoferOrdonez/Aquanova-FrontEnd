@@ -1,6 +1,6 @@
-import ExitButton from './ExitButton';
-import GeoLevelButton from './GeoLevelButton'
-import { useGeoLevelSelectionContext } from '../hooks/useGeoLevelCreationContext.js';
+import ExitButton from '../buttons/ExitButton.jsx';
+import GeoLevelButton from '../buttons/GeoLevelButton.jsx'
+import { useGeoLevelSelectionContext } from '../../../hooks/useGeoLevelCreationContext.js';
 
 /**
  * Componente InitialGeoLevelSelectorGrid - Grid de selección inicial

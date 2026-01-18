@@ -1,6 +1,6 @@
-import CommonField from "./CommonField";
-import SaveButton from "./SaveButton";
-import { useGeoLevelSelectionContext, useImageGalleryContext } from '../hooks/useGeoLevelCreationContext.js';
+import CommonField from "../../ui/fields/CommonField.jsx";
+import SaveButton from "../../ui/buttons/SaveButton.jsx";
+import { useGeoLevelSelectionContext, useImageGalleryContext } from '../../../hooks/useGeoLevelCreationContext.js';
 
 function LocalityForm() {
     const {
