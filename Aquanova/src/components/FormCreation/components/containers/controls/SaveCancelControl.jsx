@@ -1,4 +1,7 @@
-export default function SaveCancelControls({ onSave, onCancel }) {
+export default function SaveCancelControl({
+  onSave,
+  onCancel
+}) {
   return (
     <div className="gap-2 flex flex-row [@media(pointer:coarse)]:flex-col items-center justify-center">
       <button

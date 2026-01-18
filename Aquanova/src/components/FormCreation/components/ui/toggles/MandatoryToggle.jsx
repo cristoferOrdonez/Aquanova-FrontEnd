@@ -1,6 +1,8 @@
-import React from 'react';
-
-export default function MandatoryToggle({ isMandatoryOn, handleToggle, selectedTypeQuestionOption }) {
+export default function MandatoryToggle({
+  isMandatoryOn,
+  handleToggle,
+  selectedTypeQuestionOption
+}) {
   return (
     <div
       onClick={() => {

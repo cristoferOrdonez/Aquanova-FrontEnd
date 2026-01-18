@@ -1,16 +1,16 @@
 import { useState } from "react";
-import EditingSection from "./EditingSection";
-import QuestionCard from './cards/QuestionCard';
-import QuestionActions from './cards/QuestionActions';
+import EditingSection from "./EditingSection.jsx";
+import QuestionCard from './cards/QuestionCard.jsx';
+import QuestionControl from './controls/QuestionControl.jsx';
 import {
     useQuestionListContext,
     useEditingSectionContext,
     useOptionsListContext,
     useTypeSelectorContext,
     useCreationControlsContext,
-} from '../hooks/useFormCreationContext';
+} from './../../hooks/useFormCreationContext.js';
 
-function QuestionList({ mainContainerRef }) {
+function QuestionListSection({ mainContainerRef }) {
     const [exitingQuestionId, setExitingQuestionId] = useState(null);
 
     const {
@@ -74,7 +74,7 @@ function QuestionList({ mainContainerRef }) {
 
                             <QuestionCard q={q} isJustUpdated={isJustUpdated} />
 
-                            <QuestionActions q={q} isEditingThis={isEditingThis} handleStartEditing={handleStartEditing} handleDeleteQuestion={handleDeleteQuestion} />
+                            <QuestionControl q={q} isEditingThis={isEditingThis} handleStartEditing={handleStartEditing} handleDeleteQuestion={handleDeleteQuestion} />
                         </div>
                         <EditingSection mainContainerRef={mainContainerRef} id={q.id} />
                     </div>
@@ -84,4 +84,4 @@ function QuestionList({ mainContainerRef }) {
     );
 }
 
-export default QuestionList;
+export default QuestionListSection;

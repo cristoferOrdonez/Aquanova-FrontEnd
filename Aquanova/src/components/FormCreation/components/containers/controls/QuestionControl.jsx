@@ -1,6 +1,4 @@
-import React from 'react';
-
-export default function QuestionActions({
+export default function QuestionControl({
   q,
   isEditingThis,
   handleStartEditing,

@@ -3,9 +3,11 @@ import {
     useEditingSectionContext,
     useTypeSelectorContext,
     useOptionsListContext,
-} from '../../hooks/useFormCreationContext';
+} from './../../../hooks/useFormCreationContext.js';
 
-function CreationButton({ mainContainerRef }) {
+function CreationButton({
+    mainContainerRef
+}) {
     const creationControls = useCreationControlsContext();
     const editingSection = useEditingSectionContext();
     const typeSelector = useTypeSelectorContext();

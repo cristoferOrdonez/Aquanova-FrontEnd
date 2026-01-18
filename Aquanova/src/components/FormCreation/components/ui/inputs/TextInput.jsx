@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function TextInput() {
     return (
         <div className="mt-4 px-1">

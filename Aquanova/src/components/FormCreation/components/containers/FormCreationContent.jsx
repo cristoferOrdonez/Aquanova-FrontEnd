@@ -1,8 +1,8 @@
 import { useRef } from 'react';
-import Header from './Header';
-import QuestionList from './QuestionList';
-import EditingSection from './EditingSection';
-import CreationButton from './controls/CreationButton';
+import HeaderSection from './HeaderSection.jsx';
+import QuestionList from './QuestionListSection.jsx';
+import EditingSection from './EditingSection.jsx';
+import CreationButton from './../ui/buttons/CreationButton.jsx';
 
 export default function FormCreationContent() {
   const mainContainerRef = useRef(null);
@@ -12,7 +12,7 @@ export default function FormCreationContent() {
       ref={mainContainerRef}
       className="bg-[var(--bg-color-main)] font-work w-screen h-screen flex flex-col items-center justify-start pt-10 gap-3 overflow-y-auto text-left"
     >
-      <Header />
+      <HeaderSection />
 
       <QuestionList mainContainerRef={mainContainerRef} />
 

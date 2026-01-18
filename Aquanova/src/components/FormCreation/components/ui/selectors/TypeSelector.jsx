@@ -1,4 +1,4 @@
-import { useTypeSelectorContext } from '../../hooks/useFormCreationContext';
+import { useTypeSelectorContext } from './../../../hooks/useFormCreationContext.js';
 
 export default function TypeSelector() {
   const {

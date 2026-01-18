@@ -1,17 +1,17 @@
-import MultipleOptionsInput from "./inputs/MultipleOptionsInput";
-import TextInput from "./inputs/TextInput";
-import NumericInput from "./inputs/NumericInput";
-import DateInput from "./inputs/DateInput";
-import TypeSelector from './controls/TypeSelector';
-import SaveCancelControls from './controls/SaveCancelControls';
-import MandatoryToggle from './controls/MandatoryToggle';
+import MultipleOptionsInput from "./../ui/inputs/MultipleOptionsInput.jsx";
+import TextInput from "./../ui/inputs/TextInput.jsx";
+import NumericInput from "./../ui/inputs/NumericInput.jsx";
+import DateInput from "./../ui/inputs/DateInput.jsx";
+import TypeSelector from './../ui/selectors/TypeSelector.jsx';
+import SaveCancelControl from './controls/SaveCancelControl.jsx';
+import MandatoryToggle from './../ui/toggles/MandatoryToggle.jsx';
 import {
     useQuestionListContext,
     useEditingSectionContext,
     useOptionsListContext,
     useTypeSelectorContext,
     useCreationControlsContext,
-} from '../hooks/useFormCreationContext';
+} from '../../hooks/useFormCreationContext';
 
 function EditingSection({ mainContainerRef, id }) {
     const {
@@ -127,7 +127,7 @@ function EditingSection({ mainContainerRef, id }) {
             </div>
             <div className="border-[1px] my-3 border-[var(--card-stroke)]"/>
             <div className="flex flex-row justify-between gap-4">
-              <SaveCancelControls
+              <SaveCancelControl
                 onSave={handleSaveQuestion}
                 onCancel={() => {
                   editingSection.setIsEditingSectionOpen(false);

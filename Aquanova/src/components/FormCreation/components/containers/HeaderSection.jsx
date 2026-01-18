@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import ExitButton from './controls/ExitButton';
-import NeighborhoodSelector from './NeighborhoodSelector';
+import ExitButton from './../ui/buttons/ExitButton.jsx';
+import NeighborhoodSelector from './../ui/selectors/NeighborhoodSelector.jsx';
 
-function Header() {
+function HeaderSection() {
 
     const fileInputRef = useRef(null);
 
@@ -12,7 +12,7 @@ function Header() {
 
     const [selectedNeighborhoodOption, setSelectedNeighborhoodOption] = useState("Seleccione un barrio");
 
-    const neighborhoodOptions = ["Barrio del putisimo que vive en putilandia con todos sus putiamigos", "Opción 2", "Opción 3", "Opción 4"];
+    const neighborhoodOptions = ["Opción 1", "Opción 2", "Opción 3", "Opción 4"];
 
     const [isPublishOn, setIsPublishOn] = useState(false);
 
@@ -354,4 +354,4 @@ function Header() {
 
     }
 
-export default Header;
+export default HeaderSection;

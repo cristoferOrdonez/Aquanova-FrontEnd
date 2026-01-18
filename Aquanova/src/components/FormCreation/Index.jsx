@@ -1,5 +1,5 @@
-import { FormCreationProvider } from './context/FormCreationProvider';
-import FormCreationContent from './components/FormCreationContent';
+import { FormCreationProvider } from './context/FormCreationProvider.jsx';
+import FormCreationContent from './components/containers/FormCreationContent.jsx';
 
 function Index() {
   return (

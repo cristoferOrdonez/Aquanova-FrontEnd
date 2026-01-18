@@ -1,6 +1,7 @@
-import React from 'react';
-
-export default function QuestionCard({ q, isJustUpdated }) {
+export default function QuestionCard({
+  q,
+  isJustUpdated
+}) {
   return (
     <div className={`
       w-full tablet:w-auto flex-1 border-[1.5px] rounded-[5px] p-6 flex flex-col gap-3 shadow-sm
