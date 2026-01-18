@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import logo from './../../assets/images/logo_frog.png'
 import { UserCircleIcon } from '@heroicons/react/24/outline' 
 import { useNavigate } from 'react-router-dom'
+import { authService } from '../../services/authService'
 
 const navItems = [
     {name:'Inicio', href:''},
@@ -45,8 +46,8 @@ function Navbar() {
 
   const handleLogout = () => {
     setMenuOpen(false)
-    // cerrar sesion
-    console.log('Cerrar sesión')
+    authService.logout()
+    navigate('/login')
   }
 
   const handleMain = () => {

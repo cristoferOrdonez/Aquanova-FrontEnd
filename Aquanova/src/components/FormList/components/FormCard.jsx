@@ -3,22 +3,25 @@ import FormStateElement from './FormStateElement'
 import { TrashIcon, PencilIcon, EyeIcon } from '@heroicons/react/24/outline'
 
 function FormCard({
-  title = 'Título del formulario',
-  description = 'Sin descripción disponible.',
-  imageUrl,
-  active = false,
-  location = [],
-  onAnswer,
-  onPreview,
-  onEdit,
-  onDelete,
+  form,
+  onAnswer = () => {},
+  onPreview = () => {},
+  onEdit = () => {},
+  onDelete = () => {},
 }) {
-  const locationLabel =
-    Array.isArray(location) && location.length > 0
-      ? location.join(' | ')
-      : 'Ubicación no definida'
+  const {
+    title = 'Título del formulario',
+    description = 'Sin descripción disponible.',
+    imageUrl,
+    is_active,
+    neighborhoods = [],
+  } = form
 
-  const activeLabel = active === true ? 'Activa' : active === false ? 'Inactiva' : String(active ?? 'Estado')
+  const location = neighborhoods.map((n) => n.name).filter(Boolean)
+  const locationLabel =
+    location.length > 0 ? location.join(' | ') : 'Ubicación no definida'
+
+  const activeLabel = is_active === 1 ? 'Activa' : 'Inactiva'
 
   return (
     <article
