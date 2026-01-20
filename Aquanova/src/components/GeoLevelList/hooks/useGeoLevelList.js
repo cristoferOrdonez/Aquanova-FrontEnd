@@ -9,6 +9,7 @@ function getErrorMessage(err) {
 }
 
 export const useGeoLevelList = () => {
+  const [allNeighborhoods, setAllNeighborhoods] = useState([]);
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,7 +20,9 @@ export const useGeoLevelList = () => {
 
     try {
       const list = await neighborhoodService.getFullList();
-      setNeighborhoods(Array.isArray(list) ? list : []);
+      const safeList = Array.isArray(list) ? list : [];
+      setAllNeighborhoods(safeList);
+      setNeighborhoods(safeList);
 
       if (!Array.isArray(list)) {
         throw new Error('API response is not in the expected format.');
@@ -35,5 +38,30 @@ export const useGeoLevelList = () => {
     fetchNeighborhoods();
   }, [fetchNeighborhoods]);
 
-  return { neighborhoods, loading, error, refetch: fetchNeighborhoods };
+  const handleSearch = useCallback(
+    (query) => {
+      const normalized = String(query || '').trim().toLowerCase();
+
+      if (!normalized) {
+        setNeighborhoods(allNeighborhoods);
+        return;
+      }
+
+      const filtered = allNeighborhoods.filter((item) => {
+        const name = item?.name ?? '';
+        const code = item?.code ?? '';
+        const type = item?.metadata?.type ?? '';
+        const description = item?.metadata?.description ?? '';
+
+        return [name, code, type, description].some((value) =>
+          String(value).toLowerCase().includes(normalized)
+        );
+      });
+
+      setNeighborhoods(filtered);
+    },
+    [allNeighborhoods]
+  );
+
+  return { neighborhoods, loading, error, refetch: fetchNeighborhoods, handleSearch };
 };

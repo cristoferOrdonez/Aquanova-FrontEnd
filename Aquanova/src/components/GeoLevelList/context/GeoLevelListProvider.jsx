@@ -4,12 +4,13 @@ import { GeoLevelListContext } from './GeoLevelListContext';
 import { useGeoLevelList } from '../hooks/useGeoLevelList';
 
 export const GeoLevelListProvider = ({ children }) => {
-  const { neighborhoods, loading, error } = useGeoLevelList();
+  const { neighborhoods, loading, error, handleSearch } = useGeoLevelList();
 
   const contextValue = {
     neighborhoods,
     loading,
     error,
+    handleSearch,
   };
 
   return (
