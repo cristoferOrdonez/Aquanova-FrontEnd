@@ -1,3 +1,5 @@
+import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
+
 export default function MandatoryToggle({
   isMandatoryOn,
   handleToggle,
@@ -6,11 +8,11 @@ export default function MandatoryToggle({
   return (
     <div
       onClick={() => {
-        if (selectedTypeQuestionOption !== 'Sólo texto (sin respuestas)') handleToggle();
+        if (selectedTypeQuestionOption !== FORM_CREATION_CONFIG.defaultType) handleToggle();
       }}
       className={`
         flex flex-row [@media(pointer:coarse)]:flex-col items-center gap-2 group select-none transition-all duration-300 ease-in-out
-        ${selectedTypeQuestionOption === 'Sólo texto (sin respuestas)' ? 'opacity-0 invisible pointer-events-none translate-x-4' : 'opacity-100 visible translate-x-0 cursor-pointer'}
+        ${selectedTypeQuestionOption === FORM_CREATION_CONFIG.defaultType ? 'opacity-0 invisible pointer-events-none translate-x-4' : 'opacity-100 visible translate-x-0 cursor-pointer'}
       `}
     >
       <div className={`

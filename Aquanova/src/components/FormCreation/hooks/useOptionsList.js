@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import FORM_CREATION_CONFIG from '../config/formCreationConfig';
 
-export function useOptionsList(initial = [FORM_CREATION_CONFIG.defaultOption]) {
+export function useOptionsList(initial = [FORM_CREATION_CONFIG.createDefaultOption()]) {
   const [optionsList, setOptionsList] = useState(initial);
 
-  const addOption = (value = 'Opción sin título') => {
+  const addOption = (value = FORM_CREATION_CONFIG.defaultOptionLabel) => {
     setOptionsList(prev => [...prev, { id: Date.now(), value }]);
   };
 
@@ -16,7 +16,7 @@ export function useOptionsList(initial = [FORM_CREATION_CONFIG.defaultOption]) {
     setOptionsList(prev => prev.filter(o => o.id !== id));
   };
 
-  const resetOptions = () => setOptionsList([ { id: Date.now(), value: 'Opción sin título' } ]);
+  const resetOptions = () => setOptionsList([ FORM_CREATION_CONFIG.createDefaultOption() ]);
 
   return {
     optionsList,

@@ -6,3 +6,5 @@ export const EditingSectionContext = createContext(null);
 export const OptionsListContext = createContext(null);
 export const TypeSelectorContext = createContext(null);
 export const CreationControlsContext = createContext(null);
+export const HeaderContext = createContext(null);
+export const NeighborhoodSelectorContext = createContext(null);

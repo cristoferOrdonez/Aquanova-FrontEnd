@@ -5,6 +5,8 @@ import {
   OptionsListContext,
   TypeSelectorContext,
   CreationControlsContext,
+  HeaderContext,
+  NeighborhoodSelectorContext,
 } from '../context/FormCreationContext';
 
 function assertContext(ctx, name) {
@@ -32,10 +34,20 @@ export function useCreationControlsContext() {
   return assertContext(useContext(CreationControlsContext), 'useCreationControlsContext');
 }
 
+export function useHeaderContext() {
+  return assertContext(useContext(HeaderContext), 'useHeaderContext');
+}
+
+export function useNeighborhoodSelectorContext() {
+  return assertContext(useContext(NeighborhoodSelectorContext), 'useNeighborhoodSelectorContext');
+}
+
 export default {
   useQuestionListContext,
   useEditingSectionContext,
   useOptionsListContext,
   useTypeSelectorContext,
   useCreationControlsContext,
+  useHeaderContext,
+  useNeighborhoodSelectorContext,
 };

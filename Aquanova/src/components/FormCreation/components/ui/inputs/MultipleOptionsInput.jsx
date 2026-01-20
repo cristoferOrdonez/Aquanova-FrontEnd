@@ -1,3 +1,5 @@
+import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
+
 export default function MultipleOptionsInput({
     optionsList, setOptionsList,
     selectedTypeQuestionOption,
@@ -9,7 +11,7 @@ export default function MultipleOptionsInput({
             if (optionsList.length > 1) {
                 setOptionsList(prev => prev.filter(option => option.id !== id));
             }
-        }, 125);
+        }, FORM_CREATION_CONFIG.animationDelays.small);
     };
 
     const handleOptionChange = (id, newValue) => {
@@ -23,10 +25,10 @@ export default function MultipleOptionsInput({
     const handleAddOption = () => {
         setTimeout(() => {
             setOptionsList(prev => [
-                ...prev, 
-                { id: Date.now(), value: "Opción sin título" }
+                ...prev,
+                FORM_CREATION_CONFIG.createDefaultOption()
             ]);
-        }, 125);
+        }, FORM_CREATION_CONFIG.animationDelays.small);
     };
 
     return (
@@ -34,13 +36,13 @@ export default function MultipleOptionsInput({
             {optionsList.map((option, index) => (
             <div key={option.id} className="flex items-center gap-3 group ">
                 <div className="text-[var(--text)] opacity-40">
-                {selectedTypeQuestionOption === "Opción multiple" && (
+                {selectedTypeQuestionOption === FORM_CREATION_CONFIG.typeLabels.MULTIPLE && (
                     <div className="w-4 h-4 rounded-full border-[2px] border-current"></div>
                 )}
-                {selectedTypeQuestionOption === "Casillas de verificación" && (
+                {selectedTypeQuestionOption === FORM_CREATION_CONFIG.typeLabels.CHECKBOX && (
                     <div className="w-4 h-4 rounded-[2px] border-[2px] border-current"></div>
                 )}
-                {selectedTypeQuestionOption === "Lista desplegable" && (
+                {selectedTypeQuestionOption === FORM_CREATION_CONFIG.typeLabels.DROPDOWN && (
                     <span className="text-xs font-semibold">{index + 1}.</span>
                 )}
                 </div>
@@ -55,7 +57,7 @@ export default function MultipleOptionsInput({
                 }}
                 onBlur={(e) => {
                     if(e.target.value.trim() === "") {
-                        handleOptionChange(option.id, "Opción sin título"); 
+                        handleOptionChange(option.id, FORM_CREATION_CONFIG.defaultOptionLabel); 
                     }
                 }}
                 className="

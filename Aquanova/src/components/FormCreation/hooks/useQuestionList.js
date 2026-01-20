@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import FORM_CREATION_CONFIG from '../config/formCreationConfig';
 
 export function useQuestionList(initial = []) {
   const [questions, setQuestions] = useState(initial);
@@ -8,13 +9,13 @@ export function useQuestionList(initial = []) {
   const addQuestion = (q) => {
     setQuestions(prev => [...prev, q]);
     setJustCreatedId(q.id);
-    setTimeout(() => setJustCreatedId(null), 500);
+    setTimeout(() => setJustCreatedId(null), FORM_CREATION_CONFIG.timeouts.justCreated);
   };
 
   const updateQuestion = (id, patch) => {
     setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...patch } : q));
     setJustUpdatedQuestionId(id);
-    setTimeout(() => setJustUpdatedQuestionId(null), 1000);
+    setTimeout(() => setJustUpdatedQuestionId(null), FORM_CREATION_CONFIG.timeouts.justUpdated);
   };
 
   const deleteQuestion = (id) => {

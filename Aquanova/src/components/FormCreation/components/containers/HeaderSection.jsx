@@ -1,99 +1,47 @@
-import { useState, useRef } from 'react';
 import ExitButton from './../ui/buttons/ExitButton.jsx';
 import NeighborhoodSelector from './../ui/selectors/NeighborhoodSelector.jsx';
+import FORM_CREATION_CONFIG from '../../config/formCreationConfig';
+import {
+    useHeaderContext,
+    useNeighborhoodSelectorContext,
+} from '../../hooks/useFormCreationContext';
 
 function HeaderSection() {
 
-    const fileInputRef = useRef(null);
+    const header = useHeaderContext();
+    const neighborhoodCtx = useNeighborhoodSelectorContext();
+        const {
+      fileInputRef,
+      imagePreview,
+      isDragging,
+      isPublishOn,
+      handleInputChange,
+      handleDivClick,
+      handleDragOver,
+      handleDragEnter,
+      handleDragLeave,
+      handleDrop,
+      handleRemoveImage,
+      handleReplaceImage,
+      handleOpenNewTab,
+      togglePublish,
+        } = header;
 
-    const [imagePreview, setImagePreview] = useState(null);
+        const { title, setTitle, description, setDescription, createForm } = header;
 
-    const [isDragging, setIsDragging] = useState(false);
-
-    const [selectedNeighborhoodOption, setSelectedNeighborhoodOption] = useState("Seleccione un barrio");
-
-    const neighborhoodOptions = ["Opción 1", "Opción 2", "Opción 3", "Opción 4"];
-
-    const [isPublishOn, setIsPublishOn] = useState(false);
-
-    const handleFile = (file) => {
-        if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setImagePreview(reader.result);
+        const handleSaveAndExit = async () => {
+            try {
+                if (!createForm) throw new Error('createForm no está disponible');
+                const resp = await createForm();
+                // respuesta satisfactoria
+                alert(resp?.message || 'Formulario creado correctamente');
+            } catch (err) {
+                console.error(err);
+                alert(err?.message || 'Error al crear el formulario');
+            }
         };
-        reader.readAsDataURL(file);
-        } else {
-        alert("Por favor suba un archivo de imagen válido.");
-        }
-    };
 
-    const handleInputChange = (e) => {
-        const file = e.target.files[0];
-        if (file) handleFile(file);
-    };
-
-    const handleDivClick = () => {
-        if (!imagePreview && fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleDragEnter = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (e.currentTarget.contains(e.relatedTarget)) return;
-        
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-        
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            const file = e.dataTransfer.files[0];
-            handleFile(file);
-        }
-    };
-
-    const handleRemoveImage = (e) => {
-        e.stopPropagation();
-        setImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const handleReplaceImage = (e) => {
-        e.stopPropagation();
-        if (fileInputRef.current) fileInputRef.current.click();
-    };
-
-    const handleOpenNewTab = (e) => {
-        e.stopPropagation();
-        if (imagePreview) {
-            const newWindow = window.open();
-            newWindow.document.writeln(`<img src="${imagePreview}" style="max-width:100%;" />`);
-        }
-    };
-
-    const handlePublishToggle = () => {
-        const newState = !isPublishOn;
-        setIsPublishOn(newState);
-
-    };
+    const { selectedOption, setSelectedOption } = neighborhoodCtx;
 
     return (
         
@@ -225,42 +173,41 @@ function HeaderSection() {
                     <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
                         Barrio de la campaña
                     </span>
-                    <NeighborhoodSelector
-                        options={neighborhoodOptions}
-                        selectedOption={selectedNeighborhoodOption} setSelectedOption={setSelectedNeighborhoodOption}
-                    />
+                    <NeighborhoodSelector />
                 </div>
             </div>
             <div className="w-full h-wrap flex flex-col justify-between gap-4">
-                <textarea 
-                    defaultValue="Formulario sin nombre"
-                    rows="1"
-                    onInput={(e) => {
-                    e.target.style.height = 'auto';
-                    e.target.style.height = e.target.scrollHeight + 'px';
-                    }}
-                    onBlur={(e) => {
-                    if (e.target.value.trim() === "") {
-                        e.target.value = "Formulario sin nombre";
-
-                        e.target.style.height = 'auto';
-                        e.target.style.height = e.target.scrollHeight + 'px';
-                    }
-                    }}
-                    className="
-                    w-full resize-none overflow-hidden
-                    p-1 tablet:text-lg text-[15px] text-[var(--text)]
-                    border-[1.5px] border-transparent
-                    rounded-[5px] outline-none
-                    focus:border-[#2138C4]
-                    transition-all duration-500 ease-in-out
-                    "
-                />
+                                <textarea
+                                        value={title}
+                                        rows="1"
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        onInput={(e) => {
+                                            e.target.style.height = 'auto';
+                                            e.target.style.height = e.target.scrollHeight + 'px';
+                                        }}
+                                        onBlur={(e) => {
+                                            if (e.target.value.trim() === '') {
+                                                setTitle(FORM_CREATION_CONFIG.defaultFormTitle);
+                                                e.target.style.height = 'auto';
+                                                e.target.style.height = e.target.scrollHeight + 'px';
+                                            }
+                                        }}
+                                        className="
+                                        w-full resize-none overflow-hidden
+                                        p-1 tablet:text-lg text-[15px] text-[var(--text)]
+                                        border-[1.5px] border-transparent
+                                        rounded-[5px] outline-none
+                                        focus:border-[#2138C4]
+                                        transition-all duration-500 ease-in-out
+                                        "
+                                />
                 <div className="w-full h-wrap flex flex-col justify-between gap-1">
                     <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
                     Descripción (solo para operadores)
                     </span>
-                    <textarea 
+                    <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     className="resize-none h-24 p-2 border-[1.5px] border-[var(--stroke-selectors-and-search-bars)] rounded-[14px] 
                     text-xs
                     focus:outline-none focus:border-[#2138C4] 
@@ -278,6 +225,7 @@ function HeaderSection() {
                 flex tablet:flex-col flex-box gap-4
             ">
             <button 
+                onClick={handleSaveAndExit}
                 className="
                     w-fit pr-4 pl-2.5 py-1 bg-[#10B981]/10 rounded-[30px] border-[1.5px] border-[#10B981]
                     hover:bg-[#10B981]/20 text-[#10B981] transition-colors transform hover:scale-110
@@ -315,7 +263,7 @@ function HeaderSection() {
             <ExitButton />
 
             <div 
-                onClick={handlePublishToggle} 
+                onClick={togglePublish} 
                 className="flex items-center gap-2 cursor-pointer group select-none"
             >
                 {/* 1. El Óvalo (Pista) */}

@@ -1,3 +1,5 @@
+import FORM_CREATION_CONFIG from './../../../config/formCreationConfig';
+
 export default function QuestionControl({
   q,
   isEditingThis,
@@ -7,7 +9,7 @@ export default function QuestionControl({
   return (
     <div className={`
       tablet:absolute tablet:z-10 flex tablet:pl-0 pl-2 
-      ${q.type == 'Sólo texto (sin respuestas)'? 'flex-row': 'tablet:flex-col flex-row'} 
+      ${q.type == FORM_CREATION_CONFIG.defaultType? 'flex-row': 'tablet:flex-col flex-row'} 
       gap-2 tablet:translate-x-full tablet:pl-[15px] mb-3 tablet:mb-0
       transition-all duration-300
       ${isEditingThis ? 'opacity-0 translate-x-0 pointer-events-none' : 'opacity-100'}

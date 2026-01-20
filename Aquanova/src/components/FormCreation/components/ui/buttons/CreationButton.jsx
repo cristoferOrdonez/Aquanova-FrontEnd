@@ -4,6 +4,7 @@ import {
     useTypeSelectorContext,
     useOptionsListContext,
 } from './../../../hooks/useFormCreationContext.js';
+import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
 
 function CreationButton({
     mainContainerRef
@@ -21,16 +22,16 @@ function CreationButton({
         editingSection.setIsEditingSectionOpen(!editingSection.isEditingSectionOpen);
 
         // limpieza
-        editingSection.setQuestionTitle("Pregunta sin título");
-        typeSelector.setSelectedTypeQuestionOption("Sólo texto (sin respuestas)");
-        optionsListCtx.setOptionsList([{ id: Date.now(), value: "Opción sin título" }]);
+        editingSection.setQuestionTitle(FORM_CREATION_CONFIG.defaultQuestionTitle);
+        typeSelector.setSelectedTypeQuestionOption(FORM_CREATION_CONFIG.defaultType);
+        optionsListCtx.setOptionsList([ FORM_CREATION_CONFIG.createDefaultOption() ]);
         editingSection.setIsMandatoryOn(false);
 
         setTimeout(() => {
             if (mainContainerRef.current) {
                 mainContainerRef.current.scrollTo({ top: mainContainerRef.current.scrollHeight, behavior: 'smooth' });
             }
-        }, 100);
+        }, FORM_CREATION_CONFIG.animationDelays.scroll);
     };
 
     return (

@@ -1,16 +1,22 @@
-import { useState } from 'react';
+import { useNeighborhoodSelectorContext } from './../../../hooks/useFormCreationContext.js';
+import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
 
-const NeighborhoodSelector = ({
-    options,
-    selectedOption, setSelectedOption,
-}) => {
+const NeighborhoodSelector = ({ options = null }) => {
+    const {
+        selectedOption,
+        setSelectedOption,
+        isSelectorOpen,
+        setIsSelectorOpen,
+        toggleSelector,
+        options: ctxOptions,
+    } = useNeighborhoodSelectorContext();
 
-    const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+    const list = options ?? ctxOptions ?? [];
 
     return (
         <div className="tablet:w-64 w-auto relative">
-            <div 
-            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+            <div
+                onClick={() => (toggleSelector ? toggleSelector() : setIsSelectorOpen(!isSelectorOpen))}
             className="
                 bg-[var(--selectors-and-search-bars)] 
                 border-[1.5px] border-[var(--stroke-selectors-and-search-bars)] 
@@ -24,7 +30,7 @@ const NeighborhoodSelector = ({
             "
             >
             <span className="tablet:text-base text-[15px] text-[var(--text)] opacity-90 truncate max-w-[85%]">
-                {selectedOption}
+                                {selectedOption?.label ?? FORM_CREATION_CONFIG.neighborhoodPlaceholder}
             </span>
 
             <svg 
@@ -37,40 +43,42 @@ const NeighborhoodSelector = ({
             </svg>
             </div>
 
-            <div className={`
-            absolute z-10 tablet:w-[121%] w-full -mt-1.5 
-            bg-white 
-            border-[1.5px] border-[var(--card-stroke)] 
-            rounded-[14px] 
-            tablet:translate-x-4
-            shadow-lg 
-            overflow-hidden
+            <div
+                className={`
+                        absolute z-10 tablet:w-[121%] w-full -mt-1.5 
+                        bg-white 
+                        border-[1.5px] border-[var(--card-stroke)] 
+                        rounded-[14px] 
+                        tablet:translate-x-4
+                        shadow-lg 
+                        overflow-hidden
             
-            transition-all duration-300 ease-out origin-top
-            ${isSelectorOpen 
-                ? 'opacity-100 scale-100 translate-y-0 visible' 
-                : 'opacity-0 scale-95 -translate-y-2 invisible pointer-events-none'}
-            `}>
-            {options.map((option, index) => (
-                <div 
-                key={index}
-                onClick={() => {
-                    setSelectedOption(option);
-                    setIsSelectorOpen(false);
-                }}
-                className="
-                    px-4 py-2 
-                    tablet:text-normal text-[15px] text-[var(--text)] opacity-90 
-                    hover:bg-[var(--stroke-selectors-and-search-bars)]
-                    cursor-pointer 
-                    transition-colors"
-                >
-                {option}
-                </div>
-            ))}
+                        transition-all duration-300 ease-out origin-top
+                        ${isSelectorOpen
+                            ? 'opacity-100 scale-100 translate-y-0 visible'
+                            : 'opacity-0 scale-95 -translate-y-2 invisible pointer-events-none'}
+                `}
+            >
+                {list.map((option) => (
+                    <div
+                        key={option.id ?? option.label}
+                        onClick={() => {
+                            setSelectedOption(option);
+                            setIsSelectorOpen(false);
+                        }}
+                        className="
+                                        px-4 py-2 
+                                        tablet:text-normal text-[15px] text-[var(--text)] opacity-90 
+                                        hover:bg-[var(--stroke-selectors-and-search-bars)]
+                                        cursor-pointer 
+                                        transition-colors"
+                    >
+                        {option.label}
+                    </div>
+                ))}
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default NeighborhoodSelector;

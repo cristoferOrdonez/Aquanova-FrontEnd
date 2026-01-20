@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FORM_CREATION_CONFIG from '../../config/formCreationConfig';
 import EditingSection from "./EditingSection.jsx";
 import QuestionCard from './cards/QuestionCard.jsx';
 import QuestionControl from './controls/QuestionControl.jsx';
@@ -31,7 +32,7 @@ function QuestionListSection({ mainContainerRef }) {
         setTimeout(() => {
             deleteQuestion(idToDelete);
             setExitingQuestionId(null);
-        }, 500);
+        }, FORM_CREATION_CONFIG.animationDelays.exit);
     };
 
     const handleStartEditing = (questionToEdit) => {
