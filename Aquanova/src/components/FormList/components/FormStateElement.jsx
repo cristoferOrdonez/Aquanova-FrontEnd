@@ -1,8 +1,9 @@
 import React from 'react'
 
 const variants ={
-  state:'border-[var(--green-buttons)] text-[var(--green-buttons)]',
+  active:'border-[var(--green-buttons)] text-[var(--green-buttons)]',
   location: 'border-[var(--gray-subtitles)] text-[var(--gray-subtitles)]',
+  inactive: 'border-[var(--red-base)] text-[var(--red-base)]',
 };
 
 
@@ -24,9 +25,15 @@ const CircleIcon = ({ size = 16, className = '', ...props }) => {
 
 export default function FormStateElement({formState='state', label="no conocido"}) {
 
-  const variantStyles = variants[formState] ?? variants.state;
+  let variantKey = formState;
+  if (formState === 'state') {
+    // Si el estado es 'state', decidimos entre 'active' e 'inactive' basándonos en el label.
+    variantKey = label === 'Activa' ? 'active' : 'inactive';
+  }
 
-  return (
+  const variantStyles = variants[variantKey] ?? variants.active;
+
+    return (
     <div className={`flex flex-row w-fit border-2  items-center justify-center ${variantStyles} rounded-full pl-0.5 pr-2 pt-0.5 pb-0.5 gap-0.5`}>
       <CircleIcon className='mr-0.5' />
       <p className=' text-xs'>{label}</p>
