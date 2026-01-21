@@ -4,7 +4,9 @@ export default function QuestionControl({
   q,
   isEditingThis,
   handleStartEditing,
-  handleDeleteQuestion
+  handleDeleteQuestion,
+  handleDragStart,
+  handleDragEnd
 }) {
   return (
     <div className={`
@@ -14,6 +16,29 @@ export default function QuestionControl({
       transition-all duration-300
       ${isEditingThis ? 'opacity-0 translate-x-0 pointer-events-none' : 'opacity-100'}
     `}>
+
+      <button
+        draggable
+        onDragStart={(e) => handleDragStart(e, q.id)}
+        onDragEnd={handleDragEnd}
+        className="
+          w-fit group flex h-10 items-center justify-center
+          rounded-full border border-gray-400 bg-gray-50 p-2
+          cursor-grab active:cursor-grabbing
+          transition-all duration-300 ease-in-out
+          hover:bg-gray-100 hover:pr-4
+        "
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500 flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+        <span className="
+          max-w-0 overflow-hidden whitespace-nowrap
+          tablet:text-sm text-[13px] font-medium text-gray-500 opacity-0
+          transition-all duration-300 ease-out
+          group-hover:ml-2 group-hover:max-w-[100px] group-hover:opacity-100
+        ">Mover</span>
+      </button>
 
       <button
         onClick={() => handleStartEditing(q)}

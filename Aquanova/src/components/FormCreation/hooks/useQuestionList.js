@@ -23,12 +23,22 @@ export function useQuestionList(initial = []) {
     setQuestions(prev => prev.filter(q => q.id !== id));
   };
 
+  const moveQuestion = (fromIndex, toIndex) => {
+    setQuestions(prev => {
+        const updated = [...prev];
+        const [movedItem] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, movedItem);
+        return updated;
+    });
+  };
+
   return {
     questions,
     setQuestions,
     addQuestion,
     updateQuestion,
     deleteQuestion,
+    moveQuestion,
     justUpdatedQuestionId,
     justCreatedId,
     setJustUpdatedQuestionId,
