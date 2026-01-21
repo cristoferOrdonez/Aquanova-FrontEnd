@@ -22,6 +22,9 @@ function NeighborhoodForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        isEditMode,
+        editingParentName,
+        exitToList,
     } = useGeoLevelSelectionContext();
 
     const { buildMetadata } = useImageGalleryContext();
@@ -34,22 +37,36 @@ function NeighborhoodForm() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <CommonField label="Código" placeholder="Ej. B-205" onInput={(e) => setFormCode(e.target.value)} value={formCode} />
+                    <CommonField label="Código" placeholder="Ej. B-205" onInput={(e) => setFormCode(e.target.value)} value={formCode} disabled={isEditMode} />
                     <CommonField label="Nombre" placeholder="Ej. Santa Bárbara" onInput={(e) => setFormName(e.target.value)} value={formName} />
                     <CommonField label="Descripción" placeholder="Descripción breve" onInput={(e) => setFormDescription(e.target.value)} value={formDescription} multiline={true} fixedHeightClass="h-28" />
                     
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pertenece a</label>
-                        <CommonSelector
-                            options={parentLocalityOptions}
-                            selectedOption={selectedParentLocalityOption} setSelectedOption={setSelectedParentLocalityOption}
-                            isGeoLevelParentSelectorOpen={isGeoLevelParentSelectorOpen} setIsGeoLevelParentSelectorOpen={setIsGeoLevelParentSelectorOpen}
-                        />
+                        {isEditMode ? (
+                            <CommonField
+                                label="Localidad padre"
+                                value={editingParentName || selectedParentLocalityOption?.label || ''}
+                                disabled={true}
+                            />
+                        ) : (
+                            <>
+                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pertenece a</label>
+                                <CommonSelector
+                                    options={parentLocalityOptions}
+                                    selectedOption={selectedParentLocalityOption} setSelectedOption={setSelectedParentLocalityOption}
+                                    isGeoLevelParentSelectorOpen={isGeoLevelParentSelectorOpen} setIsGeoLevelParentSelectorOpen={setIsGeoLevelParentSelectorOpen}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
 
                 <SaveButton
                     onClick={async () => {
+                        if (isEditMode) {
+                            exitToList();
+                            return;
+                        }
                         const metadata = buildMetadata();
                         const parent_id = selectedParentLocalityOption?.id ?? null;
                         try {

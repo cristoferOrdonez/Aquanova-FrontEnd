@@ -86,4 +86,13 @@ export const neighborhoodService = {
 
     return data;
   },
+
+  async getById(id) {
+    const data = await apiRequest(`/neighborhoods/${id}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+
+    return data;
+  },
 };

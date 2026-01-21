@@ -14,11 +14,16 @@ export const CompactGeoLevelControl = () => {
         geoLevelSelectorIcons,
         geoLevelOptions,
         handleGeoLevelSelect,
+        isEditMode,
     } = useGeoLevelSelectionContext();
     return (
         <div className="relative z-50">
             <button 
-                onClick={() => setIsGeoLevelMenuOpen(!isGeoLevelMenuOpen)}
+                onClick={() => {
+                    if (isEditMode) return;
+                    setIsGeoLevelMenuOpen(!isGeoLevelMenuOpen);
+                }}
+                disabled={isEditMode}
                 className={`
                     flex items-center gap-2.5 px-4 py-2 
                     bg-gray-800/50 hover:bg-gray-800
@@ -27,6 +32,7 @@ export const CompactGeoLevelControl = () => {
                     transition-all duration-200
                     text-gray-200
                     ${isGeoLevelMenuOpen ? 'bg-gray-800 border-gray-600' : ''}
+                    ${isEditMode ? 'opacity-60 cursor-not-allowed' : ''}
                 `}
             >
                 <span className="text-gray-400 group-hover:text-blue-400">
@@ -46,7 +52,7 @@ export const CompactGeoLevelControl = () => {
                 </span>
             </button>
 
-            {isGeoLevelMenuOpen && (
+            {isGeoLevelMenuOpen && !isEditMode && (
                 <div className="
                     absolute top-full left-0 mt-1 w-48 
                     bg-gray-800 border border-gray-700
@@ -65,7 +71,7 @@ export const CompactGeoLevelControl = () => {
                 </div>
             )}
             
-            {isGeoLevelMenuOpen && <div className="fixed inset-0 z-[-1]" onClick={() => setIsGeoLevelMenuOpen(false)}></div>}
+            {isGeoLevelMenuOpen && !isEditMode && <div className="fixed inset-0 z-[-1]" onClick={() => setIsGeoLevelMenuOpen(false)}></div>}
         </div>
     )
 }

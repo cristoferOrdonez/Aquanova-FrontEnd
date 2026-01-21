@@ -12,7 +12,7 @@ import { GEO_LEVEL_TYPES } from './../../config/geolevelConfig.js';
  * Consume el contexto directamente, sin necesidad de props
  */
 const DataSection = () => {
-    const { selectedGeoLevel } = useGeoLevelSelectionContext();
+    const { selectedGeoLevel, isEditMode, isLoadingEdit, editLoadError } = useGeoLevelSelectionContext();
 
     return (
         <div className="w-full h-full bg-gray-900 relative flex flex-col font-work overflow-hidden border-r border-white/5">
@@ -21,8 +21,22 @@ const DataSection = () => {
             <div className="relative z-10 w-full h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">
                 
                 {/* VISTA 1: Selección Inicial */}
-                {!selectedGeoLevel && (
+                {!selectedGeoLevel && !isEditMode && (
                     <InitialGeoLevelSelectorGrid />
+                )}
+
+                {/* VISTA 1.1: Cargando edición */}
+                {isEditMode && isLoadingEdit && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                        <span className="text-sm">Cargando información del geonivel...</span>
+                    </div>
+                )}
+
+                {/* VISTA 1.2: Error al cargar edición */}
+                {isEditMode && !isLoadingEdit && editLoadError && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-red-400">
+                        <span className="text-sm">{editLoadError}</span>
+                    </div>
                 )}
 
                 {/* VISTA 2: Contenido */}
