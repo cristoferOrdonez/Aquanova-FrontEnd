@@ -58,7 +58,7 @@ function FormListContent() {
   const navigate = useNavigate();
 
   return (
-    <div className="p-4 m-7">
+    <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-row flex-1 items-center gap-5 mb-5">
         <SearchBar 
             onSearch={handleSearch} 
@@ -70,7 +70,7 @@ function FormListContent() {
           onClick={() => navigate('/form_creation')}
           className="flex flex-row gap-3 whitespace-nowrap bg-[var(--blue-buttons)] rounded-4xl font-work text-white justify-center items-center p-3 hover:bg-blue-600 transition-colors"
         >
-          <PlusIcon className="h-10 w-10"/>
+          <PlusIcon className="h-6 w-6"/>
           Nueva campaña
         </button>
       </div>

@@ -4,6 +4,7 @@ const variants ={
   active:'border-[var(--green-buttons)] text-[var(--green-buttons)]',
   location: 'border-[var(--gray-subtitles)] text-[var(--gray-subtitles)]',
   inactive: 'border-[var(--red-base)] text-[var(--red-base)]',
+  warning: 'border-[var(--orange-base)] text-[var(--orange-base)]',
 };
 
 

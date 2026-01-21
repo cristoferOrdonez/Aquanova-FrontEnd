@@ -1,20 +1,36 @@
-import defaultImage from './../../assets/images/humedal.jpg'
-import FormStateElement from '../FormList/components/FormStateElement'
-import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline'
+import React from 'react';
+import defaultImage from '../../../assets/images/humedal.jpg';
+import FormStateElement from '../../FormList/components/FormStateElement';
+import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 
-function NeighborhoodCard({
-  name = 'Nombre del barrio',
-  description = 'Sin descripción disponible.',
-  imageUrl,
-  type,
-  locality = [],
-  onEdit,
-  onDelete,
-}) {
-  const localityLabel =
-    Array.isArray(locality) && locality.length > 0 ? locality.join(' | ') : 'Localidad no definida'
+const GeoLevelCard = ({ neighborhood }) => {
+  const { name, code, metadata, parent_id } = neighborhood;
 
-  const typeLabel = type ?? 'Tipo no definido'
+  const type = metadata?.type || 'N/A';
+  const description = metadata?.description || 'Sin descripción disponible.';
+  const imageUrl = metadata?.images?.[0];
+
+  const typeLabel = type === 'N/A' ? type : `${String(type).charAt(0).toUpperCase()}${String(type).slice(1)}`;
+
+  const onEdit = () => {
+    // Lógica de edición se añadirá más adelante
+    console.log('Edit action triggered for:', name);
+  };
+
+  const onDelete = () => {
+    // Lógica de eliminación se añadirá más adelante
+    console.log('Delete action triggered for:', name);
+  };
+
+  const getTypeFormState = (type) => {
+    if (type === 'localidad') {
+      return 'warning'; // Orange
+    }
+    if (type === 'barrio') {
+      return 'active'; // Green
+    }
+    return 'location'; // Default gray
+  };
 
   return (
     <article
@@ -36,13 +52,12 @@ function NeighborhoodCard({
         <img
           src={imageUrl || defaultImage}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          alt={`Imagen del barrio: ${name}`}
+          alt={`Imagen de: ${name}`}
           onError={(e) => {
-            e.currentTarget.src = defaultImage
+            e.currentTarget.src = defaultImage;
           }}
           loading="lazy"
         />
-
         <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
       </div>
 
@@ -52,9 +67,15 @@ function NeighborhoodCard({
         </h2>
 
         <div className="flex flex-wrap gap-2 mb-4 justify-center">
-          <FormStateElement formState="state" label={String(typeLabel)} />
-          <FormStateElement formState="location" label={localityLabel} />
+          <FormStateElement formState={getTypeFormState(type)} label={typeLabel} />
+          {type === 'barrio' && parent_id && (
+            <FormStateElement formState="location" label={`Localidad: ${parent_id.substring(0, 8)}...`} />
+          )}
         </div>
+
+        <p className="text-sm text-gray-600 mb-2">
+          <span className="font-medium">Código:</span> {code}
+        </p>
 
         <p className="text-sm text-(--gray-subtitles) line-clamp-3 mb-6 flex-1">{description}</p>
 
@@ -63,7 +84,7 @@ function NeighborhoodCard({
             type="button"
             onClick={onEdit}
             className="p-2 rounded-full text-(--blue-buttons) hover:bg-blue-100 transition-colors"
-            aria-label="Editar barrio"
+            aria-label="Editar"
           >
             <PencilIcon className="h-5 w-5" />
           </button>
@@ -72,14 +93,14 @@ function NeighborhoodCard({
             type="button"
             onClick={onDelete}
             className="p-2 rounded-full text-(--red-base) hover:bg-red-100 transition-colors"
-            aria-label="Eliminar barrio"
+            aria-label="Eliminar"
           >
             <TrashIcon className="h-5 w-5" />
           </button>
         </div>
       </div>
     </article>
-  )
-}
+  );
+};
 
-export default NeighborhoodCard
+export default GeoLevelCard;
