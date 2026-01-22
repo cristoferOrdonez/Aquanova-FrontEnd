@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
     GEO_LEVEL_TYPES, 
     GEOLEVEL_CONFIG,
@@ -15,6 +15,9 @@ import { neighborhoodService } from '../../../services/neighborhoodService';
  * @returns {Object} Estado y funciones para la selección de niveles geográficos
  */
 export function useGeoLevelSelection() {
+    const { id } = useParams();
+    const isEditMode = Boolean(id);
+
     // Estado para la selección de nivel geográfico
     const [selectedGeoLevel, setSelectedGeoLevel] = useState(null);
     const [isGeoLevelMenuOpen, setIsGeoLevelMenuOpen] = useState(false);
@@ -30,6 +33,9 @@ export function useGeoLevelSelection() {
     const [formName, setFormName] = useState('');
     const [formDescription, setFormDescription] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+    const [editLoadError, setEditLoadError] = useState(null);
+    const [editingParentName, setEditingParentName] = useState('');
 
     // Lógica para saber si estamos en pantalla completa
     const isFullScreen = !selectedGeoLevel;
@@ -63,6 +69,60 @@ export function useGeoLevelSelection() {
 
         return () => { mounted = false; };
     }, []);
+
+    // Cargar datos para edición si existe ID en la ruta
+    useEffect(() => {
+        let mounted = true;
+
+        const loadEditData = async () => {
+            if (!isEditMode || !id) return;
+            setIsLoadingEdit(true);
+            setEditLoadError(null);
+
+            try {
+                const response = await neighborhoodService.getById(id);
+                const payload = response?.data?.data ?? response?.data ?? response;
+                const normalized = payload?.data ?? payload;
+
+                const metaType = normalized?.metadata?.type;
+                const resolvedType = metaType || null;
+
+                if (resolvedType) {
+                    setSelectedGeoLevel(resolvedType);
+                }
+
+                setFormCode(normalized?.code ?? '');
+                setFormName(normalized?.name ?? '');
+                setFormDescription(normalized?.metadata?.description ?? '');
+
+                const parent = normalized?.parent;
+                if (parent?.name) {
+                    setEditingParentName(parent.name);
+                } else {
+                    setEditingParentName('');
+                }
+
+                if (resolvedType === GEO_LEVEL_TYPES.NEIGHBORHOOD && parent) {
+                    setSelectedParentLocalityOption({ id: parent.id ?? null, label: parent.name ?? GEOLEVEL_CONFIG.DEFAULT_SELECTOR_TEXT });
+                }
+
+                if (resolvedType === GEO_LEVEL_TYPES.PROPERTY && parent) {
+                    setSelectedParentNeighborhoodOption({ id: parent.id ?? null, label: parent.name ?? GEOLEVEL_CONFIG.DEFAULT_SELECTOR_TEXT });
+                }
+
+                setIsGeoLevelMenuOpen(false);
+            } catch (err) {
+                console.error('Error cargando detalle de geolevel:', err);
+                setEditLoadError('No se pudo cargar la información del geonivel.');
+            } finally {
+                if (mounted) setIsLoadingEdit(false);
+            }
+        };
+
+        loadEditData();
+
+        return () => { mounted = false; };
+    }, [id, isEditMode]);
 
     // Crear un nuevo geo-level (predio, barrio, localidad)
     const createGeoLevel = async ({code = null, name = null, parent_id = null, metadata = null } = {}) => {
@@ -114,6 +174,7 @@ export function useGeoLevelSelection() {
         setSelectedParentLocalityOption({ id: null, label: GEOLEVEL_CONFIG.DEFAULT_SELECTOR_TEXT });
         setIsGeoLevelParentSelectorOpen(false);
         setFormDescription('');
+        setEditingParentName('');
         // Navegar a la lista de barrios
         try {
             navigate('/neighborhoods');
@@ -155,6 +216,10 @@ export function useGeoLevelSelection() {
         exitToList,
         isGeoLevelParentSelectorOpen,
         setIsGeoLevelParentSelectorOpen,
+        isEditMode,
+        isLoadingEdit,
+        editLoadError,
+        editingParentName,
 
         // Funciones
         handleGeoLevelSelect,

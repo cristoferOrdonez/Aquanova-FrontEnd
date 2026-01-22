@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import defaultImage from '../../../assets/images/humedal.jpg';
 import FormStateElement from '../../FormList/components/FormStateElement';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { GEOLEVEL_CONFIG } from '../config/geoLevelListConfig';
 
 const GeoLevelCard = ({ neighborhood }) => {
   const { name, code, metadata, parent_id } = neighborhood;
+  const navigate = useNavigate();
 
   const type = metadata?.type || 'N/A';
   const description = metadata?.description || 'Sin descripción disponible.';
@@ -13,8 +16,9 @@ const GeoLevelCard = ({ neighborhood }) => {
   const typeLabel = type === 'N/A' ? type : `${String(type).charAt(0).toUpperCase()}${String(type).slice(1)}`;
 
   const onEdit = () => {
-    // Lógica de edición se añadirá más adelante
-    console.log('Edit action triggered for:', name);
+    if (neighborhood?.id) {
+      navigate(GEOLEVEL_CONFIG.ROUTES.EDIT(neighborhood.id));
+    }
   };
 
   const onDelete = () => {

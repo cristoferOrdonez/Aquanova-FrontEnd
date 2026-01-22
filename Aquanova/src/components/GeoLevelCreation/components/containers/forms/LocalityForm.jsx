@@ -12,6 +12,8 @@ function LocalityForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        isEditMode,
+        exitToList,
     } = useGeoLevelSelectionContext();
 
     const { buildMetadata } = useImageGalleryContext();
@@ -37,6 +39,7 @@ function LocalityForm() {
                         placeholder="Ej. 001"
                         onInput={(e) => setFormCode(e.target.value)}
                         value={formCode}
+                        disabled={isEditMode}
                     />
                     <CommonField
                         label="Nombre"
@@ -56,6 +59,10 @@ function LocalityForm() {
                 
                 <SaveButton
                     onClick={async () => {
+                        if (isEditMode) {
+                            exitToList();
+                            return;
+                        }
                         const metadata = buildMetadata();
                         try {
                             const res = await createGeoLevel({ metadata });

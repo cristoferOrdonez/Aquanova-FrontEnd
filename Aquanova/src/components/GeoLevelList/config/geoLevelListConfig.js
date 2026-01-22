@@ -5,6 +5,7 @@ export const GEOLEVEL_CONFIG = {
   ROUTES: {
     LIST: '/geolevels',
     CREATE: '/geolevel_creation',
+    EDIT: (id) => `/geolevel_creation/${id}`,
   },
   TEXT: {
     LOADING: 'Cargando niveles geográficos...',

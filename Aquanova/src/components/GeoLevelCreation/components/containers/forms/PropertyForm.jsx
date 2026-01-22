@@ -22,6 +22,8 @@ function PropertyForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        isEditMode,
+        exitToList,
     } = useGeoLevelSelectionContext();
 
     const { buildMetadata } = useImageGalleryContext();
@@ -34,7 +36,7 @@ function PropertyForm() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                    <CommonField label="Código" placeholder="Ej. B-205" onInput={(e) => setFormCode(e.target.value)} value={formCode} />
+                    <CommonField label="Código" placeholder="Ej. B-205" onInput={(e) => setFormCode(e.target.value)} value={formCode} disabled={isEditMode} />
                     <CommonField label="Nombre" placeholder="Ej. Santa Bárbara" onInput={(e) => setFormName(e.target.value)} value={formName} />
                     <CommonField label="Descripción" placeholder="Descripción breve" onInput={(e) => setFormDescription(e.target.value)} value={formDescription} multiline={true} fixedHeightClass="h-28" />
                     
@@ -50,6 +52,10 @@ function PropertyForm() {
 
                 <SaveButton
                     onClick={async () => {
+                        if (isEditMode) {
+                            exitToList();
+                            return;
+                        }
                         const metadata = buildMetadata();
                         const parent_id = selectedParentNeighborhoodOption?.id ?? null;
                         try {
