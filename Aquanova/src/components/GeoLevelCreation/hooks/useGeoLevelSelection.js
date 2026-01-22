@@ -85,10 +85,13 @@ export function useGeoLevelSelection() {
                 const normalized = payload?.data ?? payload;
 
                 const metaType = normalized?.metadata?.type;
-                const resolvedType = metaType || null;
+                const resolvedType = metaType ? String(metaType).toLowerCase() : null;
 
                 if (resolvedType) {
                     setSelectedGeoLevel(resolvedType);
+                } else {
+                    console.error('GeoLevel Data sin metadata.type:', normalized);
+                    throw new Error('Los datos del nivel geográfico no contienen un tipo válido.');
                 }
 
                 setFormCode(normalized?.code ?? '');

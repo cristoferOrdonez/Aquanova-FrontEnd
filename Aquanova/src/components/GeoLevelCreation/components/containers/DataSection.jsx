@@ -34,8 +34,15 @@ const DataSection = () => {
 
                 {/* VISTA 1.2: Error al cargar edición */}
                 {isEditMode && !isLoadingEdit && editLoadError && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-red-400">
-                        <span className="text-sm">{editLoadError}</span>
+                    <div className="flex-1 flex flex-col items-center justify-center text-red-400 gap-4 p-6 text-center">
+                        <span className="text-lg font-medium">{editLoadError}</span>
+                        <p className="text-gray-500 text-sm">Verifica que el registro tenga el formato correcto.</p>
+                        <button 
+                            onClick={() => window.history.back()}
+                            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition-colors"
+                        >
+                            Volver
+                        </button>
                     </div>
                 )}
 
