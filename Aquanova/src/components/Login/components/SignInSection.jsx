@@ -1,3 +1,4 @@
+// src/components/Login/components/SignInSection.jsx
 import CommonField from './../../ui/CommonField'
 import Logo from './../../../assets/images/logo_frog.png'
 import PasswordField from './PasswordField'

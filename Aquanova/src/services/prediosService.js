@@ -25,5 +25,13 @@ export const prediosService = {
       method: 'PATCH',
       body: payload,
     });
+  },
+
+  /**
+   * Obtiene la lista de todos los sectores/barrios disponibles
+   * para llenar el selector de mapas en el frontend.
+   */
+  getNeighborhoods() {
+    return apiRequest('/map/neighborhoods', { method: 'GET' });
   }
 };
