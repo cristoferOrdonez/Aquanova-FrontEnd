@@ -7,6 +7,7 @@ import GeoLevelList from './components/GeoLevelList/Index'
 import NeighborhoodCreation from './components/GeoLevelCreation/Index'
 import Home from './components/Home/Index'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import MapaPage from './components/DigitalTwinMap/MapaPage'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -25,6 +26,7 @@ function App() {
           <Route path='/geolevel_creation' element={<NeighborhoodCreation />} />
           <Route path='/geolevel_creation/:id' element={<NeighborhoodCreation />} />
           <Route path='/home' element={<Home />} />
+          <Route path="/mapa-digital" element={<MapaPage />} />
         </Routes>
     </div>
   )
