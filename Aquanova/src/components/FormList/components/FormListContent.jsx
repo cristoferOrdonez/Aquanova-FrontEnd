@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
  * Componente para renderizar el estado del contenido de la lista de formularios.
  * Maneja los estados de carga, error, vacío y la lista de formularios.
  */
-const ContentRenderer = ({ loading, error, forms, reload, handleDelete }) => {
+const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPreview }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -46,7 +46,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete }) => {
           onDelete={() => handleDelete(form.id || form._id)}
           onEdit={() => console.log('Ir a editar', form.id)}
           onAnswer={() => console.log('Ir a responder', form.id)}
-          onPreview={() => console.log('Vista previa', form.id)}
+          onPreview={() => onPreview(form.id || form._id)}
         />
       ))}
     </div>
@@ -56,6 +56,10 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete }) => {
 function FormListContent() {
   const { forms, loading, error, reload, handleSearch, handleDelete } = useFormListContext();
   const navigate = useNavigate();
+
+  const handlePreview = (id) => {
+    navigate(`/form/preview/${id}`);
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -76,7 +80,14 @@ function FormListContent() {
       </div>
 
       <div className="content-area">
-        <ContentRenderer {...{ loading, error, forms, reload, handleDelete }} />
+        <ContentRenderer 
+          loading={loading} 
+          error={error} 
+          forms={forms} 
+          reload={reload} 
+          handleDelete={handleDelete} 
+          onPreview={handlePreview}
+        />
       </div>
     </div>
   );

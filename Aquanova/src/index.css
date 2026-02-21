@@ -43,3 +43,18 @@
   animation: smoothEntry 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* Remove native number input spin buttons (keep our custom arrows) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Hide native date picker indicator so only our right-side icon remains */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+

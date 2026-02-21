@@ -38,8 +38,17 @@ export const formService = {
     });
   },
 
-  // Aquí podrías agregar getById, create, update, etc.
-  
+  /**
+   * Obtiene un formulario por ID
+   * @param {string} id - UUID del formulario
+   */
+  async getById(id) {
+    return apiRequest(`/forms/${id}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+  },
+
   /**
    * Crea un nuevo formulario en el backend.
    * payload debe contener: { title, schema: Array, neighborhood_id, description? }

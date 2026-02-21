@@ -2,6 +2,7 @@ import MultipleOptionsInput from "./../ui/inputs/MultipleOptionsInput.jsx";
 import TextInput from "./../ui/inputs/TextInput.jsx";
 import NumericInput from "./../ui/inputs/NumericInput.jsx";
 import DateInput from "./../ui/inputs/DateInput.jsx";
+import FileUploadInput from "./../ui/inputs/FileUploadInput.jsx";
 import TypeSelector from './../ui/selectors/TypeSelector.jsx';
 import SaveCancelControl from './controls/SaveCancelControl.jsx';
 import MandatoryToggle from './../ui/toggles/MandatoryToggle.jsx';
@@ -120,6 +121,8 @@ function EditingSection({ mainContainerRef, id }) {
                             return <NumericInput />;
                         case "Fecha":
                             return <DateInput />;
+                        case "Cargar imagen":
+                            return <FileUploadInput />;
                         default:
                             return null;
                     }
