@@ -5,7 +5,7 @@ export function useHeaderControls() {
   const fileInputRef = useRef(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isPublishOn, setIsPublishOn] = useState(false);
+  const [isPublishOn, setIsPublishOn] = useState(true); // activo por defecto al crear
   const [title, setTitle] = useState(FORM_CREATION_CONFIG.defaultFormTitle);
   const [description, setDescription] = useState('');
 

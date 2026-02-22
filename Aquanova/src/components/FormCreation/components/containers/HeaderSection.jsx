@@ -284,7 +284,13 @@ function HeaderSection() {
                     rounded-full 
                     p-1 
                     transition-colors duration-300 ease-in-out
-                    ${isPublishOn ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300 hover:bg-gray-400'}
+                    ${
+                        isPublishOn
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : isEditMode
+                                ? 'bg-red-400 hover:bg-red-500'
+                                : 'bg-gray-300 hover:bg-gray-400'
+                    }
                 `}
                 >
                 {/* 2. El Círculo (Knob) */}
@@ -301,9 +307,16 @@ function HeaderSection() {
                 </div>
 
                 {/* 3. El Texto descriptivo */}
-                <span className="text-[var(--text)] tablet:text-sm text-[13px]">
-                Publicar
-                </span>
+                <div className="flex flex-col leading-tight">
+                    <span className={`tablet:text-sm text-[13px] font-medium transition-colors duration-300 ${
+                        isPublishOn ? 'text-green-600' : isEditMode ? 'text-red-500' : 'text-gray-500'
+                    }`}>
+                        {isPublishOn ? 'Activo' : 'Inactivo'}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                        {isEditMode ? 'Estado del formulario' : 'Al guardar'}
+                    </span>
+                </div>
             </div>
             </div>
         </div>

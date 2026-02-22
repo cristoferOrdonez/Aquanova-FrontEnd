@@ -161,7 +161,7 @@ export function FormCreationProvider({ children }) {
       });
     }
 
-    const payload = { title, schema, neighborhood_id };
+    const payload = { title, schema, neighborhood_id, is_active: true };
     if (description) payload.description = description;
 
     const res = await formService.create(payload);

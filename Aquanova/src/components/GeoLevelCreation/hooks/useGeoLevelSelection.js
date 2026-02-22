@@ -53,12 +53,15 @@ export function useGeoLevelSelection() {
 
         const load = async () => {
             try {
-                const names = await neighborhoodService.getAll();
+                const all = await neighborhoodService.getAll();
                 if (!mounted) return;
-                if (Array.isArray(names) && names.length) {
-                    // names ahora es un arreglo de objetos {id,label}
-                    setParentNeighborhoodOptions(names);
-                    setParentLocalityOptions(names);
+                if (Array.isArray(all) && all.length) {
+                    // Localidades: registros raíz (sin padre)
+                    const localities = all.filter((n) => !n.parent_id);
+                    // Barrios: registros con localidad padre
+                    const neighborhoods = all.filter((n) => !!n.parent_id);
+                    setParentLocalityOptions(localities);
+                    setParentNeighborhoodOptions(neighborhoods);
                 }
             } catch (err) {
                 console.error('Error cargando barrios:', err);
@@ -80,30 +83,36 @@ export function useGeoLevelSelection() {
             setEditLoadError(null);
 
             try {
-                const response = await neighborhoodService.getById(id);
-                const payload = response?.data?.data ?? response?.data ?? response;
-                const normalized = payload?.data ?? payload;
+                // getById ya retorna el nodo normalizado con jerarquía
+                const normalized = await neighborhoodService.getById(id);
 
-                const metaType = normalized?.metadata?.type;
-                const resolvedType = metaType ? String(metaType).toLowerCase() : null;
+                if (!normalized?.id) {
+                    throw new Error('El servidor no retornó datos válidos para este geonivel.');
+                }
+
+                // `type` es campo top-level: "Barrio" | "Localidad" | "Ciudad"
+                const resolvedType = normalized.type
+                    ? String(normalized.type).toLowerCase()
+                    : null;
 
                 if (resolvedType) {
                     setSelectedGeoLevel(resolvedType);
                 } else {
-                    console.error('GeoLevel Data sin metadata.type:', normalized);
                     throw new Error('Los datos del nivel geográfico no contienen un tipo válido.');
                 }
 
-                setFormCode(normalized?.code ?? '');
-                setFormName(normalized?.name ?? '');
-                setFormDescription(normalized?.metadata?.description ?? '');
+                setFormCode(normalized.code ?? '');
+                setFormName(normalized.name ?? '');
+                // metadata.descripcion es el campo correcto (metadata.description como fallback)
+                setFormDescription(
+                    normalized.metadata?.descripcion ??
+                    normalized.metadata?.description ??
+                    ''
+                );
 
-                const parent = normalized?.parent;
-                if (parent?.name) {
-                    setEditingParentName(parent.name);
-                } else {
-                    setEditingParentName('');
-                }
+                // `parent` es el objeto padre inmediato (Localidad o Barrio según el nivel)
+                const parent = normalized.parent;
+                setEditingParentName(parent?.name ?? '');
 
                 if (resolvedType === GEO_LEVEL_TYPES.NEIGHBORHOOD && parent) {
                     setSelectedParentLocalityOption({ id: parent.id ?? null, label: parent.name ?? GEOLEVEL_CONFIG.DEFAULT_SELECTOR_TEXT });
@@ -135,10 +144,10 @@ export function useGeoLevelSelection() {
                 code: code ?? formCode,
                 name: name ?? formName,
                 parent_id,
-                // Merge provided metadata (images etc.) with description and type
+                // Merge provided metadata (images etc.) with descripcion and type
                 metadata: {
                     ...(metadata || {}),
-                    description: (metadata && metadata.description) || formDescription || '',
+                    descripcion: (metadata && (metadata.descripcion ?? metadata.description)) || formDescription || '',
                     type: selectedGeoLevel || undefined,
                 },
             };

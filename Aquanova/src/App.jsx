@@ -23,7 +23,7 @@ function App() {
   return (
     <div className='App'>
       {!hideNavbar && <Navbar />}
-      <div className={!noMargin ? 'px-10 py-6' : ''}>
+      <div className={!noMargin ? 'px-60 py-8' : ''}>
         <Routes>
           <Route path='/' element={<Navigate to='/login' replace />} />
           <Route path='/forms' element={<FormList />} />
