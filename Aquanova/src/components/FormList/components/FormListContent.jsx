@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
  * Componente para renderizar el estado del contenido de la lista de formularios.
  * Maneja los estados de carga, error, vacío y la lista de formularios.
  */
-const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPreview, onAnswer }) => {
+const ContentRenderer = ({ loading, error, forms, reload, handleDelete, handleExport, onPreview, onAnswer }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">

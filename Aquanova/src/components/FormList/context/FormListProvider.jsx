@@ -9,7 +9,7 @@ import { useForms } from '../hooks/useForms';
  * @param {{children: React.ReactNode}} props
  */
 export const FormListProvider = ({ children }) => {
-  const { forms, loading, error, reload, handleSearch, handleDelete } = useForms();
+  const { forms, loading, error, reload, handleSearch, handleDelete, handleExport } = useForms();
 
   const contextValue = {
     forms,
@@ -18,6 +18,7 @@ export const FormListProvider = ({ children }) => {
     handleSearch,
     reload,
     handleDelete,
+    handleExport,
   };
 
   return (
