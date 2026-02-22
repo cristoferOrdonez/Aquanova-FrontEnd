@@ -45,7 +45,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPrevie
           form={form}
           onDelete={() => handleDelete(form.id || form._id)}
           onEdit={() => console.log('Ir a editar', form.id)}
-          onAnswer={() => console.log('Ir a responder', form.id)}
+          onAnswer={() => navigate(`/form/submission/${form.id || form._id}`)}
           onPreview={() => onPreview(form.id || form._id)}
         />
       ))}

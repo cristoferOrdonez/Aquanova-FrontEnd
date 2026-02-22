@@ -6,6 +6,7 @@ import Login from './components/Login/Index'
 import GeoLevelList from './components/GeoLevelList/Index'
 import NeighborhoodCreation from './components/GeoLevelCreation/Index'
 import FormPreview from './components/FormPreview/Index'
+import FormSubmission from './components/FormSubmission/Index'
 import Home from './components/Home/Index'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import MapaPage from './components/DigitalTwinMap/MapaPage'
@@ -14,7 +15,7 @@ function App() {
   const [count, setCount] = useState(0)
   const location = useLocation()
   const hideNavbar = 
-    location.pathname === '/form_creation' || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/form/preview')
+    location.pathname === '/form_creation' || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/form/preview') || location.pathname.startsWith('/form/submission')
 
   return (
     <div className='App'>
@@ -24,6 +25,7 @@ function App() {
           <Route path='/form_creation' element={<FormCreation />} />
           <Route path='/form/preview/:id' element={<FormPreview />} />
           <Route path='/login' element={<Login />} />
+          <Route path='/form/submission/:id' element={<FormSubmission />} />
           <Route path='/neighborhoods' element={<GeoLevelList />} />
           <Route path='/geolevel_creation' element={<NeighborhoodCreation />} />
           <Route path='/geolevel_creation/:id' element={<NeighborhoodCreation />} />
