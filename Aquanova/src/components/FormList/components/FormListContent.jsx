@@ -1,3 +1,4 @@
+// src/components/FormList/components/FormListContent.jsx
 import React from 'react';
 import { useFormListContext } from '../hooks/useFormListContext';
 import FormCard from './FormCard';
@@ -47,6 +48,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPrevie
           onEdit={() => console.log('Ir a editar', form.id)}
           onAnswer={() => onAnswer(form.id || form._id)}
           onPreview={() => onPreview(form.id || form._id)}
+          onExport={(format) => handleExport(form.id || form._id, format, form.title)}
         />
       ))}
     </div>
@@ -54,7 +56,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPrevie
 };
 
 function FormListContent() {
-  const { forms, loading, error, reload, handleSearch, handleDelete } = useFormListContext();
+  const { forms, loading, error, reload, handleSearch, handleDelete, handleExport } = useFormListContext();
   const navigate = useNavigate();
 
   const handlePreview = (id) => {
@@ -84,15 +86,7 @@ function FormListContent() {
       </div>
 
       <div className="content-area">
-        <ContentRenderer 
-          loading={loading} 
-          error={error} 
-          forms={forms} 
-          reload={reload} 
-          handleDelete={handleDelete} 
-          onPreview={handlePreview}
-          onAnswer={handleAnswer}
-        />
+        <ContentRenderer {...{ loading, error, forms, reload, handleDelete, handleExport, onPreview: handlePreview, onAnswer: handleAnswer }} />
       </div>
     </div>
   );
