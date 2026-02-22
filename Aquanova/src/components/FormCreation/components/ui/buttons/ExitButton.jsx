@@ -1,6 +1,7 @@
-function ExitButton() {
+function ExitButton({ onClick }) {
     return (
         <button 
+            onClick={onClick}
             className="
                 w-fit pr-4 pl-2.5 py-1 bg-red-50 rounded-[30px] border-[1.5px] border-red-900
                 hover:bg-red-100 text-red-900 transition-colors transform hover:scale-110

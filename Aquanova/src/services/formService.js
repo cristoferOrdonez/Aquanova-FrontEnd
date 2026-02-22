@@ -64,6 +64,28 @@ export const formService = {
 
     return data;
   },
+
+  /**
+   * Actualiza un formulario existente (PUT /api/forms/:id).
+   * Endpoint polimórfico:
+   *  - Edición básica: { title?, description?, is_active? }
+   *  - Edición de preguntas: { schema? } => genera nueva versión
+   *  - Edición completa: ambos al mismo tiempo
+   * @param {string} id - UUID del formulario
+   * @param {Object} payload - Campos a actualizar (al menos uno requerido)
+   */
+  async update(id, payload) {
+    if (!id) throw new Error('Se requiere un ID para actualizar el formulario');
+    if (!payload || typeof payload !== 'object') throw new Error('payload inválido para update form');
+
+    const data = await apiRequest(`/forms/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: payload,
+    });
+
+    return data;
+  },
 };
 
 export default formService;
