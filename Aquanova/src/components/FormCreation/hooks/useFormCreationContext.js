@@ -7,6 +7,7 @@ import {
   CreationControlsContext,
   HeaderContext,
   NeighborhoodSelectorContext,
+  EditModeContext,
 } from '../context/FormCreationContext';
 
 function assertContext(ctx, name) {
@@ -42,6 +43,14 @@ export function useNeighborhoodSelectorContext() {
   return assertContext(useContext(NeighborhoodSelectorContext), 'useNeighborhoodSelectorContext');
 }
 
+/**
+ * Hook para acceder al contexto de modo edición
+ * @returns {{ isEditMode: boolean, editFormId: string|null, isLoadingEdit: boolean, editLoadError: string|null, exitToList: Function }}
+ */
+export function useEditModeContext() {
+  return assertContext(useContext(EditModeContext), 'useEditModeContext');
+}
+
 export default {
   useQuestionListContext,
   useEditingSectionContext,
@@ -50,4 +59,5 @@ export default {
   useCreationControlsContext,
   useHeaderContext,
   useNeighborhoodSelectorContext,
+  useEditModeContext,
 };

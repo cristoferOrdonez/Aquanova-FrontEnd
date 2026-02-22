@@ -38,8 +38,17 @@ export const formService = {
     });
   },
 
-  // Aquí podrías agregar getById, create, update, etc.
-  
+  /**
+   * Obtiene el detalle de un formulario por ID (incluye schema/preguntas).
+   * Respuesta esperada: { ok, data: { id, title, description, is_active, version, schema } }
+   */
+  async getById(id) {
+    return apiRequest(`/forms/${id}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+  },
+
   /**
    * Crea un nuevo formulario en el backend.
    * payload debe contener: { title, schema: Array, neighborhood_id, description? }
@@ -49,6 +58,28 @@ export const formService = {
 
     const data = await apiRequest('/forms', {
       method: 'POST',
+      headers: getAuthHeaders(),
+      body: payload,
+    });
+
+    return data;
+  },
+
+  /**
+   * Actualiza un formulario existente (PUT /api/forms/:id).
+   * Endpoint polimórfico:
+   *  - Edición básica: { title?, description?, is_active? }
+   *  - Edición de preguntas: { schema? } => genera nueva versión
+   *  - Edición completa: ambos al mismo tiempo
+   * @param {string} id - UUID del formulario
+   * @param {Object} payload - Campos a actualizar (al menos uno requerido)
+   */
+  async update(id, payload) {
+    if (!id) throw new Error('Se requiere un ID para actualizar el formulario');
+    if (!payload || typeof payload !== 'object') throw new Error('payload inválido para update form');
+
+    const data = await apiRequest(`/forms/${id}`, {
+      method: 'PUT',
       headers: getAuthHeaders(),
       body: payload,
     });

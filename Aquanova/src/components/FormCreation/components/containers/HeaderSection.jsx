@@ -4,12 +4,14 @@ import FORM_CREATION_CONFIG from '../../config/formCreationConfig';
 import {
     useHeaderContext,
     useNeighborhoodSelectorContext,
+    useEditModeContext,
 } from '../../hooks/useFormCreationContext';
 
 function HeaderSection() {
 
     const header = useHeaderContext();
     const neighborhoodCtx = useNeighborhoodSelectorContext();
+    const { isEditMode, isLoadingEdit, editLoadError } = useEditModeContext();
         const {
       fileInputRef,
       imagePreview,
@@ -27,17 +29,25 @@ function HeaderSection() {
       togglePublish,
         } = header;
 
-        const { title, setTitle, description, setDescription, createForm } = header;
+        const { title, setTitle, description, setDescription, createForm, updateForm, exitToList } = header;
 
         const handleSaveAndExit = async () => {
             try {
-                if (!createForm) throw new Error('createForm no está disponible');
-                const resp = await createForm();
-                // respuesta satisfactoria
-                alert(resp?.message || 'Formulario creado correctamente');
+                let resp;
+                if (isEditMode) {
+                    if (!updateForm) throw new Error('updateForm no está disponible');
+                    resp = await updateForm();
+                    alert(resp?.message || 'Formulario actualizado correctamente');
+                } else {
+                    if (!createForm) throw new Error('createForm no está disponible');
+                    resp = await createForm();
+                    alert(resp?.message || 'Formulario creado correctamente');
+                }
+                // Navegar de vuelta a la lista después de guardar
+                if (exitToList) exitToList();
             } catch (err) {
                 console.error(err);
-                alert(err?.message || 'Error al crear el formulario');
+                alert(err?.message || (isEditMode ? 'Error al actualizar el formulario' : 'Error al crear el formulario'));
             }
         };
 
@@ -256,11 +266,11 @@ function HeaderSection() {
                 </svg>
 
                 <span className="text-xs">
-                Guardar y salir
+                {isEditMode ? 'Guardar cambios' : 'Guardar y salir'}
                 </span>
             </button>
 
-            <ExitButton />
+            <ExitButton onClick={exitToList} />
 
             <div 
                 onClick={togglePublish} 
