@@ -3,6 +3,10 @@ import { createPortal } from 'react-dom';
 import { DevicePhoneMobileIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline';
 import { useFormPreviewContext } from '../../hooks/useFormPreviewContext.js';
 import { FIELD_TYPES, DEFAULT_TEXTS } from '../../config/formPrevioConfig.js';
+import Dropdown from '../ui/fields/Dropdown';
+import FileUploadField from '../ui/fields/FileUploadField';
+import RadioGroup from '../ui/fields/RadioGroup';
+import CheckboxGroup from '../ui/fields/CheckboxGroup';
 
 const FormPreviewContent = () => {
   const {
@@ -16,7 +20,6 @@ const FormPreviewContent = () => {
     handleHeaderReplace,
     handleInputChange,
     handleCheckboxChange,
-    handleSubmit,
   } = useFormPreviewContext();
 
   if (loading) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.LOADING}</div>;
@@ -80,7 +83,7 @@ const FormPreviewContent = () => {
         </div>
 
         <div className="w-full flex justify-between items-center mt-2 pb-6 px-1">
-          <button onClick={() => handleSubmit ? handleSubmit() : undefined} className={`bg-[var(--blue-buttons)] text-white ${buttonPadding} rounded-[5px] font-semibold ${buttonTextSize} hover:brightness-110 transition shadow-sm w-full`}>
+          <button className={`bg-[var(--blue-buttons)] text-white ${buttonPadding} rounded-[5px] font-semibold ${buttonTextSize} hover:brightness-110 transition shadow-sm w-full`}>
             Enviar
           </button>
         </div>
@@ -186,139 +189,17 @@ function renderFieldInput(field, answers, onTextChange, onCheckboxChange, sizeCl
         </div>
       );
 
-    case FIELD_TYPES.DROPDOWN: {
-      function CustomDropdown({ field, value, onChange, sizeClass }) {
-        const [open, setOpen] = useState(false);
-        const triggerRef = useRef(null);
-        const dropdownRef = useRef(null);
-        const [rect, setRect] = useState(null);
-        const [dropdownTop, setDropdownTop] = useState(null);
-
-        useEffect(() => {
-          function onDocClick(e) { if (triggerRef.current && !triggerRef.current.contains(e.target) && dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpen(false); }
-          if (open) document.addEventListener('mousedown', onDocClick);
-          return () => document.removeEventListener('mousedown', onDocClick);
-        }, [open]);
-
-        useEffect(() => {
-          if (!open || !triggerRef.current) return;
-          const updatePos = () => { const r = triggerRef.current.getBoundingClientRect(); setRect(r); setDropdownTop(r.bottom + 8); };
-          updatePos();
-          window.addEventListener('scroll', updatePos, true);
-          window.addEventListener('resize', updatePos);
-          return () => { window.removeEventListener('scroll', updatePos, true); window.removeEventListener('resize', updatePos); };
-        }, [open]);
-
-        useEffect(() => {
-          if (!open || !rect) return;
-          const adjust = () => {
-            if (!dropdownRef.current) return;
-            const dh = dropdownRef.current.offsetHeight;
-            const spaceBelow = window.innerHeight - rect.bottom;
-            const spaceAbove = rect.top;
-            if (spaceBelow < dh + 16 && spaceAbove > spaceBelow) setDropdownTop(rect.top - dh - 8);
-            else setDropdownTop(rect.bottom + 8);
-          };
-          requestAnimationFrame(adjust);
-        }, [rect, open]);
-
-        const toggle = () => { if (!open && triggerRef.current) { const r = triggerRef.current.getBoundingClientRect(); setRect(r); setOpen(true); } else setOpen(false); };
-
-        return (
-          <div className="px-1">
-            <div ref={triggerRef} onClick={toggle} className={`flex items-center justify-between w-full border border-[var(--input-border)] bg-[var(--input-bg)] rounded-[14px] p-2 cursor-pointer select-none ${sizeClass}`}>
-              <span className={`truncate ${sizeClass}`}>{ value || "Selecciona una opción" }</span>
-              <svg className={`w-4 h-4 text-gray-700 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
-            {open && rect && dropdownTop != null && createPortal(
-              <div style={{ position: 'fixed', top: dropdownTop, left: rect.left, width: rect.width, zIndex: 9999 }}>
-                <div ref={dropdownRef} className="bg-[var(--card-bg)] border border-[var(--card-stroke)] rounded-[14px] shadow-lg overflow-hidden">
-                  {field.options && field.options.map((opt, idx) => {
-                    const val = typeof opt === 'object' ? opt.value : opt;
-                    const key = typeof opt === 'object' ? opt.id : idx;
-                    return (
-                      <div key={key} onClick={() => { onChange(field.id, val); setOpen(false); }} className="px-4 py-2 text-[13px] text-[var(--text)] hover:bg-[var(--stroke-selectors-and-search-bars)] cursor-pointer">{val}</div>
-                    );
-                  })}
-                </div>
-              </div>, document.body)
-            }
-          </div>
-        );
-      }
-
-      return <CustomDropdown field={field} value={value} onChange={onTextChange} sizeClass={sizeClass} />;
-    }
+    case FIELD_TYPES.DROPDOWN:
+      return <Dropdown field={field} value={value} onChange={onTextChange} sizeClass={sizeClass} />;
 
     case FIELD_TYPES.MULTIPLE:
-      return (
-        <div className="space-y-2 mt-1">
-          {field.options && field.options.map((opt, idx) => {
-            const val = typeof opt === 'object' ? opt.value : opt;
-            const key = typeof opt === 'object' ? opt.id : idx;
-            const idToStore = typeof opt === 'object' ? opt.id : val;
-            const isChecked = value === idToStore || value === val;
-            return (
-              <label key={key} className="flex items-center space-x-2 cursor-pointer group">
-                <div className="relative flex items-center">
-                  <input type="radio" name={`field-${field.id}`} value={idToStore} checked={isChecked} onChange={() => onTextChange(field.id, idToStore)} className={`peer appearance-none w-4 h-4 rounded-full border-2 border-gray-300 checked:border-blue-600 transition-all ${sizeClass}`} />
-                  <div className="absolute w-2 h-2 bg-blue-600 rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 scale-0 peer-checked:scale-100 transition-transform"></div>
-                </div>
-                <span className={`text-gray-700 group-hover:text-gray-900 ${sizeClass}`}>{val}</span>
-              </label>
-            );
-          })}
-        </div>
-      );
+      return <RadioGroup field={field} value={value} onChange={onTextChange} sizeClass={sizeClass} />;
 
-    case FIELD_TYPES.FILE_UPLOAD: {
-      const previewUrl = value && typeof value === 'object' ? value.previewUrl : null;
-      return (
-        <div className="mt-2">
-          <label className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors overflow-hidden ${sizeClass}`}>
-            {previewUrl ? <img src={previewUrl} alt="Vista previa" className="absolute inset-0 w-full h-full object-cover" /> : (
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg aria-hidden="true" className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                <p className={`mb-2 text-gray-500 text-center ${sizeClass === 'text-xs' ? 'text-[10px]' : 'text-sm'}`}><span className="font-semibold">Click para subir</span></p>
-                <p className={`text-gray-500 text-center ${sizeClass === 'text-xs' ? 'text-[8px]' : 'text-xs'}`}>PNG, JPG (MAX. 10MB)</p>
-              </div>
-            )}
-            <input type="file" className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { onTextChange(field.id, { name: file.name, previewUrl: reader.result }); }; reader.readAsDataURL(file); }} />
-          </label>
-          {previewUrl && (
-            <div className="flex gap-2 mt-2">
-              <label className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 cursor-pointer transition ${sizeClass === 'text-xs' ? 'text-[10px]' : 'text-sm'}`}>
-                Cambiar imagen
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { onTextChange(field.id, { name: file.name, previewUrl: reader.result }); }; reader.readAsDataURL(file); }} />
-              </label>
-              <button type="button" className={`inline-flex items-center justify-center px-3 py-1.5 rounded-md border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition ${sizeClass === 'text-xs' ? 'text-[10px]' : 'text-sm'}`} onClick={() => onTextChange(field.id, null)}>Quitar imagen</button>
-            </div>
-          )}
-          {!previewUrl && value && typeof value === 'string' && (<div className={`text-gray-600 mt-1 truncate ${sizeClass === 'text-xs' ? 'text-[10px]' : 'text-sm'}`}>Archivo: {value}</div>)}
-        </div>
-      );
-    }
+    case FIELD_TYPES.FILE_UPLOAD:
+      return <FileUploadField field={field} value={value} onChange={onTextChange} sizeClass={sizeClass} />;
 
     case FIELD_TYPES.CHECKBOX:
-      return (
-        <div className="space-y-2 mt-1">
-          {field.options && field.options.map((opt, idx) => {
-            const val = typeof opt === 'object' ? opt.value : opt;
-            const key = typeof opt === 'object' ? opt.id : idx;
-            const idToStore = typeof opt === 'object' ? opt.id : opt;
-            const isCheckedRobust = (value || []).includes(idToStore);
-            return (
-              <label key={key} className="flex items-center space-x-2 cursor-pointer group">
-                <div className="relative flex items-center">
-                  <input type="checkbox" checked={isCheckedRobust} onChange={(e) => onCheckboxChange(field.id, idToStore, e.target.checked)} className={`peer appearance-none w-4 h-4 rounded border-2 border-gray-300 checked:bg-blue-600 checked:border-blue-600 transition-all ${sizeClass}`} />
-                  <svg className="absolute w-3 h-3 text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 scale-0 peer-checked:scale-100 transition-transform pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </div>
-                <span className={`text-gray-700 group-hover:text-gray-900 ${sizeClass}`}>{val}</span>
-              </label>
-            );
-          })}
-        </div>
-      );
+      return <CheckboxGroup field={field} value={value} onCheckboxChange={onCheckboxChange} sizeClass={sizeClass} />;
 
     default:
       return <div className={`text-red-500 py-1 px-2 bg-red-50 rounded ${sizeClass}`}>Campo no soportado: {field.type}</div>;

@@ -15,7 +15,7 @@ function App() {
   const [count, setCount] = useState(0)
   const location = useLocation()
   const hideNavbar = 
-    location.pathname === '/form_creation' || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/form/preview') || location.pathname.startsWith('/form/submission')
+    location.pathname === '/form_creation' || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/form/preview') || location.pathname.startsWith('/form/submit')
 
   return (
     <div className='App'>
@@ -24,8 +24,8 @@ function App() {
           <Route path='/forms' element={<FormList />} />
           <Route path='/form_creation' element={<FormCreation />} />
           <Route path='/form/preview/:id' element={<FormPreview />} />
+          <Route path='/form/submit/:id' element={<FormSubmission />} />
           <Route path='/login' element={<Login />} />
-          <Route path='/form/submission/:id' element={<FormSubmission />} />
           <Route path='/neighborhoods' element={<GeoLevelList />} />
           <Route path='/geolevel_creation' element={<NeighborhoodCreation />} />
           <Route path='/geolevel_creation/:id' element={<NeighborhoodCreation />} />

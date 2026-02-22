@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
  * Componente para renderizar el estado del contenido de la lista de formularios.
  * Maneja los estados de carga, error, vacío y la lista de formularios.
  */
-const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPreview }) => {
+const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPreview, onAnswer }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -45,7 +45,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, onPrevie
           form={form}
           onDelete={() => handleDelete(form.id || form._id)}
           onEdit={() => console.log('Ir a editar', form.id)}
-          onAnswer={() => navigate(`/form/submission/${form.id || form._id}`)}
+          onAnswer={() => onAnswer(form.id || form._id)}
           onPreview={() => onPreview(form.id || form._id)}
         />
       ))}
@@ -59,6 +59,10 @@ function FormListContent() {
 
   const handlePreview = (id) => {
     navigate(`/form/preview/${id}`);
+  };
+
+  const handleAnswer = (id) => {
+    navigate(`/form/submit/${id}`);
   };
 
   return (
@@ -87,6 +91,7 @@ function FormListContent() {
           reload={reload} 
           handleDelete={handleDelete} 
           onPreview={handlePreview}
+          onAnswer={handleAnswer}
         />
       </div>
     </div>

@@ -1,11 +1,11 @@
 import React from 'react';
 import FormSubmissionProvider from './context/FormSubmissionProvider';
-import FormPreviewContent from '../FormPreview/components/containers/FormPreviewContent';
+import FormSubmissionContent from './components/containers/FormSubmissionContent';
 
 export default function FormSubmission() {
   return (
     <FormSubmissionProvider>
-      <FormPreviewContent />
+      <FormSubmissionContent />
     </FormSubmissionProvider>
   );
 }

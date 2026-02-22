@@ -1,12 +1,13 @@
 import { apiRequest, getAuthHeaders } from './apiClient';
 
-export const submissionService = {
+export const submissionsService = {
   /**
-   * Crea una nueva submission (envío de respuestas)
+   * Enviar respuestas de un formulario
    * payload: { form_id, neighborhood_id, responses, location? }
    */
-  async create(payload) {
-    if (!payload || typeof payload !== 'object') throw new Error('payload inválido para submission');
+  async submit(payload) {
+    if (!payload || typeof payload !== 'object') throw new Error('payload inválido para submit submission');
+
     return apiRequest('/submissions', {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -15,4 +16,4 @@ export const submissionService = {
   },
 };
 
-export default submissionService;
+export default submissionsService;
