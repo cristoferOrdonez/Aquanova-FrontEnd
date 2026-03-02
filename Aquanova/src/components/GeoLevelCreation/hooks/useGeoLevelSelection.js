@@ -36,6 +36,8 @@ export function useGeoLevelSelection() {
     const [isLoadingEdit, setIsLoadingEdit] = useState(false);
     const [editLoadError, setEditLoadError] = useState(null);
     const [editingParentName, setEditingParentName] = useState('');
+    // URL de imagen existente en Cloudinary (modo edición)
+    const [existingImageUrl, setExistingImageUrl] = useState(null);
 
     // Lógica para saber si estamos en pantalla completa
     const isFullScreen = !selectedGeoLevel;
@@ -110,6 +112,9 @@ export function useGeoLevelSelection() {
                     ''
                 );
 
+                // Imagen existente de Cloudinary para mostrar en la galería
+                setExistingImageUrl(normalized.metadata?.imagen ?? null);
+
                 // `parent` es el objeto padre inmediato (Localidad o Barrio según el nivel)
                 const parent = normalized.parent;
                 setEditingParentName(parent?.name ?? '');
@@ -137,9 +142,13 @@ export function useGeoLevelSelection() {
     }, [id, isEditMode]);
 
     // Crear un nuevo geo-level (predio, barrio, localidad)
+    // metadata puede incluir un `imageFile` (File) para subir a Cloudinary
     const createGeoLevel = async ({code = null, name = null, parent_id = null, metadata = null } = {}) => {
         setIsSubmitting(true);
         try {
+            // Extraer imageFile del metadata si existe (proviene de buildMetadata)
+            const imageFile = metadata?.imageFile ?? null;
+
             const payload = {
                 code: code ?? formCode,
                 name: name ?? formName,
@@ -152,7 +161,11 @@ export function useGeoLevelSelection() {
                 },
             };
 
-            const res = await neighborhoodService.create(payload);
+            // Limpiar campos internos del metadata (no deben enviarse al backend)
+            delete payload.metadata.imageFile;
+            delete payload.metadata.images;
+
+            const res = await neighborhoodService.create(payload, imageFile);
 
             // Si la creación fue exitosa, recargar opciones
             try {
@@ -171,6 +184,58 @@ export function useGeoLevelSelection() {
 
             return res;
         } catch (err) {
+            throw err;
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Actualizar un geo-level existente (predio, barrio, localidad)
+    const updateGeoLevel = async ({ name = null, parent_id = undefined, metadata = null } = {}) => {
+        if (!id) throw new Error('No se puede actualizar sin un ID válido.');
+        setIsSubmitting(true);
+        try {
+            // Extraer imageFile del metadata si existe (proviene de buildMetadata)
+            const imageFile = metadata?.imageFile ?? null;
+
+            // Construir metadata limpia: solo campos que el backend espera
+            const cleanMetadata = {
+                descripcion: (metadata && (metadata.descripcion ?? metadata.description)) || formDescription || '',
+            };
+
+            // No enviar 'code' en update: el campo es readonly en edición
+            // y el backend puede rechazar el mismo código por constraint de unicidad
+            const payload = {
+                name: name ?? formName,
+                metadata: cleanMetadata,
+            };
+
+            // Solo incluir parent_id si tiene un valor UUID válido (no null, no undefined)
+            if (parent_id) {
+                payload.parent_id = parent_id;
+            }
+
+            console.log('[updateGeoLevel] id:', id, 'payload:', JSON.stringify(payload), 'imageFile:', imageFile);
+
+            const res = await neighborhoodService.update(id, payload, imageFile);
+
+            // Si la actualización fue exitosa, recargar opciones
+            try {
+                const refreshed = await neighborhoodService.getAll();
+                if (Array.isArray(refreshed) && refreshed.length) {
+                    setParentNeighborhoodOptions(refreshed);
+                    setParentLocalityOptions(refreshed);
+                }
+            } catch (e) {
+                console.warn('Error reloading neighborhoods after update', e);
+            }
+
+            return res;
+        } catch (err) {
+            console.error('[updateGeoLevel] Error completo:', err);
+            console.error('[updateGeoLevel] err.data:', err?.data);
+            console.error('[updateGeoLevel] err.status:', err?.status);
+            console.error('[updateGeoLevel] err.message:', err?.message);
             throw err;
         } finally {
             setIsSubmitting(false);
@@ -225,6 +290,7 @@ export function useGeoLevelSelection() {
         setSelectedParentLocalityOption,
         isSubmitting,
         createGeoLevel,
+        updateGeoLevel,
         exitToList,
         isGeoLevelParentSelectorOpen,
         setIsGeoLevelParentSelectorOpen,
@@ -232,6 +298,7 @@ export function useGeoLevelSelection() {
         isLoadingEdit,
         editLoadError,
         editingParentName,
+        existingImageUrl,
 
         // Funciones
         handleGeoLevelSelect,

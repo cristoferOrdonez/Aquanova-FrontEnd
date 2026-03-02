@@ -22,6 +22,7 @@ function NeighborhoodForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        updateGeoLevel,
         isEditMode,
         editingParentName,
         exitToList,
@@ -64,7 +65,16 @@ function NeighborhoodForm() {
                 <SaveButton
                     onClick={async () => {
                         if (isEditMode) {
-                            exitToList();
+                            const metadata = buildMetadata();
+                            const parent_id = selectedParentLocalityOption?.id ?? null;
+                            try {
+                                const res = await updateGeoLevel({ parent_id, metadata });
+                                const msg = res?.message || 'Barrio actualizado exitosamente';
+                                alert(msg);
+                                exitToList();
+                            } catch (err) {
+                                alert(err?.message || err?.data?.message || 'Error al actualizar el barrio');
+                            }
                             return;
                         }
                         const metadata = buildMetadata();

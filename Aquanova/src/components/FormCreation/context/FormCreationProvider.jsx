@@ -100,15 +100,15 @@ export function FormCreationProvider({ children }) {
         }
 
         // Pre-poblar el barrio (neighborhood)
-        // El backend envía neighborhood_id (string UUID), hacemos request para obtener el nombre
+        // El backend envía neighborhood_id (string UUID), hacemos request para obtener el nombre.
+        // neighborhoodService.getById() ya retorna el nodo normalizado con jerarquía:
+        //   { id, name, label, code, type, parent_id, is_active, metadata, created_at, parent }
         if (formData.neighborhood_id) {
           try {
-            const nbResponse = await neighborhoodService.getById(formData.neighborhood_id);
-            const nbData = nbResponse?.data?.data ?? nbResponse?.data ?? nbResponse;
-            const nbName = nbData?.name ?? nbData?.nombre ?? nbData?.label ?? 'Barrio';
+            const nbNode = await neighborhoodService.getById(formData.neighborhood_id);
             neighborhoodSelector.setSelectedOption({
-              id: String(formData.neighborhood_id),
-              label: String(nbName),
+              id: nbNode.id ?? String(formData.neighborhood_id),
+              label: nbNode.label ?? nbNode.name ?? 'Barrio',
             });
           } catch (nbErr) {
             console.warn('No se pudo cargar el nombre del barrio:', nbErr);
@@ -128,7 +128,7 @@ export function FormCreationProvider({ children }) {
 
     loadEditData();
     return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, isEditMode]);
 
   // ── Función para CREAR un formulario (modo creación) ──

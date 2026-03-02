@@ -4,19 +4,23 @@ import defaultImage from '../../../assets/images/humedal.jpg';
 import FormStateElement from '../../FormList/components/FormStateElement';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { GEOLEVEL_CONFIG } from '../config/geoLevelListConfig';
+import { neighborhoodService } from '../../../services/neighborhoodService';
+import { useGeoLevelListContext } from '../hooks/useGeoLevelListContext';
 
 const GeoLevelCard = ({ neighborhood }) => {
   const { name, code, metadata, parent_id, parent_name, is_active } = neighborhood;
   const navigate = useNavigate();
+  const { refetch } = useGeoLevelListContext();
 
-  // `type` viene como campo top-level desde getById; en listados se infiere
-  const rawType = neighborhood.type ?? metadata?.type ?? (parent_id ? 'Barrio' : 'Localidad');
-  const type    = String(rawType).toLowerCase(); // normalizar a minúsculas internamente
+  // `type` viene del servicio (inferido de parent_id en listado, o del backend en detalle)
+  const rawType = neighborhood.type ?? (parent_id ? 'Barrio' : 'Localidad');
+  const type = String(rawType).toLowerCase(); // normalizar a minúsculas internamente
 
-  const description = metadata?.descripcion ?? metadata?.description ?? 'Sin descripción disponible.';
-  const imageUrl    = metadata?.imagen ?? metadata?.images?.[0];
+  const description = metadata?.descripcion ?? 'Sin descripción disponible.';
+  // metadata.imagen es URL de Cloudinary (res.cloudinary.com) según documentación del endpoint
+  const imageUrl = metadata?.imagen;
   // Maneja boolean (true/false) e integer MySQL (1/0)
-  const active      = Boolean(is_active);
+  const active = Boolean(is_active);
 
   const typeLabel = `${String(rawType).charAt(0).toUpperCase()}${String(rawType).slice(1).toLowerCase()}`;
 
@@ -26,15 +30,36 @@ const GeoLevelCard = ({ neighborhood }) => {
     }
   };
 
-  const onDelete = () => {
-    console.log('Delete action triggered for:', name);
+  /**
+   * Elimina el barrio/localidad tras confirmación del usuario.
+   * La imagen asociada se elimina automáticamente de Cloudinary.
+   * ⚠️ No se puede eliminar si tiene sub-barrios (hijos) asociados.
+   */
+  const onDelete = async () => {
+    if (!neighborhood?.id) return;
+
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar "${name}"?\nEsta acción no se puede deshacer y la imagen se eliminará de Cloudinary.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await neighborhoodService.delete(neighborhood.id);
+      const msg = res?.message || 'Barrio eliminado exitosamente';
+      alert(msg);
+      // Refrescar la lista
+      if (refetch) refetch();
+    } catch (err) {
+      const errorMsg = err?.message || err?.data?.message || 'Error al eliminar';
+      alert(errorMsg);
+    }
   };
 
   const getTypeFormState = (t) => {
     const lower = String(t).toLowerCase();
     if (lower === 'localidad') return 'warning';
-    if (lower === 'barrio')    return 'active';
-    if (lower === 'ciudad')    return 'location';
+    if (lower === 'barrio') return 'active';
+    if (lower === 'ciudad') return 'location';
     return 'location';
   };
 

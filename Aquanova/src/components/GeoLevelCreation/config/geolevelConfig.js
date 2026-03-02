@@ -21,10 +21,10 @@ export const GEO_LEVEL_TYPES = {
 // --- CONFIGURACIÓN GENERAL ---
 export const GEOLEVEL_CONFIG = {
     /**
-     * Cantidad de slots en la galería de imágenes
-     * Cambiar aquí afectará a toda la aplicación
+     * Cantidad de slots en la galería de imágenes.
+     * La API solo admite una imagen por registro (metadata.imagen).
      */
-    GALLERY_SLOTS_QUANTITY: 5,
+    GALLERY_SLOTS_QUANTITY: 1,
 
     /**
      * Texto por defecto para selectores sin selección

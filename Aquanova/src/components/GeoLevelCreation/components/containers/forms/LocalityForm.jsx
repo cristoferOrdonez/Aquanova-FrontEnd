@@ -12,6 +12,7 @@ function LocalityForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        updateGeoLevel,
         isEditMode,
         exitToList,
     } = useGeoLevelSelectionContext();
@@ -60,7 +61,15 @@ function LocalityForm() {
                 <SaveButton
                     onClick={async () => {
                         if (isEditMode) {
-                            exitToList();
+                            const metadata = buildMetadata();
+                            try {
+                                const res = await updateGeoLevel({ metadata });
+                                const msg = res?.message || 'Localidad actualizada exitosamente';
+                                alert(msg);
+                                exitToList();
+                            } catch (err) {
+                                alert(err?.message || err?.data?.message || 'Error al actualizar la localidad');
+                            }
                             return;
                         }
                         const metadata = buildMetadata();

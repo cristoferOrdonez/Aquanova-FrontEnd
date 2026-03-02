@@ -10,6 +10,8 @@ export function useImageGallery() {
     const slotsQuantity = GEOLEVEL_CONFIG.GALLERY_SLOTS_QUANTITY;
     // Estado
     const [slots, setSlots] = useState(Array(slotsQuantity).fill(null));
+    // Guardar los archivos File originales para enviar como FormData a Cloudinary
+    const [fileSlots, setFileSlots] = useState(Array(slotsQuantity).fill(null));
     const [activeIndex, setActiveIndex] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const inputRefs = useRef([]);
@@ -28,21 +30,38 @@ export function useImageGallery() {
     };
 
     // --- Manejo de Archivos ---
+    // Formatos aceptados según documentación de la API:
+    // JPEG, PNG, WebP, AVIF, GIF, SVG. Tamaño máximo: 10 MB.
+    const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'image/svg+xml'];
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
     const handleFile = (file, index) => {
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const newSlots = [...slots];
-                newSlots[index] = reader.result;
-                setSlots(newSlots);
-                setActiveIndex(index);
-                setIsDragging(false); 
-            };
-            reader.readAsDataURL(file);
-        } else {
-            alert("Formato no válido. Por favor sube una imagen (JPG, PNG).");
+        if (!file || !ACCEPTED_TYPES.includes(file.type)) {
+            alert('Formato no válido. Formatos aceptados: JPEG, PNG, WebP, AVIF, GIF, SVG.');
             setIsDragging(false);
+            return;
         }
+        if (file.size > MAX_FILE_SIZE) {
+            alert('La imagen supera el tamaño máximo de 10 MB.');
+            setIsDragging(false);
+            return;
+        }
+
+        // Guardar el File original para envío a Cloudinary
+        const newFileSlots = [...fileSlots];
+        newFileSlots[index] = file;
+        setFileSlots(newFileSlots);
+
+        // Generar preview con DataURL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const newSlots = [...slots];
+            newSlots[index] = reader.result;
+            setSlots(newSlots);
+            setActiveIndex(index);
+            setIsDragging(false);
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleInputChange = (e, index) => {
@@ -83,6 +102,9 @@ export function useImageGallery() {
         const newSlots = [...slots];
         newSlots[index] = null;
         setSlots(newSlots);
+        const newFileSlots = [...fileSlots];
+        newFileSlots[index] = null;
+        setFileSlots(newFileSlots);
         if (inputRefs.current[index]) inputRefs.current[index].value = "";
     };
 
@@ -101,7 +123,7 @@ export function useImageGallery() {
     // --- Exportar metadata para enviar al backend ---
     const buildMetadata = () => {
         const images = slots
-            .map((s, idx) => ({ dataUrl: s, index: idx }))
+            .map((s, idx) => ({ dataUrl: s, file: fileSlots[idx], index: idx }))
             .filter((it) => it.dataUrl != null)
             .map((it) => {
                 // Generar nombre simple y detectar mime si es data url
@@ -109,16 +131,21 @@ export function useImageGallery() {
                 const mime = match ? match[1] : 'image/*';
                 const data = match ? match[2] : it.dataUrl;
                 const filename = `img_${Date.now()}_${it.index}`;
-                return { filename, mime, dataUrl: it.dataUrl, data, index: it.index };
+                return { filename, mime, dataUrl: it.dataUrl, data, file: it.file, index: it.index };
             });
 
-        return { images };
+        // Retornar el primer File original para enviar como multipart/form-data a Cloudinary
+        const imageFile = images.length > 0 ? images[0].file : null;
+
+        return { images, imageFile };
     };
 
     return {
         // Estado
         slots,
         setSlots,
+        fileSlots,
+        setFileSlots,
         activeIndex,
         setActiveIndex,
         isDragging,

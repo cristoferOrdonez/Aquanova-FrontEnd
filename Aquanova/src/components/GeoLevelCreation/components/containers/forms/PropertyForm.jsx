@@ -22,6 +22,7 @@ function PropertyForm() {
         setFormDescription,
         isSubmitting,
         createGeoLevel,
+        updateGeoLevel,
         isEditMode,
         exitToList,
     } = useGeoLevelSelectionContext();
@@ -53,7 +54,16 @@ function PropertyForm() {
                 <SaveButton
                     onClick={async () => {
                         if (isEditMode) {
-                            exitToList();
+                            const metadata = buildMetadata();
+                            const parent_id = selectedParentNeighborhoodOption?.id ?? null;
+                            try {
+                                const res = await updateGeoLevel({ parent_id, metadata });
+                                const msg = res?.message || 'Predio actualizado exitosamente';
+                                alert(msg);
+                                exitToList();
+                            } catch (err) {
+                                alert(err?.message || err?.data?.message || 'Error al actualizar el predio');
+                            }
                             return;
                         }
                         const metadata = buildMetadata();

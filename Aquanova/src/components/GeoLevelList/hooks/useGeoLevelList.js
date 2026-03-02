@@ -21,10 +21,10 @@ export const useGeoLevelList = () => {
     (list, query, filter) => {
       let result = list;
 
-      // Filtro por tipo
+      // Filtro por tipo (el servicio ya infiere `type` desde parent_id)
       if (filter && filter !== 'Todos') {
         result = result.filter((item) => {
-          const t = item?.type ?? (item?.parent_id ? 'Barrio' : 'Localidad');
+          const t = item?.type ?? '';
           return String(t).toLowerCase() === filter.toLowerCase();
         });
       }
