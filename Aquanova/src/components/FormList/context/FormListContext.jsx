@@ -2,14 +2,30 @@
 import { createContext } from 'react';
 
 /**
+ * @typedef {object} FormMetadata
+ * @property {string} imagen - URL pública de la imagen de portada en Cloudinary.
+ * @property {string} imagen_public_id - ID interno de Cloudinary.
+ */
+
+/**
+ * @typedef {object} FormNeighborhood
+ * @property {string} id - UUID del barrio.
+ * @property {string} name - Nombre del barrio.
+ * @property {string} code - Código del barrio.
+ * @property {string|null} parent_id - ID del barrio padre (si es sub-barrio).
+ */
+
+/**
  * @typedef {object} Form
- * @property {string} id - El ID único del formulario.
- * @property {string} [_id] - El ID único del formulario (alternativo).
+ * @property {string} id - UUID del formulario.
+ * @property {string} key - Slug único generado al crear.
  * @property {string} title - El título del formulario.
  * @property {string} [description] - La descripción del formulario.
- * @property {string} [imageUrl] - La URL de la imagen de portada.
- * @property {number} is_active - Estado de actividad (1 para activo, 0 para inactivo).
- * @property {Array<{name: string}>} [neighborhoods] - Lista de barrios asociados.
+ * @property {FormMetadata|null} metadata - Imagen de portada en Cloudinary. null si no se subió imagen.
+ * @property {boolean} is_active - true si activo, false si desactivado.
+ * @property {string} created_by - Nombre del administrador que lo creó.
+ * @property {string} created_at - Fecha de creación (ISO 8601).
+ * @property {FormNeighborhood[]} neighborhoods - Barrios con publicación activa. [] si ninguno.
  */
 
 /**

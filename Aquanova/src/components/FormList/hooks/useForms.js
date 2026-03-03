@@ -33,7 +33,7 @@ export function useForms() {
     try {
       if (query) {
         const results = await formService.search(query);
-        setForms(results.forms);
+        setForms(results.forms || []);
       } else {
         loadForms();
       }
@@ -46,12 +46,18 @@ export function useForms() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este formulario?")) return;
+    if (!window.confirm(
+      '¿Estás seguro de que deseas desactivar este formulario?\n\n' +
+      'El formulario no será eliminado, solo quedará inactivo y no aparecerá para los usuarios.'
+    )) return;
     try {
       await formService.delete(id);
-      setForms((prevForms) => prevForms.filter((f) => f.id !== id));
+      // Soft delete: el formulario permanece en la lista pero marcado como inactivo
+      setForms((prevForms) =>
+        prevForms.map((f) => (f.id === id ? { ...f, is_active: false } : f))
+      );
     } catch (err) {
-      alert("Error al eliminar el formulario");
+      alert('Error al desactivar el formulario');
     }
   };
 

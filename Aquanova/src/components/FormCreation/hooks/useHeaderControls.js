@@ -4,6 +4,8 @@ import FORM_CREATION_CONFIG from '../config/formCreationConfig';
 export function useHeaderControls() {
   const fileInputRef = useRef(null);
   const [imagePreview, setImagePreview] = useState(null);
+  // Referencia al File real seleccionado (para enviar como multipart/form-data)
+  const [imageFile, setImageFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isPublishOn, setIsPublishOn] = useState(true); // activo por defecto al crear
   const [title, setTitle] = useState(FORM_CREATION_CONFIG.defaultFormTitle);
@@ -11,6 +13,8 @@ export function useHeaderControls() {
 
   const handleFile = (file) => {
     if (file && file.type && file.type.startsWith && file.type.startsWith('image/')) {
+      // Guardar el File real para enviarlo como multipart/form-data al backend
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -65,6 +69,7 @@ export function useHeaderControls() {
   const handleRemoveImage = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
     setImagePreview(null);
+    setImageFile(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -87,6 +92,8 @@ export function useHeaderControls() {
     fileInputRef,
     imagePreview,
     setImagePreview,
+    imageFile,
+    setImageFile,
     isDragging,
     setIsDragging,
     isPublishOn,

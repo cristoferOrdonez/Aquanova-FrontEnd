@@ -68,7 +68,7 @@ export function FormCreationProvider({ children }) {
           headerControls.setIsPublishOn(formData.is_active === 1 || formData.is_active === true);
         }
 
-        // Pre-poblar las preguntas desde el schema
+        // Pre-poblar el schema de preguntas
         // El schema puede venir como array (JSON nativo de MySQL) o como string JSON
         let schema = formData.schema;
         if (typeof schema === 'string') {
@@ -77,7 +77,7 @@ export function FormCreationProvider({ children }) {
 
         if (Array.isArray(schema) && schema.length > 0) {
           const parsedQuestions = schema
-            .filter(item => item.type !== 'image') // Excluir la imagen del schema
+            .filter(item => item.type !== 'image') // compatibilidad con esquemas legacy
             .map(item => ({
               id: item.id || `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
               title: item.title || item.label || FORM_CREATION_CONFIG.defaultQuestionTitle,
@@ -91,12 +91,11 @@ export function FormCreationProvider({ children }) {
           // En modo edición, desactivar el panel de creación para que las preguntas
           // cargadas se muestren sin blur/opacidad
           creationControls.setIsCreationOn(false);
+        }
 
-          // Pre-poblar la imagen si existe en el schema
-          const imageEntry = schema.find(item => item.type === 'image');
-          if (imageEntry?.data) {
-            headerControls.setImagePreview(imageEntry.data);
-          }
+        // Pre-poblar la imagen desde metadata (Cloudinary)
+        if (formData.metadata?.imagen) {
+          headerControls.setImagePreview(formData.metadata.imagen);
         }
 
         // Pre-poblar el barrio (neighborhood)
@@ -174,38 +173,37 @@ export function FormCreationProvider({ children }) {
 
     const title = headerControls.title || FORM_CREATION_CONFIG.defaultFormTitle;
     const description = headerControls.description || '';
-    const is_active = headerControls.isPublishOn ? true : false;
+    const is_active = headerControls.isPublishOn;
 
-    // Reconstruir schema: primero la imagen, luego las preguntas
-    const schema = [];
-    if (headerControls.imagePreview) {
-      schema.push({
-        id: `img-${Date.now()}`,
-        type: 'image',
-        data: headerControls.imagePreview,
-      });
-    }
-
+    // Construir schema solo con preguntas (la imagen se envía como archivo separado)
     const questions = questionList.questions || [];
-    for (const q of questions) {
-      schema.push({
-        id: q.id,
-        title: q.title,
-        type: q.type,
-        required: !!q.required,
-        options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
-      });
-    }
+    const schema = questions.map(q => ({
+      id: q.id,
+      title: q.title,
+      type: q.type,
+      required: !!q.required,
+      options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
+    }));
 
-    const payload = { title, description, is_active, schema };
+    // Construir FormData (multipart/form-data requerido por el endpoint)
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('is_active', String(is_active)); // "true" o "false"
+    formData.append('schema', JSON.stringify(schema));
 
     // Incluir neighborhood_id si el usuario seleccionó un barrio
-    const neighborhood_id = neighborhoodSelector.selectedOption && neighborhoodSelector.selectedOption.id;
+    const neighborhood_id = neighborhoodSelector.selectedOption?.id;
     if (neighborhood_id) {
-      payload.neighborhood_id = neighborhood_id;
+      formData.append('neighborhood_id', neighborhood_id);
     }
 
-    const res = await formService.update(id, payload);
+    // Incluir imagen solo si el usuario seleccionó un nuevo archivo
+    if (headerControls.imageFile) {
+      formData.append('imagen', headerControls.imageFile);
+    }
+
+    const res = await formService.update(id, formData);
     return res;
   };
 

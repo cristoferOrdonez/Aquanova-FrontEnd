@@ -18,7 +18,10 @@ export const formService = {
   },
 
   /**
-   * Elimina un formulario por ID
+   * Desactiva un formulario por ID (soft delete).
+   * El formulario no se elimina permanentemente: se marca como is_active = false
+   * junto con todas sus publicaciones asociadas.
+   * @param {string} id - UUID del formulario
    */
   async delete(id) {
     return apiRequest(`/forms/${id}`, {
@@ -29,7 +32,10 @@ export const formService = {
 
   /**
    * Busca formularios por un término de búsqueda.
-   * @param {string} query - Término de búsqueda.
+   * La búsqueda se realiza sobre: título, descripción y nombre del barrio asociado.
+   * La respuesta incluye el campo `metadata` con la imagen de portada (Cloudinary),
+   * igual que el endpoint GET /api/forms.
+   * @param {string} query - Término de búsqueda (requerido).
    */
   async search(query) {
     return apiRequest(`/forms/search?query=${encodeURIComponent(query)}`, {
@@ -67,21 +73,24 @@ export const formService = {
 
   /**
    * Actualiza un formulario existente (PUT /api/forms/:id).
-   * Endpoint polimórfico:
-   *  - Edición básica: { title?, description?, is_active? }
-   *  - Edición de preguntas: { schema? } => genera nueva versión
-   *  - Edición completa: ambos al mismo tiempo
+   * El endpoint acepta multipart/form-data. Campos disponibles:
+   *  - imagen   {File}    Imagen de portada → se sube a Cloudinary
+   *  - title    {string}  Nuevo título
+   *  - description {string} Nueva descripción
+   *  - is_active {string} "true" o "false"
+   *  - neighborhood_id {string} UUID del barrio
+   *  - schema   {string} Array de preguntas JSON stringificado → genera nueva versión
    * @param {string} id - UUID del formulario
-   * @param {Object} payload - Campos a actualizar (al menos uno requerido)
+   * @param {FormData} formData - FormData con los campos a actualizar (al menos uno requerido)
    */
-  async update(id, payload) {
+  async update(id, formData) {
     if (!id) throw new Error('Se requiere un ID para actualizar el formulario');
-    if (!payload || typeof payload !== 'object') throw new Error('payload inválido para update form');
+    if (!formData || typeof formData !== 'object') throw new Error('formData inválido para update form');
 
     const data = await apiRequest(`/forms/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: payload,
+      body: formData,
     });
 
     return data;

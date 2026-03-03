@@ -15,10 +15,13 @@ function FormCard({
   const {
     title = 'Título del formulario',
     description = 'Sin descripción disponible.',
-    imageUrl,
+    metadata,
     is_active,
     neighborhoods = [],
   } = form
+
+  // La imagen de portada viene de Cloudinary dentro de metadata
+  const imageUrl = metadata?.imagen || null
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
