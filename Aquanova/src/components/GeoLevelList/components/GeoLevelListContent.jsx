@@ -14,8 +14,8 @@ const GeoLevelListContent = () => {
   const renderBody = () => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={`skeleton-${index}`}
               className="animate-pulse bg-white border border-(--stroke-selectors-and-search-bars) rounded-2xl p-5 shadow-sm"
@@ -53,7 +53,7 @@ const GeoLevelListContent = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {neighborhoods.map((neighborhood) => (
           <GeoLevelCard key={neighborhood.id} neighborhood={neighborhood} />
         ))}

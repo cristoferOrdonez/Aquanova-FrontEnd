@@ -18,12 +18,15 @@ function App() {
     location.pathname === '/login' ||
     location.pathname === '/form_creation' ||
     location.pathname.startsWith('/form_creation/') ||
-    location.pathname.startsWith('/geolevel_creation')
+    location.pathname.startsWith('/geolevel_creation') ||
+    location.pathname === '/home'
+
+  const isHome = location.pathname === '/home'
 
   return (
-    <div className='App'>
+    <div className='App flex flex-col min-h-screen'>
       {!hideNavbar && <Navbar />}
-      <div className={!noMargin ? 'px-60 py-8' : ''}>
+      <div className={isHome ? 'flex-1 overflow-hidden' : !noMargin ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' : 'flex-1 overflow-y-auto'}>
         <Routes>
           <Route path='/' element={<Navigate to='/login' replace />} />
           <Route path='/forms' element={<FormList />} />

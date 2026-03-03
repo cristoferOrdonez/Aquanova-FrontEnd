@@ -1,26 +1,33 @@
 // src/components/DigitalTwinMap/LotSidePanel.jsx
 import React, { useState, useEffect } from 'react';
 
+// Colores oficiales según la guía de integración frontend
+const STATUS_OPTIONS = [
+  { value: 'sin_informacion', label: 'Sin Información',   hex: '#9E9E9E' },
+  { value: 'censado',         label: 'Censado',            hex: '#2196F3' },
+  { value: 'registrado',      label: 'Registrado Oficial', hex: '#4CAF50' },
+];
+
 const LotSidePanel = ({ lot, onSave, onDeselect }) => {
   const [formData, setFormData] = useState({
     number: '',
     water_meter_code: '',
-    status: 'sin_informacion'
+    cadastral_id: '',
+    status: 'sin_informacion',
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sincronizar el formulario cada vez que se selecciona un lote diferente
   useEffect(() => {
     if (lot) {
       setFormData({
-        number: lot.number || '',
+        number:           lot.number           || '',
         water_meter_code: lot.water_meter_code || '',
-        status: lot.status || 'sin_informacion'
+        cadastral_id:     lot.cadastral_id     || '',
+        status:           lot.status           || 'sin_informacion',
       });
     }
   }, [lot]);
 
-  // Si no hay ningún lote seleccionado, mostramos un mensaje vacío
   if (!lot) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-400 p-6 text-center">
@@ -33,9 +40,7 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
     );
   }
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +48,8 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
     await onSave(lot.id, formData);
     setIsSaving(false);
   };
+
+  const currentStatus = STATUS_OPTIONS.find(s => s.value === formData.status);
 
   return (
     <div className="h-full flex flex-col p-6 bg-white overflow-y-auto">
@@ -52,11 +59,31 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
           <p className="text-sm text-gray-500 mt-1">ID: {lot.id.split('-')[0]}...</p>
         </div>
         <button onClick={onDeselect} className="text-gray-400 hover:text-gray-700 transition-colors">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 flex-1">
+      {/* Info de solo lectura */}
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Área</p>
+          <p className="text-sm font-semibold text-gray-800">{lot.area_m2 ? `${lot.area_m2} m²` : '—'}</p>
+        </div>
+        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 flex items-center gap-2">
+          <div
+            className="w-3 h-3 rounded-sm border border-black/10 shrink-0"
+            style={{ backgroundColor: currentStatus?.hex ?? '#9E9E9E' }}
+          />
+          <div>
+            <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Estado</p>
+            <p className="text-sm font-semibold text-gray-800">{currentStatus?.label ?? formData.status}</p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4 flex-1">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Dirección / Número de Lote</label>
           <input
@@ -70,32 +97,44 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
         </div>
 
         <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">ID Catastral</label>
+          <input
+            type="text"
+            name="cadastral_id"
+            value={formData.cadastral_id}
+            onChange={handleChange}
+            placeholder="Ej: CAD-001-A (dejar en blanco si no tiene)"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Código del Medidor</label>
           <input
             type="text"
             name="water_meter_code"
             value={formData.water_meter_code}
             onChange={handleChange}
-            placeholder="Ej: M-10293 (Dejar en blanco si no tiene)"
+            placeholder="Ej: MED-2026-001 (dejar en blanco si no tiene)"
             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Estado Censal</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Estado Catastral</label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
           >
-            <option value="sin_informacion">Sin Información (Gris)</option>
-            <option value="censado">Censado (Amarillo)</option>
-            <option value="registrado">Registrado Oficial (Verde)</option>
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
         </div>
 
-        <div className="pt-6 mt-6 border-t border-gray-200">
+        <div className="pt-4 mt-4 border-t border-gray-200">
           <button
             type="submit"
             className="w-full py-3 px-4 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg disabled:bg-blue-400 flex justify-center items-center"
@@ -104,8 +143,8 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
                 Guardando...
               </span>

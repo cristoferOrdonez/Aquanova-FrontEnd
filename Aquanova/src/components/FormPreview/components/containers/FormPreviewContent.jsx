@@ -67,8 +67,8 @@ const FormPreviewContent = () => {
         </div>
 
         <div className={`w-full flex flex-col ${gap}`}>
-          {fields.map(field => (
-            <div key={field.id} className={`w-full bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] ${rounded} ${cardPadding} shadow-sm transition-all duration-500 transform-gpu hover:shadow-md hover:scale-[1.01]`}> 
+          {fields.map((field, idx) => (
+            <div key={field.id ?? field._id ?? idx} className={`w-full bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] ${rounded} ${cardPadding} shadow-sm transition-all duration-500 transform-gpu hover:shadow-md hover:scale-[1.01]`}> 
               <div className="mb-2">
                 <label className={`block ${labelSize} font-medium text-[var(--text)] mb-1 break-words leading-snug`}>
                   {field.title || field.label || "Sin título"}
