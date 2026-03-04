@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import defaultImage from './../../../assets/images/humedal.jpg'
 import FormStateElement from './FormStateElement'
-import { TrashIcon, PencilIcon, EyeIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { TrashIcon, PencilIcon, EyeIcon, ArrowDownTrayIcon, ShareIcon, UserCircleIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 function FormCard({
   form,
@@ -18,12 +18,15 @@ function FormCard({
     metadata,
     is_active,
     neighborhoods = [],
+    created_by,
+    share_link,
   } = form
 
   // La imagen de portada viene de Cloudinary dentro de metadata
   const imageUrl = metadata?.imagen || null
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const menuRef = useRef(null);
 
   // Cerrar el menú al hacer clic afuera
@@ -47,6 +50,14 @@ function FormCard({
     onExport(format);
   }
 
+  const handleShare = () => {
+    if (!share_link) return
+    navigator.clipboard.writeText(share_link).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   return (
     <article className="group flex flex-col overflow-hidden w-full h-full bg-white border border-[var(--stroke-selectors-and-search-bars)] rounded-2xl font-work shadow-md hover:shadow-xl transition-all hover:-translate-y-1 duration-300 text-center relative">
       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -64,9 +75,16 @@ function FormCard({
           <FormStateElement formState="location" label={locationLabel} />
         </div>
 
-        <p className="text-sm text-[var(--gray-subtitles)] line-clamp-3 mb-6 flex-1">
+        <p className="text-sm text-[var(--gray-subtitles)] line-clamp-3 mb-3 flex-1">
           {description}
         </p>
+
+        {created_by && (
+          <div className="flex items-center justify-center gap-1.5 mb-5 text-xs text-gray-400">
+            <UserCircleIcon className="w-4 h-4 shrink-0" />
+            <span className="truncate">Creado por: <span className="font-medium text-gray-500">{created_by}</span></span>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 mt-auto">
           <button type="button" onClick={onAnswer} aria-label="Contestar formulario" className="w-full py-2.5 rounded-full text-sm text-white font-semibold bg-[var(--blue-buttons)] hover:brightness-110 transition-all active:scale-95">
@@ -120,6 +138,19 @@ function FormCard({
               <button type="button" onClick={onEdit} className="p-2 rounded-full text-[var(--blue-buttons)] hover:bg-blue-100 transition-colors" aria-label="Editar formulario">
                 <PencilIcon className="h-5 w-5" />
               </button>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  disabled={!share_link}
+                  className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Compartir formulario"
+                  title={copied ? '¡Enlace copiado!' : 'Copiar enlace para compartir'}
+                >
+                  {copied ? <CheckIcon className="h-5 w-5 text-green-500" /> : <ShareIcon className="h-5 w-5" />}
+                </button>
+              </div>
 
               <button type="button" onClick={onDelete} className="p-2 rounded-full text-[var(--red-base)] hover:bg-red-100 transition-colors" aria-label="Eliminar formulario">
                 <TrashIcon className="h-5 w-5" />

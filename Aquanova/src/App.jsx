@@ -7,19 +7,21 @@ import NeighborhoodCreation from './components/GeoLevelCreation/Index'
 import FormPreview from './components/FormPreview/Index'
 import FormSubmission from './components/FormSubmission/Index'
 import Home from './components/Home/Index'
+import PublicForm from './components/PublicForm/Index'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
 function App() {
   const location = useLocation()
-  const hideNavbar = 
-    location.pathname === '/form_creation' || location.pathname.startsWith('/form_creation/') || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation')
+  const hideNavbar =
+    location.pathname === '/form_creation' || location.pathname.startsWith('/form_creation/') || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/formulario/')
 
   const noMargin =
     location.pathname === '/login' ||
     location.pathname === '/form_creation' ||
     location.pathname.startsWith('/form_creation/') ||
     location.pathname.startsWith('/geolevel_creation') ||
-    location.pathname === '/home'
+    location.pathname === '/home' ||
+    location.pathname.startsWith('/formulario/')
 
   const isHome = location.pathname === '/home'
 
@@ -39,6 +41,7 @@ function App() {
           <Route path='/geolevel_creation' element={<NeighborhoodCreation />} />
           <Route path='/geolevel_creation/:id' element={<NeighborhoodCreation />} />
           <Route path='/home' element={<Home />} />
+          <Route path='/formulario/:formKey' element={<PublicForm />} />
         </Routes>
       </div>
     </div>

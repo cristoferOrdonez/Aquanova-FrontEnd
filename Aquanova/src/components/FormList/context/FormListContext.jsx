@@ -26,6 +26,7 @@ import { createContext } from 'react';
  * @property {string} created_by - Nombre del administrador que lo creó.
  * @property {string} created_at - Fecha de creación (ISO 8601).
  * @property {FormNeighborhood[]} neighborhoods - Barrios con publicación activa. [] si ninguno.
+ * @property {string} share_link - URL pública para compartir el formulario.
  */
 
 /**
