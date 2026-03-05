@@ -74,9 +74,14 @@ function EditingSection({ mainContainerRef, id }) {
             ${editingSection.isEditingSectionOpen && editingSection.editingQuestionId === id ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}
             ${editingSection.isEditingSectionOpen && editingSection.editingQuestionId === id ? 'h-auto px-6 py-4 mb-10' : 'h-0 p-0 mb-0'}
         `}>
-            <div className="flex tablet:flex-row flex-col gap-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-[11px] font-medium text-gray-400 uppercase tracking-wide px-1">
+                Título de la pregunta
+              </label>
+              <div className="flex tablet:flex-row flex-col gap-2">
                         <textarea
-                            value={editingSection.questionTitle}
+                            value={editingSection.questionTitle === 'Pregunta sin título' ? '' : editingSection.questionTitle}
+                            placeholder="Escribe el título de la pregunta…"
                             rows="1"
                             onChange={(e) => {
                                 editingSection.setQuestionTitle(e.target.value);
@@ -85,22 +90,23 @@ function EditingSection({ mainContainerRef, id }) {
                             }}
                             onBlur={(e) => {
                                 if (e.target.value.trim() === "") {
-                                    e.target.value = "Pregunta sin título";
-                                    editingSection.setQuestionTitle(e.target.value);
+                                    editingSection.setQuestionTitle("Pregunta sin título");
                                     e.target.style.height = 'auto';
                                     e.target.style.height = e.target.scrollHeight + 'px';
                                 }
                             }}
                             className="
                                 w-full resize-none overflow-hidden
-                                p-1 tablet:text-sm text-[13px] text-[var(--text)]
-                                border-[1.5px] border-transparent
-                                rounded-[5px] outline-none
-                                focus:border-[#2138C4]
-                                transition-all duration-500 ease-in-out
+                                p-2 tablet:text-sm text-[13px] text-[var(--text)]
+                                border-[1.5px] border-[var(--card-stroke)]
+                                rounded-[8px] outline-none
+                                placeholder:text-gray-300
+                                focus:border-[#2138C4] focus:bg-blue-50/30
+                                transition-all duration-300 ease-in-out
                                 "
                         />
-            <TypeSelector />
+                <TypeSelector />
+              </div>
             </div>
             <div className="w-full">
                 {(() => {

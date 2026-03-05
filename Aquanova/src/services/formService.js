@@ -57,7 +57,15 @@ export const formService = {
 
   /**
    * Crea un nuevo formulario en el backend.
-   * payload debe contener: { title, schema: Array, neighborhood_id, description? }
+   * Acepta un objeto JSON o FormData (multipart/form-data).
+   * Si se adjunta un archivo con la clave 'imagen', el backend lo sube a Cloudinary.
+   * Campos disponibles:
+   *  - title          {string}  Título del formulario (requerido)
+   *  - schema         {string}  Array de preguntas JSON stringificado
+   *  - neighborhood_id {string} UUID del barrio (requerido)
+   *  - description    {string}  Descripción opcional
+   *  - is_active      {string}  "true" o "false"
+   *  - imagen         {File}    Imagen de portada → se sube a Cloudinary
    */
   async create(payload) {
     if (!payload || typeof payload !== 'object') throw new Error('payload inválido para create form');

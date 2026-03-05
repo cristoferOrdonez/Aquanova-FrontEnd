@@ -140,37 +140,37 @@ export function FormCreationProvider({ children }) {
   // ── Función para CREAR un formulario (modo creación) ──
   const createForm = async () => {
     const title = headerControls.title || FORM_CREATION_CONFIG.defaultFormTitle;
-    const description = headerControls.description || undefined;
+    const description = headerControls.description || '';
     const neighborhood_id = neighborhoodSelector.selectedOption && neighborhoodSelector.selectedOption.id;
 
     if (!neighborhood_id) {
       throw new Error('Debe seleccionar un barrio antes de crear el formulario');
     }
 
-    const schema = [];
-    if (headerControls.imagePreview) {
-      schema.push({
-        id: `img-${Date.now()}`,
-        type: 'image',
-        data: headerControls.imagePreview,
-      });
-    }
-
+    // Construir schema solo con preguntas (la imagen se envía como archivo separado a Cloudinary)
     const questions = questionList.questions || [];
-    for (const q of questions) {
-      schema.push({
-        id: q.id,
-        title: q.title,
-        type: q.type,
-        required: !!q.required,
-        options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
-      });
+    const schema = questions.map(q => ({
+      id: q.id,
+      title: q.title,
+      type: q.type,
+      required: !!q.required,
+      options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
+    }));
+
+    // Usar FormData (multipart/form-data) para que el backend pueda subir la imagen a Cloudinary
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('is_active', 'true');
+    formData.append('neighborhood_id', neighborhood_id);
+    formData.append('schema', JSON.stringify(schema));
+
+    // Incluir imagen solo si el usuario seleccionó un archivo
+    if (headerControls.imageFile) {
+      formData.append('imagen', headerControls.imageFile);
     }
 
-    const payload = { title, schema, neighborhood_id, is_active: true };
-    if (description) payload.description = description;
-
-    const res = await formService.create(payload);
+    const res = await formService.create(formData);
     return res;
   };
 

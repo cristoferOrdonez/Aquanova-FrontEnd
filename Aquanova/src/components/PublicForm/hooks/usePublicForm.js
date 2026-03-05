@@ -15,13 +15,14 @@ const getGeolocation = () =>
 
 // Mapeo de etiquetas en español (usadas en el editor) a tipos en inglés (usados en FormFieldRenderer)
 const TYPE_MAP = {
-  'Opción multiple': 'radio',
-  'Casillas de verificación': 'checkbox',
-  'Lista desplegable': 'select',
-  'Respuesta textual': 'text',
-  'Numérico': 'text',
-  'Fecha': 'text',
-  'Cargar imagen': 'text',
+  'Opción multiple':             'radio',
+  'Casillas de verificación':    'checkbox',
+  'Lista desplegable':           'select',
+  'Respuesta textual':           'textarea',
+  'Numérico':                    'number',
+  'Fecha':                       'date',
+  'Cargar imagen':               'file',
+  'Sólo texto (sin respuestas)': 'info',
 };
 
 /**
@@ -79,9 +80,10 @@ export const usePublicForm = () => {
         }));
         setFormData({ ...res.data, schema });
 
-        // Inicializar respuestas vacías con el tipo correcto
+        // Inicializar respuestas vacías con el tipo correcto (omitir campos info)
         const initial = {};
         schema.forEach((field) => {
+          if (field.type === 'info') return;
           initial[field.key] = field.type === 'checkbox' ? [] : field.type === 'range' ? (field.min ?? 0) : '';
         });
         setResponses(initial);
@@ -152,10 +154,17 @@ export const usePublicForm = () => {
     try {
       const location = await getGeolocation();
 
+      const filteredResponses = Object.fromEntries(
+        Object.entries(responses).filter(([key]) => {
+          const field = formData?.schema?.find((f) => f.key === key);
+          return field?.type !== 'info';
+        })
+      );
+
       const payload = {
         form_key: formKey,
         neighborhood_id: formData.neighborhood_id,
-        responses,
+        responses: filteredResponses,
         name: registration.name,
         document_number: registration.document_number,
         ...(referralCode ? { referral_code: referralCode } : {}),

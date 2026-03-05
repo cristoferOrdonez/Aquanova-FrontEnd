@@ -6,9 +6,7 @@ import {
 } from './../../../hooks/useFormCreationContext.js';
 import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
 
-function CreationButton({
-    mainContainerRef
-}) {
+function CreationButton() {
     const creationControls = useCreationControlsContext();
     const editingSection = useEditingSectionContext();
     const typeSelector = useTypeSelectorContext();
@@ -28,8 +26,9 @@ function CreationButton({
         editingSection.setIsMandatoryOn(false);
 
         setTimeout(() => {
-            if (mainContainerRef.current) {
-                mainContainerRef.current.scrollTo({ top: mainContainerRef.current.scrollHeight, behavior: 'smooth' });
+            const frame = document.getElementById('creation-editing-frame');
+            if (frame) {
+                frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, FORM_CREATION_CONFIG.animationDelays.scroll);
     };
@@ -44,7 +43,7 @@ function CreationButton({
             }}
                         disabled={editingSection.isEditingSectionOpen} 
             className={`
-            tablet:w-[60px] w-[50px] tablet:h-[60px] h-[50px] rounded-full absolute tablet:bottom-[40px] bottom-[25px] tablet:right-[40px] right-[25px] z-10
+            tablet:w-[60px] w-[50px] tablet:h-[60px] h-[50px] rounded-full fixed tablet:bottom-[40px] bottom-[25px] tablet:right-[40px] right-[25px] z-50
             flex items-center justify-center shadow-lg
             transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
             

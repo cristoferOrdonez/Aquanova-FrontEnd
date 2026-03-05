@@ -1,16 +1,45 @@
 import FORM_CREATION_CONFIG from './../../../config/formCreationConfig';
 
+const TYPE_BADGE = {
+  'Opción multiple':             { label: 'Opción múltiple',    cls: 'bg-violet-50 text-violet-600 border-violet-200' },
+  'Casillas de verificación':    { label: 'Casillas',           cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+  'Lista desplegable':           { label: 'Desplegable',        cls: 'bg-cyan-50 text-cyan-600 border-cyan-200' },
+  'Respuesta textual':           { label: 'Texto',              cls: 'bg-gray-100 text-gray-500 border-gray-200' },
+  'Numérico':                    { label: 'Numérico',           cls: 'bg-orange-50 text-orange-600 border-orange-200' },
+  'Fecha':                       { label: 'Fecha',              cls: 'bg-green-50 text-green-600 border-green-200' },
+  'Cargar imagen':               { label: 'Imagen',             cls: 'bg-pink-50 text-pink-600 border-pink-200' },
+};
+
 export default function QuestionCard({
   q,
-  isJustUpdated
+  isJustUpdated,
+  index,
 }) {
+  const badge = TYPE_BADGE[q.type];
   return (
     <div className={`
-      w-full tablet:w-auto flex-1 border-[1.5px] rounded-[5px] p-6 flex flex-col gap-3 shadow-sm
+      w-full tablet:w-auto flex-1 border-[1.5px] rounded-[5px] p-5 flex flex-col gap-3 shadow-sm
       transition-all duration-500
       ${isJustUpdated ? 'bg-blue-50 border-[#2138C4] shadow-[0_0_15px_rgba(33,56,196,0.2)]' : 'bg-[var(--card-bg)] border-[var(--card-stroke)]'}
     `}>
-      <h3 className="text-[var(--text)] tablet:text-base text-sm">
+      {/* Fila superior: número + badge de tipo */}
+      <div className="flex items-center justify-between gap-2">
+        {index !== undefined && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+            isJustUpdated ? 'bg-[#2138C4]/10 text-[#2138C4] border-[#2138C4]/20' : 'bg-[var(--bg-color-main)] text-gray-400 border-[var(--card-stroke)]'
+          }`}>
+            #{index + 1}
+          </span>
+        )}
+        {badge && q.type !== FORM_CREATION_CONFIG.defaultType && (
+          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ml-auto ${
+            isJustUpdated ? 'bg-[#2138C4]/10 text-[#2138C4] border-[#2138C4]/20' : badge.cls
+          }`}>
+            {badge.label}
+          </span>
+        )}
+      </div>
+      <h3 className="text-[var(--text)] tablet:text-base text-sm leading-snug">
         {q.title}
         {q.required && <span className="text-red-500 ml-1">*</span>}
       </h3>

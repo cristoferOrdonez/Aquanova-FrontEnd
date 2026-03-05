@@ -25,11 +25,19 @@ function App() {
     location.pathname.startsWith('/formulario/')
 
   const isHome = location.pathname === '/home'
+  const isFormCreation =
+    location.pathname === '/form_creation' ||
+    location.pathname.startsWith('/form_creation/')
 
   return (
     <div className='App flex flex-col min-h-screen'>
       {!hideNavbar && <Navbar />}
-      <div className={isHome ? 'flex-1 overflow-hidden' : !noMargin ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' : 'flex-1 overflow-y-auto'}>
+      <div className={
+        isHome          ? 'flex-1 overflow-hidden' :
+        isFormCreation  ? '' :
+        !noMargin       ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
+                          'flex-1 overflow-y-auto'
+      }>
         <Routes>
           <Route path='/' element={<Navigate to='/login' replace />} />
           <Route path='/login' element={<Login />} />

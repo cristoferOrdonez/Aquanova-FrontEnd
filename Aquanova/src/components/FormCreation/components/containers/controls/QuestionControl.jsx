@@ -10,11 +10,11 @@ export default function QuestionControl({
 }) {
   return (
     <div className={`
-      tablet:absolute tablet:z-10 flex tablet:pl-0 pl-2 
-      ${q.type == FORM_CREATION_CONFIG.defaultType? 'flex-row': 'tablet:flex-col flex-row'} 
-      gap-2 tablet:translate-x-full tablet:pl-[15px] mb-3 tablet:mb-0
+      flex-shrink-0 flex pl-2 tablet:pl-4
+      ${q.type == FORM_CREATION_CONFIG.defaultType ? 'flex-row' : 'tablet:flex-col flex-row'}
+      gap-2 mb-3 tablet:mb-0 tablet:self-start tablet:pt-1
       transition-all duration-300
-      ${isEditingThis ? 'opacity-0 translate-x-0 pointer-events-none' : 'opacity-100'}
+      ${isEditingThis ? 'opacity-0 pointer-events-none' : 'opacity-100'}
     `}>
 
       <button

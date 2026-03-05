@@ -71,7 +71,19 @@ function QuestionListSection({ mainContainerRef }) {
 
     return (
         <div alt="question_frame" className="flex flex-col items-center justify-start gap-2 w-[100%] tablet:w-auto pt-4 tablet:pt-0">
-            {questions.map((q) => {
+            {/* Empty state cuando no hay preguntas */}
+            {questions.length === 0 && !editingSection.isEditingSectionOpen && (
+                <div className="tablet:w-[653px] w-[90%] border-[1.5px] border-dashed border-[var(--card-stroke)] rounded-[5px] px-6 py-10 flex flex-col items-center justify-center gap-3 text-center opacity-60">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12 text-gray-400">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                    <p className="text-sm font-medium text-gray-500">Sin preguntas aún</p>
+                    <p className="text-xs text-gray-400 max-w-[220px] leading-relaxed">
+                        Pulsa el botón <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#10B981] text-white font-bold text-[10px]">+</span> en la esquina inferior derecha para agregar la primera pregunta
+                    </p>
+                </div>
+            )}
+            {questions.map((q, idx) => {
                 const isEditingThis = editingSection.editingQuestionId === q.id && editingSection.editingQuestionId !== -1;
                 const isEditingAny = editingSection.editingQuestionId !== null && editingSection.editingQuestionId !== -1;
                 const isJustUpdated = justUpdatedQuestionId === q.id && editingSection.editingQuestionId !== -1;
@@ -92,7 +104,7 @@ function QuestionListSection({ mainContainerRef }) {
                         `}
                     >
                         <div className={`
-                            relative tablet:w-[653px] w-[100%] flex tablet:flex-row flex-col gap-4 tablet:items-center justify-end
+                            w-full flex tablet:flex-row flex-col gap-2
                             transition-all duration-500 ease-in-out
                             ${exitingQuestionId === q.id ? 'opacity-50 -translate-x-full max-h-0 scale-10 pointer-events-none' : 'max-h-[500px]'}
                             ${(isEditingAny && !isEditingThis) || creationControls.isCreationOn ? 'opacity-40 grayscale scale-95 pointer-events-none blur-[1px]' : ''}
@@ -100,7 +112,7 @@ function QuestionListSection({ mainContainerRef }) {
                             ${isEditingThis ? 'opacity-0 h-0 p-0 mb-0 invisible translate-y-9' : ''}
                         `}>
 
-                            <QuestionCard q={q} isJustUpdated={isJustUpdated} />
+                            <QuestionCard q={q} isJustUpdated={isJustUpdated} index={idx} />
 
                             <QuestionControl 
                                 q={q} 

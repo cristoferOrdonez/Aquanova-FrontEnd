@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import ExitButton from './../ui/buttons/ExitButton.jsx';
 import NeighborhoodSelector from './../ui/selectors/NeighborhoodSelector.jsx';
 import FORM_CREATION_CONFIG from '../../config/formCreationConfig';
@@ -12,6 +13,7 @@ function HeaderSection() {
     const header = useHeaderContext();
     const neighborhoodCtx = useNeighborhoodSelectorContext();
     const { isEditMode, isLoadingEdit, editLoadError } = useEditModeContext();
+    const [isSaving, setIsSaving] = useState(false);
         const {
       fileInputRef,
       imagePreview,
@@ -32,6 +34,8 @@ function HeaderSection() {
         const { title, setTitle, description, setDescription, createForm, updateForm, exitToList } = header;
 
         const handleSaveAndExit = async () => {
+            if (isSaving) return;
+            setIsSaving(true);
             try {
                 let resp;
                 if (isEditMode) {
@@ -48,6 +52,8 @@ function HeaderSection() {
             } catch (err) {
                 console.error(err);
                 alert(err?.message || (isEditMode ? 'Error al actualizar el formulario' : 'Error al crear el formulario'));
+            } finally {
+                setIsSaving(false);
             }
         };
 
@@ -181,7 +187,7 @@ function HeaderSection() {
                 {/* Selector de Barrio */}
                 <div className="flex flex-col gap-1">
                     <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
-                        Barrio de la campaña
+                        Barrio de la campaña <span className="text-red-400">*</span>
                     </span>
                     <NeighborhoodSelector />
                 </div>
@@ -236,41 +242,66 @@ function HeaderSection() {
             ">
             <button 
                 onClick={handleSaveAndExit}
-                className="
-                    w-fit pr-4 pl-2.5 py-1 bg-[#10B981]/10 rounded-[30px] border-[1.5px] border-[#10B981]
-                    hover:bg-[#10B981]/20 text-[#10B981] transition-colors transform hover:scale-110
-                    flex flex-row items-center gap-2 cursor-pointer
-
-                    [@media(pointer:coarse)]:active:bg-[#10B981]/20
-                    [@media(pointer:coarse)]:active:scale-110
-                "
+                disabled={isSaving}
+                className={`
+                    w-fit pr-4 pl-2.5 py-1 rounded-[30px] border-[1.5px]
+                    flex flex-row items-center gap-2 transition-all duration-200
+                    ${isSaving
+                        ? 'bg-[#10B981]/5 border-[#10B981]/40 text-[#10B981]/50 cursor-not-allowed scale-95'
+                        : 'bg-[#10B981]/10 border-[#10B981] text-[#10B981] cursor-pointer hover:bg-[#10B981]/20 transform hover:scale-110 [@media(pointer:coarse)]:active:bg-[#10B981]/20 [@media(pointer:coarse)]:active:scale-110'
+                    }
+                `}
             >
-                <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className="w-7 h-7"
-                >
-                {/* Contorno del disquete */}
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                
-                {/* Cuadrado inferior (Etiqueta) */}
-                <polyline points="17 21 17 13 7 13 7 21" />
-                
-                {/* Cuadrado superior (Obturador) */}
-                <polyline points="7 3 7 8 15 8" />
-                </svg>
+                {isSaving ? (
+                    <svg
+                        className="w-7 h-7 animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle
+                            className="opacity-25"
+                            cx="12" cy="12" r="10"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        />
+                        <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                    </svg>
+                ) : (
+                    <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="w-7 h-7"
+                    >
+                    {/* Contorno del disquete */}
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    
+                    {/* Cuadrado inferior (Etiqueta) */}
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    
+                    {/* Cuadrado superior (Obturador) */}
+                    <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                )}
 
                 <span className="text-xs">
-                {isEditMode ? 'Guardar cambios' : 'Guardar y salir'}
+                {isSaving
+                    ? (isEditMode ? 'Guardando...' : 'Creando...')
+                    : (isEditMode ? 'Guardar cambios' : 'Guardar y salir')
+                }
                 </span>
             </button>
 
-            <ExitButton onClick={exitToList} />
+            <ExitButton onClick={exitToList} disabled={isSaving} />
 
             <div 
                 onClick={togglePublish} 

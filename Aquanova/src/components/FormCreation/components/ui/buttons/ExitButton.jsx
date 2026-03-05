@@ -1,12 +1,16 @@
-function ExitButton({ onClick }) {
+function ExitButton({ onClick, disabled = false }) {
     return (
         <button 
-            onClick={onClick}
-            className="
-                w-fit pr-4 pl-2.5 py-1 bg-red-50 rounded-[30px] border-[1.5px] border-red-900
-                hover:bg-red-100 text-red-900 transition-colors transform hover:scale-110
-                flex flex-row items-center gap-2 cursor-pointer
-            "
+            onClick={disabled ? undefined : onClick}
+            disabled={disabled}
+            className={`
+                w-fit pr-4 pl-2.5 py-1 rounded-[30px] border-[1.5px]
+                flex flex-row items-center gap-2 transition-all duration-200
+                ${disabled
+                    ? 'bg-red-50/40 border-red-900/30 text-red-900/40 cursor-not-allowed'
+                    : 'bg-red-50 border-red-900 text-red-900 cursor-pointer hover:bg-red-100 transform hover:scale-110'
+                }
+            `}
         >
         <svg 
             xmlns="http://www.w3.org/2000/svg" 

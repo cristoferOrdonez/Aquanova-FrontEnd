@@ -60,10 +60,43 @@ function FormFieldRenderer({ field }) {
       {field.type === 'textarea' && (
         <textarea
           className={`${inputBase} min-h-[90px] resize-y ${error ? errorBorder : ''}`}
-          placeholder={field.placeholder || ''}
+          placeholder={field.placeholder || 'Escribe tu respuesta aquí…'}
           value={value || ''}
           onChange={(e) => setResponse(field.key, e.target.value)}
         />
+      )}
+
+      {field.type === 'number' && (
+        <input
+          type="number"
+          className={`${inputBase} ${error ? errorBorder : ''}`}
+          placeholder={field.placeholder || '0'}
+          value={value || ''}
+          onChange={(e) => setResponse(field.key, e.target.value)}
+        />
+      )}
+
+      {field.type === 'date' && (
+        <input
+          type="date"
+          className={`${inputBase} ${error ? errorBorder : ''}`}
+          value={value || ''}
+          onChange={(e) => setResponse(field.key, e.target.value)}
+        />
+      )}
+
+      {field.type === 'file' && (
+        <input
+          type="file"
+          accept="image/*"
+          className={`w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--blue-buttons)]/10 file:px-3 file:py-2 file:text-[var(--blue-buttons)] file:font-medium hover:file:bg-[var(--blue-buttons)]/20 cursor-pointer ${error ? 'rounded-xl border border-red-400 p-1' : ''}`}
+          onChange={(e) => setResponse(field.key, e.target.files?.[0] ?? null)}
+        />
+      )}
+
+      {field.type === 'info' && (
+        // "Sólo texto (sin respuestas)": se muestra solo la etiqueta, sin campo de entrada
+        null
       )}
 
       {field.type === 'select' && (
