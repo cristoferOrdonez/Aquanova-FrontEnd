@@ -39,6 +39,13 @@ export function useLoginForm() {
       })
 
       authService.saveSession({ token: result.token, user: result.user })
+
+      if (result.user?.role === 'usuario') {
+        authService.logout()
+        setError('No tienes acceso al sistema de administración.')
+        return
+      }
+
       navigate('/home')
     } catch (err) {
       setError(err?.message || 'No fue posible iniciar sesión.')

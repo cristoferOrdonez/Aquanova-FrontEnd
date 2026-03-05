@@ -83,7 +83,14 @@ export function FormCreationProvider({ children }) {
               title: item.title || item.label || FORM_CREATION_CONFIG.defaultQuestionTitle,
               type: item.type || FORM_CREATION_CONFIG.defaultType,
               required: !!item.required,
-              options: Array.isArray(item.options) ? item.options : [],
+              options: Array.isArray(item.options)
+                ? item.options.map((o, oi) => {
+                    if (o !== null && typeof o === 'object') {
+                      return { id: o.id ?? (Date.now() + oi), value: o.value ?? o.label ?? '' };
+                    }
+                    return { id: Date.now() + oi, value: String(o ?? '') };
+                  })
+                : [],
             }));
 
           questionList.setQuestions(parsedQuestions);

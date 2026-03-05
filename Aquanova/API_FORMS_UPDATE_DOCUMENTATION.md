@@ -21,6 +21,18 @@ Este endpoint es polimórfico:
 
 > ⚠️ **Importante:** El endpoint ahora acepta `multipart/form-data` (no `application/json`). Los campos de texto se envían como campos de texto dentro del form-data. `schema` y `metadata` deben enviarse como strings JSON.
 
+> **Nota sobre `schema` en endpoints GET:** Tras crear una nueva versión con este endpoint, los endpoints `GET /api/forms/:id` y `GET /api/forms/public/:key` pueden retornar el campo `schema` como **string JSON** (no como array). El cliente **debe** aplicar parsing defensivo:
+> ```js
+> const raw = data.schema;
+> let schema = [];
+> if (typeof raw === 'string') {
+>   try { schema = JSON.parse(raw); } catch { schema = []; }
+> } else if (Array.isArray(raw)) {
+>   schema = raw;
+> }
+> ```
+> Adicionalmente, los campos del schema usan `id`/`title` en lugar de `key`/`label`, y los tipos están en español — normalizar antes de renderizar (ver `IMPLEMENTACION_FORMULARIO_PUBLICO.md`, Paso 3).
+
 ## Campos del Form-Data
 
 Todos los campos son opcionales, pero debes enviar **al menos uno**.

@@ -11,6 +11,12 @@ const errorBorder = 'border-red-400 focus:border-red-400 focus:ring-red-200';
  *
  * @param {{ field: import('../context/PublicFormContext').SchemaField }} props
  */
+// Normaliza una opción que puede ser string u objeto { id, value }
+const optStr = (opt) =>
+  opt !== null && typeof opt === 'object' ? (opt.value ?? opt.label ?? '') : String(opt ?? '');
+const optKey = (opt, i) =>
+  opt !== null && typeof opt === 'object' ? (opt.id ?? opt.value ?? i) : (opt ?? i);
+
 function FormFieldRenderer({ field }) {
   const { responses, setResponse, fieldErrors } = usePublicFormContext();
   const value = responses[field.key];
@@ -67,9 +73,9 @@ function FormFieldRenderer({ field }) {
           onChange={(e) => setResponse(field.key, e.target.value)}
         >
           <option value="">Selecciona una opción</option>
-          {(field.options || []).map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
+          {(field.options || []).map((opt, i) => (
+            <option key={optKey(opt, i)} value={optStr(opt)}>
+              {optStr(opt)}
             </option>
           ))}
         </select>
@@ -77,17 +83,17 @@ function FormFieldRenderer({ field }) {
 
       {field.type === 'radio' && (
         <div className={`flex flex-col gap-2 ${error ? 'rounded-xl border border-red-400 p-3' : ''}`}>
-          {(field.options || []).map((opt) => (
-            <label key={opt} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
+          {(field.options || []).map((opt, i) => (
+            <label key={optKey(opt, i)} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
               <input
                 type="radio"
                 name={field.key}
-                value={opt}
-                checked={value === opt}
-                onChange={() => setResponse(field.key, opt)}
+                value={optStr(opt)}
+                checked={value === optStr(opt)}
+                onChange={() => setResponse(field.key, optStr(opt))}
                 className="accent-[var(--blue-buttons)]"
               />
-              {opt}
+              {optStr(opt)}
             </label>
           ))}
         </div>
@@ -95,16 +101,16 @@ function FormFieldRenderer({ field }) {
 
       {field.type === 'checkbox' && (
         <div className={`flex flex-col gap-2 ${error ? 'rounded-xl border border-red-400 p-3' : ''}`}>
-          {(field.options || []).map((opt) => (
-            <label key={opt} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
+          {(field.options || []).map((opt, i) => (
+            <label key={optKey(opt, i)} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
               <input
                 type="checkbox"
-                value={opt}
-                checked={Array.isArray(value) && value.includes(opt)}
-                onChange={() => handleCheckbox(opt)}
+                value={optStr(opt)}
+                checked={Array.isArray(value) && value.includes(optStr(opt))}
+                onChange={() => handleCheckbox(optStr(opt))}
                 className="accent-[var(--blue-buttons)]"
               />
-              {opt}
+              {optStr(opt)}
             </label>
           ))}
         </div>

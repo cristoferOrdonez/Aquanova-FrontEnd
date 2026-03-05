@@ -9,9 +9,20 @@ const getGeolocation = () =>
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => resolve(null),
-      { timeout: 5000 }
+      { timeout: 5000, maximumAge: 0 }
     );
   });
+
+// Mapeo de etiquetas en español (usadas en el editor) a tipos en inglés (usados en FormFieldRenderer)
+const TYPE_MAP = {
+  'Opción multiple': 'radio',
+  'Casillas de verificación': 'checkbox',
+  'Lista desplegable': 'select',
+  'Respuesta textual': 'text',
+  'Numérico': 'text',
+  'Fecha': 'text',
+  'Cargar imagen': 'text',
+};
 
 /**
  * Hook principal que gestiona todo el estado del formulario público.
@@ -50,11 +61,27 @@ export const usePublicForm = () => {
     publicFormService
       .getByKey(formKey)
       .then((res) => {
-        setFormData(res.data);
+        // Normalizar schema: garantizar que cada campo tenga `key` y `label`
+        // El backend puede retornar `id`/`title` en lugar de `key`/`label`
+        // El schema puede llegar como array (JSON nativo) o como string JSON (nueva versión tras edición)
+        const raw = res.data?.schema;
+        let rawSchema = [];
+        if (typeof raw === 'string') {
+          try { rawSchema = JSON.parse(raw); } catch { rawSchema = []; }
+        } else if (Array.isArray(raw)) {
+          rawSchema = raw;
+        }
+        const schema = rawSchema.map((field, i) => ({
+          ...field,
+          key: field.key ?? String(field.id ?? `field_${i}`),
+          label: field.label ?? field.title ?? '',
+          type: TYPE_MAP[field.type] ?? field.type,
+        }));
+        setFormData({ ...res.data, schema });
 
         // Inicializar respuestas vacías con el tipo correcto
         const initial = {};
-        (res.data.schema || []).forEach((field) => {
+        schema.forEach((field) => {
           initial[field.key] = field.type === 'checkbox' ? [] : field.type === 'range' ? (field.min ?? 0) : '';
         });
         setResponses(initial);
