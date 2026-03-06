@@ -14,7 +14,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 function App() {
   const location = useLocation()
   const hideNavbar =
-    location.pathname === '/form_creation' || location.pathname.startsWith('/form_creation/') || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/formulario/')
+    location.pathname === '/form_creation' || location.pathname.startsWith('/form_creation/') || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/formulario/') || location.pathname.startsWith('/form/preview/') || location.pathname.startsWith('/form/')
 
   const noMargin =
     location.pathname === '/login' ||
