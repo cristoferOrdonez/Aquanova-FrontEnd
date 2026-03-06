@@ -39,7 +39,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, handleEx
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {forms.map((form) => (
         <FormCard
           key={form.id || form._id}
@@ -68,24 +68,26 @@ function FormListContent() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-row flex-1 items-center gap-5 mb-5">
-        <SearchBar 
-            onSearch={handleSearch} 
-            isLoading={loading}
-        />
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex flex-col sm:flex-row flex-1 items-center gap-5 justify-between mb-8">
+        <div className="w-full sm:w-auto flex-1 max-w-2xl">
+          <SearchBar 
+              onSearch={handleSearch} 
+              isLoading={loading}
+          />
+        </div>
 
         <button
           type="button"
           onClick={() => navigate('/form_creation')}
-          className="flex flex-row gap-3 whitespace-nowrap bg-[var(--blue-buttons)] rounded-4xl font-work text-white justify-center items-center p-3 hover:bg-blue-600 transition-colors"
+          className="flex flex-row gap-2 whitespace-nowrap bg-[var(--blue-buttons)] rounded-full font-work text-white justify-center items-center px-6 py-3 hover:bg-blue-600 transition-colors w-full sm:w-auto shadow-md"
         >
-          <PlusIcon className="h-6 w-6"/>
-          Nueva campaña
+          <PlusIcon className="h-5 w-5"/>
+          <span className="font-semibold">Nueva campaña</span>
         </button>
       </div>
 
-      <div className="content-area">
+      <div className="content-area mt-4">
         <ContentRenderer {...{ loading, error, forms, reload, handleDelete, handleExport, onPreview: handlePreview, onAnswer: handleAnswer, navigate }} />
       </div>
     </div>

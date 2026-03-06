@@ -91,13 +91,13 @@ function FormCard({
             Contestar
           </button>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-gray-100 relative">
-            <button type="button" onClick={onPreview} aria-label="Vista previa del formulario" className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-white bg-[var(--green-buttons)] hover:brightness-110 transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-3 border-t border-gray-100 relative">
+            <button type="button" onClick={onPreview} aria-label="Vista previa del formulario" className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white bg-[var(--green-buttons)] hover:brightness-110 transition-colors flex-1 min-w-[120px]">
               <EyeIcon className="w-4 h-4" />
               <span>Vista previa</span>
             </button>
 
-            <div className="flex justify-center sm:justify-end gap-1 items-center">
+            <div className="flex flex-wrap justify-center gap-2 items-center">
               
               {/* Contenedor del Botón de Exportación con Dropdown */}
               <div className="relative" ref={menuRef}>

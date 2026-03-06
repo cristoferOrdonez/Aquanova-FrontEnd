@@ -133,7 +133,11 @@ const GeoLevelCard = ({ neighborhood }) => {
           <span className="font-medium">Código:</span> {code}
         </p>
 
-        <p className="text-sm text-(--gray-subtitles) line-clamp-3 mb-6 flex-1">{description}</p>
+        <div className="flex-1 mb-6 h-[60px]">
+          <p className="text-sm text-[var(--gray-subtitles)] line-clamp-3 overflow-hidden text-ellipsis" title={description}>
+            {description || 'Sin descripción'}
+          </p>
+        </div>
 
         <div className="flex justify-center sm:justify-end gap-1 mt-auto pt-2 border-t border-gray-100">
           <button
