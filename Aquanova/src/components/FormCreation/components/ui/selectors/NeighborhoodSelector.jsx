@@ -51,7 +51,7 @@ const NeighborhoodSelector = ({ options = null }) => {
                         rounded-[14px] 
                         tablet:translate-x-4
                         shadow-lg 
-                        overflow-hidden
+                        max-h-60 overflow-y-auto
             
                         transition-all duration-300 ease-out origin-top
                         ${isSelectorOpen

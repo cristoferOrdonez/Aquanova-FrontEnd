@@ -18,7 +18,7 @@ export default function QuestionCard({
   const badge = TYPE_BADGE[q.type];
   return (
     <div className={`
-      w-full tablet:w-auto flex-1 border-[1.5px] rounded-[5px] p-5 flex flex-col gap-3 shadow-sm
+      w-full border-[1.5px] rounded-[5px] p-5 flex flex-col gap-3 shadow-sm
       transition-all duration-500
       ${isJustUpdated ? 'bg-blue-50 border-[#2138C4] shadow-[0_0_15px_rgba(33,56,196,0.2)]' : 'bg-[var(--card-bg)] border-[var(--card-stroke)]'}
     `}>

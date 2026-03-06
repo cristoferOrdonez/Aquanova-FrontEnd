@@ -8,25 +8,36 @@ export default function QuestionControl({
   handleDragStart,
   handleDragEnd
 }) {
+  const isCompact = q.type === FORM_CREATION_CONFIG.defaultType;
+
   return (
-    <div className={`
-      flex-shrink-0 flex pl-2 tablet:pl-4
-      ${q.type == FORM_CREATION_CONFIG.defaultType ? 'flex-row' : 'tablet:flex-col flex-row'}
-      gap-2 mb-3 tablet:mb-0 tablet:self-start tablet:pt-1
-      transition-all duration-300
-      ${isEditingThis ? 'opacity-0 pointer-events-none' : 'opacity-100'}
-    `}>
+    <div
+      role="toolbar"
+      aria-label={`Acciones para pregunta: ${q.title}`}
+      className={`
+        flex-shrink-0 flex
+        flex-row pl-2 gap-2 mb-3
+        tablet:absolute tablet:left-[calc(100%+12px)] tablet:top-1/2 tablet:-translate-y-1/2
+        tablet:flex-row tablet:pl-0 tablet:mb-0 tablet:gap-2
+        ${isCompact ? '' : 'xl:flex-col'}
+        transition-all duration-300
+        ${isEditingThis ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+      `}
+    >
 
       <button
         draggable
         onDragStart={(e) => handleDragStart(e, q.id)}
         onDragEnd={handleDragEnd}
+        aria-label="Mover pregunta"
+        tabIndex={0}
         className="
           w-fit group flex h-10 items-center justify-center
           rounded-full border border-gray-400 bg-gray-50 p-2
           cursor-grab active:cursor-grabbing
           transition-all duration-300 ease-in-out
           hover:bg-gray-100 hover:pr-4
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2138C4]
         "
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-gray-500 flex-shrink-0">
@@ -42,11 +53,14 @@ export default function QuestionControl({
 
       <button
         onClick={() => handleStartEditing(q)}
+        aria-label="Editar pregunta"
+        tabIndex={0}
         className="
           w-fit group flex h-10 items-center justify-center
           rounded-full border border-[#2138C4] bg-blue-50 p-2
           transition-all duration-300 ease-in-out
           hover:bg-blue-100 hover:pr-4 cursor-pointer
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2138C4]
         "
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-[#2138C4] flex-shrink-0">
@@ -62,11 +76,14 @@ export default function QuestionControl({
 
       <button
         onClick={() => handleDeleteQuestion(q.id)}
+        aria-label="Eliminar pregunta"
+        tabIndex={0}
         className="
           w-fit group flex h-10 items-center justify-center
           rounded-full border border-red-600 bg-red-50 p-2
           transition-all duration-300 ease-in-out
           hover:bg-red-100 hover:pr-4 cursor-pointer
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2138C4]
         "
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-red-600 flex-shrink-0">

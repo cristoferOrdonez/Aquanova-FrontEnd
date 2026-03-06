@@ -95,7 +95,7 @@ function QuestionListSection({ mainContainerRef }) {
                         id={`question-card-${q.id}`}
                         onDragOver={(e) => handleDragOver(e, q.id)}
                         className={`
-                            flex flex-col tablet:w-[653px] w-[90%]
+                            flex flex-col tablet:w-[653px] w-[90%] tablet:overflow-visible
                             transition-all duration-500 ease-in-out
                             ${exitingQuestionId === q.id ? 'opacity-50 -translate-x-full max-h-0 scale-10 pointer-events-none' : 'max-h-[500px]'}
                             ${(isEditingAny && !isEditingThis) || creationControls.isCreationOn ? 'opacity-40 grayscale scale-95 pointer-events-none blur-[1px]' : ''}
@@ -104,7 +104,7 @@ function QuestionListSection({ mainContainerRef }) {
                         `}
                     >
                         <div className={`
-                            w-full flex tablet:flex-row flex-col gap-2
+                            w-full relative tablet:overflow-visible
                             transition-all duration-500 ease-in-out
                             ${exitingQuestionId === q.id ? 'opacity-50 -translate-x-full max-h-0 scale-10 pointer-events-none' : 'max-h-[500px]'}
                             ${(isEditingAny && !isEditingThis) || creationControls.isCreationOn ? 'opacity-40 grayscale scale-95 pointer-events-none blur-[1px]' : ''}

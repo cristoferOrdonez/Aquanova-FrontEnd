@@ -19,6 +19,12 @@
 }
 
 
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
 @theme {
   --font-work: "Work Sans", sans-serif; 
   --breakpoint-tablet: 1075px;

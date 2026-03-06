@@ -1,7 +1,6 @@
 #root {
-  max-width: auto;
-  margin: 0 auto;
-  text-align: center;
+  height: 100%;
+  overflow: hidden;
 }
 
 .logo {

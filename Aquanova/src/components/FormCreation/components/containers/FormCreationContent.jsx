@@ -12,7 +12,7 @@ export default function FormCreationContent() {
   // Estado de carga para modo edición
   if (isEditMode && isLoadingEdit) {
     return (
-      <div className="bg-[var(--bg-color-main)] font-work w-screen h-screen flex flex-col items-center justify-start pt-10 gap-4 overflow-y-auto">
+      <div className="bg-[var(--bg-color-main)] font-work w-screen h-full flex flex-col items-center justify-start pt-10 gap-4 overflow-y-auto">
         {/* Skeleton del header */}
         <div className="tablet:w-[653px] w-[90%] bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] rounded-[5px] px-6 py-4 flex phone:flex-row flex-col gap-6 animate-pulse">
           <div className="phone:w-[44%] w-full h-48 bg-[#E0EEFF] rounded-[14px]" />
@@ -42,7 +42,7 @@ export default function FormCreationContent() {
   // Estado de error para modo edición
   if (isEditMode && editLoadError) {
     return (
-      <div className="bg-[var(--bg-color-main)] font-work w-screen h-screen flex flex-col items-center justify-center gap-4">
+      <div className="bg-[var(--bg-color-main)] font-work w-screen h-full flex flex-col items-center justify-center gap-4">
         <p className="text-red-500 text-lg">{editLoadError}</p>
         <button
           onClick={exitToList}
@@ -57,7 +57,7 @@ export default function FormCreationContent() {
   return (
     <div
       ref={mainContainerRef}
-      className="bg-[var(--bg-color-main)] font-work w-full flex flex-col items-center justify-start pt-10 pb-28 gap-3 text-left"
+      className="bg-[var(--bg-color-main)] font-work w-full min-h-full flex flex-col items-center justify-start pt-10 pb-20 gap-3 text-left"
     >
       {/* Indicador de modo: creación o edición */}
       <div className="tablet:w-[653px] w-[90%] flex items-center gap-2 -mb-1">

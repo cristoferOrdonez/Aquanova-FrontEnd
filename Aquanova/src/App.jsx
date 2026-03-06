@@ -30,11 +30,11 @@ function App() {
     location.pathname.startsWith('/form_creation/')
 
   return (
-    <div className='App flex flex-col min-h-screen'>
+    <div className='App flex flex-col h-screen overflow-hidden'>
       {!hideNavbar && <Navbar />}
       <div className={
         isHome          ? 'flex-1 overflow-hidden' :
-        isFormCreation  ? '' :
+        isFormCreation  ? 'flex-1 overflow-y-auto' :
         !noMargin       ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
                           'flex-1 overflow-y-auto'
       }>
