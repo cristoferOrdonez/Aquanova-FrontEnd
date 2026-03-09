@@ -22,8 +22,15 @@ function FormCard({
     share_link,
   } = form
 
-  // La imagen de portada viene de Cloudinary dentro de metadata
-  const imageUrl = metadata?.imagen || null
+  // La imagen de portada viene de Cloudinary dentro de metadata.
+  // Guarda defensiva: si metadata llega como string (MySQL JSON column)
+  // lo parseamos aquí también antes de acceder a .imagen.
+  const parsedMetadata = (() => {
+    if (!metadata) return null;
+    if (typeof metadata === 'object') return metadata;
+    try { return JSON.parse(metadata); } catch { return null; }
+  })();
+  const imageUrl = parsedMetadata?.imagen || null
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);

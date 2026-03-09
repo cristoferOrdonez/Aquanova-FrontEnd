@@ -31,13 +31,15 @@ import { createContext } from 'react';
 
 /**
  * @typedef {object} FormListContextType
- * @property {Form[]} forms - La lista de formularios.
+ * @property {Form[]} forms - La lista de formularios (ya filtrada).
  * @property {boolean} loading - Indica si los formularios están cargando.
  * @property {string|null} error - El mensaje de error, si existe.
  * @property {(query: string) => Promise<void>} handleSearch - Función para buscar formularios.
  * @property {() => void} reload - Función para recargar la lista.
  * @property {(id: string) => Promise<void>} handleDelete - Función para eliminar un formulario.
  * @property {(formId: string, format: 'json'|'csv'|'xlsx', formTitle: string) => Promise<void>} handleExport - Función para exportar respuestas.
+ * @property {string} activeFilter - Filtro de estado activo ('Todas' | 'Activas' | 'Inactivas').
+ * @property {(filter: string) => void} handleFilter - Función para cambiar el filtro de estado.
  */
 
 /**

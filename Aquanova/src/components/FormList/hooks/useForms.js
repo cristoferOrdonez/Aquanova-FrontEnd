@@ -1,49 +1,87 @@
 // src/components/FormList/hooks/useForms.js
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { formService } from '../../../services/formService';
 import { submissionService } from '../../../services/submissionService';
 import * as XLSX from 'xlsx'; // Importamos la librería
 
+export const FORM_FILTER_OPTIONS = ['Todas', 'Activas', 'Inactivas'];
+
 export function useForms() {
+  const [allForms, setAllForms] = useState([]);
+  /**
+   * searchResults: null → no hay búsqueda activa (se usa allForms como base).
+   *                array → resultados de la última búsqueda por API.
+   */
+  const [searchResults, setSearchResults] = useState(null);
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('Todas');
+
+  // Ref para acceder siempre al activeFilter más reciente dentro de callbacks async
+  const activeFilterRef = useRef('Todas');
+  activeFilterRef.current = activeFilter;
+
+  /** Aplica el filtro de estado sobre un array de formularios */
+  const applyFilter = useCallback((list, filter) => {
+    if (!filter || filter === 'Todas') return list;
+    if (filter === 'Activas') return list.filter((f) => Boolean(f.is_active));
+    if (filter === 'Inactivas') return list.filter((f) => !Boolean(f.is_active));
+    return list;
+  }, []);
 
   const loadForms = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await formService.getAll();
-      setForms(data.forms || []);
+      const fetched = data.forms || [];
+      setAllForms(fetched);
+      setSearchResults(null);
+      setForms(applyFilter(fetched, activeFilterRef.current));
     } catch (err) {
       console.error(err);
       setError('No se pudieron cargar los formularios.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyFilter]);
 
   useEffect(() => {
     loadForms();
   }, [loadForms]);
 
-  const handleSearch = async (query) => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (query) {
-        const results = await formService.search(query);
-        setForms(results.forms || []);
-      } else {
-        loadForms();
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Error al buscar formularios.');
-    } finally {
-      setLoading(false);
+  /**
+   * Búsqueda local sobre allForms para garantizar que todos los campos
+   * (metadata, imagen, neighborhoods) estén siempre disponibles.
+   * Filtra por title, description y nombre de barrio.
+   */
+  const handleSearch = useCallback((query) => {
+    if (!query) {
+      setSearchResults(null);
+      setForms(applyFilter(allForms, activeFilterRef.current));
+      return;
     }
-  };
+    const lower = query.toLowerCase();
+    const filtered = allForms.filter((form) =>
+      (form.title || '').toLowerCase().includes(lower) ||
+      (form.description || '').toLowerCase().includes(lower) ||
+      (form.neighborhoods || []).some((n) =>
+        (n.name || '').toLowerCase().includes(lower)
+      )
+    );
+    setSearchResults(filtered);
+    setForms(applyFilter(filtered, activeFilterRef.current));
+  }, [allForms, applyFilter]);
+
+  const handleFilter = useCallback((filter) => {
+    setActiveFilter(filter);
+    activeFilterRef.current = filter;
+    // Base correcta: si hay búsqueda activa, filtrar sobre sus resultados;
+    // si no, filtrar sobre la lista completa.
+    const base = searchResults !== null ? searchResults : allForms;
+    setForms(applyFilter(base, filter));
+  }, [allForms, searchResults, applyFilter]);
 
   const handleDelete = async (id) => {
     if (!window.confirm(
@@ -52,10 +90,12 @@ export function useForms() {
     )) return;
     try {
       await formService.delete(id);
-      // Soft delete: el formulario permanece en la lista pero marcado como inactivo
-      setForms((prevForms) =>
-        prevForms.map((f) => (f.id === id ? { ...f, is_active: false } : f))
-      );
+      // Soft delete: marcar como inactivo en las tres fuentes de verdad
+      const updater = (list) =>
+        list.map((f) => (f.id === id ? { ...f, is_active: false } : f));
+      setAllForms(updater);
+      setSearchResults((prev) => (prev !== null ? updater(prev) : null));
+      setForms((prev) => applyFilter(updater(prev), activeFilterRef.current));
     } catch (err) {
       alert('Error al desactivar el formulario');
     }
@@ -149,6 +189,8 @@ export function useForms() {
   };
 
   return {
-    forms, loading, error, reload: loadForms, handleSearch, handleDelete, handleExport
+    forms, loading, error, reload: loadForms,
+    handleSearch, handleDelete, handleExport,
+    activeFilter, handleFilter,
   };
 }

@@ -5,6 +5,7 @@ import FormCard from './FormCard';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import SearchBar from '../../ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
+import { FORM_FILTER_OPTIONS } from '../hooks/useForms';
 
 /**
  * Componente para renderizar el estado del contenido de la lista de formularios.
@@ -56,7 +57,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, handleEx
 };
 
 function FormListContent() {
-  const { forms, loading, error, reload, handleSearch, handleDelete, handleExport } = useFormListContext();
+  const { forms, loading, error, reload, handleSearch, handleDelete, handleExport, activeFilter, handleFilter } = useFormListContext();
   const navigate = useNavigate();
 
   const handlePreview = (id) => {
@@ -69,7 +70,7 @@ function FormListContent() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex flex-col sm:flex-row flex-1 items-center gap-5 justify-between mb-8">
+      <div className="flex flex-col sm:flex-row flex-1 items-center gap-5 justify-between mb-4">
         <div className="w-full sm:w-auto flex-1 max-w-2xl">
           <SearchBar 
               onSearch={handleSearch} 
@@ -87,7 +88,28 @@ function FormListContent() {
         </button>
       </div>
 
-      <div className="content-area mt-4">
+      {/* Filtros cápsula */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {FORM_FILTER_OPTIONS.map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => handleFilter(filter)}
+            className={`
+              px-4 py-1.5 rounded-full text-sm font-medium border-2 transition-all duration-200
+              ${
+                activeFilter === filter
+                  ? 'bg-[var(--blue-buttons)] border-[var(--blue-buttons)] text-white shadow-sm'
+                  : 'bg-white border-[var(--stroke-selectors-and-search-bars)] text-gray-600 hover:border-[var(--blue-buttons)] hover:text-[var(--blue-buttons)]'
+              }
+            `}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
+      <div className="content-area">
         <ContentRenderer {...{ loading, error, forms, reload, handleDelete, handleExport, onPreview: handlePreview, onAnswer: handleAnswer, navigate }} />
       </div>
     </div>

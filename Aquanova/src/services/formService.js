@@ -1,6 +1,21 @@
 import { apiRequest, getAuthHeaders } from './apiClient';
 
 /**
+ * MySQL puede devolver columnas JSON como strings en ciertas configuraciones.
+ * Esta función garantiza que `metadata` sea siempre un objeto o null.
+ * @param {object} form
+ * @returns {object}
+ */
+function normalizeForm(form) {
+  if (!form || typeof form !== 'object') return form;
+  let metadata = form.metadata ?? null;
+  if (typeof metadata === 'string') {
+    try { metadata = JSON.parse(metadata); } catch { metadata = null; }
+  }
+  return { ...form, metadata };
+}
+
+/**
  * Servicio para manejar formularios (forms)
  * Sigue la convención utilizada por otros servicios en /src/services
  */
@@ -11,10 +26,11 @@ export const formService = {
   async getAll() {
     // GET /api/forms
     // Se envían headers con el token para validar sesión
-    return apiRequest('/forms', {
+    const data = await apiRequest('/forms', {
       method: 'GET',
       headers: getAuthHeaders(),
     });
+    return { ...data, forms: (data.forms || []).map(normalizeForm) };
   },
 
   /**
@@ -38,10 +54,11 @@ export const formService = {
    * @param {string} query - Término de búsqueda (requerido).
    */
   async search(query) {
-    return apiRequest(`/forms/search?query=${encodeURIComponent(query)}`, {
+    const data = await apiRequest(`/forms/search?query=${encodeURIComponent(query)}`, {
       method: 'GET',
       headers: getAuthHeaders(),
     });
+    return { ...data, forms: (data.forms || []).map(normalizeForm) };
   },
 
   /**
