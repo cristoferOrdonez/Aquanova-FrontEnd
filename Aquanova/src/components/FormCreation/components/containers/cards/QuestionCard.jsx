@@ -40,7 +40,7 @@ export default function QuestionCard({
         )}
       </div>
       <h3 className="text-[var(--text)] tablet:text-base text-sm leading-snug">
-        {q.title}
+        {q.label || q.title || "Pregunta sin título"}
         {q.required && <span className="text-red-500 ml-1">*</span>}
       </h3>
 

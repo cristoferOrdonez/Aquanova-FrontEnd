@@ -6,6 +6,17 @@ import FileUploadInput from "./../ui/inputs/FileUploadInput.jsx";
 import TypeSelector from './../ui/selectors/TypeSelector.jsx';
 import SaveCancelControl from './controls/SaveCancelControl.jsx';
 import MandatoryToggle from './../ui/toggles/MandatoryToggle.jsx';
+
+// Genera un slug único a partir del título de la pregunta
+const generateKey = (title) => {
+  return (title || 'pregunta')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    + '-' + Date.now().toString().slice(-4);
+};
 import {
     useQuestionListContext,
     useEditingSectionContext,
@@ -34,7 +45,8 @@ function EditingSection({ mainContainerRef, id }) {
         creationControls.setRotation(prev => prev - 360);
 
         const questionData = {
-            title: editingSection.questionTitle,
+            title: editingSection.questionLabel,
+            label: editingSection.questionLabel,
             type: typeSelector.selectedTypeQuestionOption,
             options: [...optionsListCtx.optionsList],
             required: typeSelector.selectedTypeQuestionOption == "Sólo texto (sin respuestas)" ? false : editingSection.isMandatoryOn,
@@ -51,13 +63,13 @@ function EditingSection({ mainContainerRef, id }) {
                 if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 300);
         } else {
-            const newQuestion = { id: Date.now(), ...questionData };
+            const newQuestion = { id: Date.now(), key: generateKey(editingSection.questionLabel), ...questionData };
             addQuestion(newQuestion);
             creationControls.setIsCreationOn(false);
         }
 
         // Resetear
-        editingSection.setQuestionTitle("");
+        editingSection.setQuestionLabel("");
         optionsListCtx.resetOptions();
         typeSelector.setSelectedTypeQuestionOption("Sólo texto (sin respuestas)");
         editingSection.setIsMandatoryOn(false);
@@ -80,17 +92,17 @@ function EditingSection({ mainContainerRef, id }) {
               </label>
               <div className="flex tablet:flex-row flex-col gap-2">
                         <textarea
-                            value={editingSection.questionTitle === 'Pregunta sin título' ? '' : editingSection.questionTitle}
+                            value={editingSection.questionLabel === 'Pregunta sin título' ? '' : editingSection.questionLabel}
                             placeholder="Escribe el título de la pregunta…"
                             rows="1"
                             onChange={(e) => {
-                                editingSection.setQuestionTitle(e.target.value);
+                                editingSection.setQuestionLabel(e.target.value);
                                 e.target.style.height = 'auto';
                                 e.target.style.height = e.target.scrollHeight + 'px';
                             }}
                             onBlur={(e) => {
                                 if (e.target.value.trim() === "") {
-                                    editingSection.setQuestionTitle("Pregunta sin título");
+                                    editingSection.setQuestionLabel("Pregunta sin título");
                                     e.target.style.height = 'auto';
                                     e.target.style.height = e.target.scrollHeight + 'px';
                                 }

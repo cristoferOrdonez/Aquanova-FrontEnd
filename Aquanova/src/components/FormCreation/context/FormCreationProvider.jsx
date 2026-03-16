@@ -22,6 +22,30 @@ import { formService } from '../../../services/formService';
 import { neighborhoodService } from '../../../services/neighborhoodService';
 import FORM_CREATION_CONFIG from '../config/formCreationConfig';
 
+// Mapeo de etiquetas en español (UI) a tipos estandarizados (backend)
+const LABEL_TO_TYPE = {
+  'Opción multiple':             'radio',
+  'Casillas de verificación':    'checkbox',
+  'Lista desplegable':           'select',
+  'Respuesta textual':           'textarea',
+  'Numérico':                    'number',
+  'Fecha':                       'date',
+  'Cargar imagen':               'file',
+  'Sólo texto (sin respuestas)': 'info',
+};
+
+// Mapeo inverso: tipos estandarizados (backend) → etiquetas en español (UI)
+const TYPE_TO_LABEL = {
+  'radio':    'Opción multiple',
+  'checkbox': 'Casillas de verificación',
+  'select':   'Lista desplegable',
+  'textarea': 'Respuesta textual',
+  'number':   'Numérico',
+  'date':     'Fecha',
+  'file':     'Cargar imagen',
+  'info':     'Sólo texto (sin respuestas)',
+};
+
 /**
  * Provider que encapsula los múltiples contexts de FormCreation
  * Cada contexto proviene de un hook especializado (separación de responsabilidades)
@@ -78,10 +102,13 @@ export function FormCreationProvider({ children }) {
         if (Array.isArray(schema) && schema.length > 0) {
           const parsedQuestions = schema
             .filter(item => item.type !== 'image') // compatibilidad con esquemas legacy
-            .map(item => ({
+            .map((item, idx) => ({
               id: item.id || `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-              title: item.title || item.label || FORM_CREATION_CONFIG.defaultQuestionTitle,
-              type: item.type || FORM_CREATION_CONFIG.defaultType,
+              key: item.key ?? String(item.id ?? `field_${idx}`),
+              title: item.label || item.title || FORM_CREATION_CONFIG.defaultQuestionLabel,
+              label: item.label || item.title || FORM_CREATION_CONFIG.defaultQuestionLabel,
+              // Convertir tipo estandarizado (inglés) a etiqueta española para la UI
+              type: TYPE_TO_LABEL[item.type] ?? item.type ?? FORM_CREATION_CONFIG.defaultType,
               required: !!item.required,
               options: Array.isArray(item.options)
                 ? item.options.map((o, oi) => {
@@ -147,14 +174,14 @@ export function FormCreationProvider({ children }) {
       throw new Error('Debe seleccionar un barrio antes de crear el formulario');
     }
 
-    // Construir schema solo con preguntas (la imagen se envía como archivo separado a Cloudinary)
+    // Construir schema estandarizado (key/label/type en inglés/options como strings)
     const questions = questionList.questions || [];
     const schema = questions.map(q => ({
-      id: q.id,
-      title: q.title,
-      type: q.type,
+      key: q.key ?? String(q.id ?? ''),
+      label: q.label ?? q.title,
+      type: LABEL_TO_TYPE[q.type] ?? q.type,
       required: !!q.required,
-      options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
+      options: Array.isArray(q.options) ? q.options.map(o => o.value ?? o) : [],
     }));
 
     // Usar FormData (multipart/form-data) para que el backend pueda subir la imagen a Cloudinary
@@ -182,14 +209,14 @@ export function FormCreationProvider({ children }) {
     const description = headerControls.description || '';
     const is_active = headerControls.isPublishOn;
 
-    // Construir schema solo con preguntas (la imagen se envía como archivo separado)
+    // Construir schema estandarizado (key/label/type en inglés/options como strings)
     const questions = questionList.questions || [];
     const schema = questions.map(q => ({
-      id: q.id,
-      title: q.title,
-      type: q.type,
+      key: q.key ?? String(q.id ?? ''),
+      label: q.label ?? q.title,
+      type: LABEL_TO_TYPE[q.type] ?? q.type,
       required: !!q.required,
-      options: Array.isArray(q.options) ? q.options.map(o => ({ id: o.id, value: o.value })) : [],
+      options: Array.isArray(q.options) ? q.options.map(o => o.value ?? o) : [],
     }));
 
     // Construir FormData (multipart/form-data requerido por el endpoint)

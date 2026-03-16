@@ -48,53 +48,51 @@ export default function FormSubmissionProvider({ children }) {
       if (!derivedNeighborhood) throw new Error('Faltan datos: form_id, neighborhood_id o responses (falta id del barrio)');
       if (!answers || Object.keys(answers).length === 0) throw new Error('No hay respuestas para enviar');
 
-      // Build responses object: key = question label/title/id, value = string OR list of strings for multiple answers
+      // Build responses: key = field.key (estandarizado), value = texto visible
       const schemaFields = form?.schema || form?.questions || form?.fields || [];
       let parsedFields = schemaFields;
       if (typeof parsedFields === 'string') {
         try { parsedFields = JSON.parse(parsedFields); } catch (e) { parsedFields = []; }
       }
 
+      // Normalizar campos con fallback para formularios del formato antiguo
+      parsedFields = (Array.isArray(parsedFields) ? parsedFields : []).map((field, i) => ({
+        ...field,
+        key: field.key ?? String(field.id ?? `field_${i}`),
+        label: field.label ?? field.title ?? '',
+      }));
+
       const responses = {};
-      const usedLabels = {};
-      const optionText = (opt) => {
-        if (opt == null) return '';
-        if (typeof opt === 'object') return opt.value || opt.label || opt.text || opt.name || '';
-        return String(opt);
-      };
 
-      const findOptionText = (q, v) => {
-        if (v == null) return '';
-        const opts = q?.options || [];
-        // try to match by id/_id/value/label
-        for (const o of opts) {
-          const oid = o?.id ?? o?._id ?? o?.value ?? o?.label ?? o;
-          if (String(oid) === String(v)) return optionText(o);
-        }
-        // fallback: if v looks like a primitive string/number, return it
-        return String(v);
-      };
-
-      (Array.isArray(parsedFields) ? parsedFields : []).forEach((q, idx) => {
-        const baseLabel = q.label || q.title || `Pregunta ${idx + 1}`;
-        const seen = usedLabels[baseLabel] || 0;
-        usedLabels[baseLabel] = seen + 1;
-        const qKey = seen > 0 ? `${baseLabel} (${seen + 1})` : baseLabel;
+      parsedFields.forEach((q, idx) => {
+        const responseKey = q.label || q.title || (q.key ?? String(q.id ?? `field_${idx}`));
         const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
         const raw = answers[idKey];
-        console.log('Mapping question -> answers lookup', { idx, idKey, qKey, raw });
+
+        if (raw === undefined || raw === null || raw === '') return;
 
         if (Array.isArray(raw)) {
-          responses[qKey] = raw.map((v) => {
-            // map stored ids/values to visible text when possible
-            return v == null ? '' : findOptionText(q, v);
+          // checkbox: mapear ids/valores a texto visible de la opción
+          responses[responseKey] = raw.map(id => {
+            if (Array.isArray(q.options)) {
+              const opt = q.options.find(o => (o.id ?? o) == id || (o.value ?? o) === id);
+              return opt ? (opt.value ?? opt) : id;
+            }
+            return id;
           });
         } else if (raw && typeof raw === 'object') {
-          // file or complex object -> prefer name, then previewUrl, else JSON
-          responses[qKey] = raw.name || raw.previewUrl || JSON.stringify(raw);
+          // archivo u objeto complejo
+          responses[responseKey] = raw.name || raw.previewUrl || JSON.stringify(raw);
+        } else if (['radio', 'select', 'Opción multiple', 'Lista desplegable'].includes(q.type)) {
+          // radio/select: resolver id a texto visible
+          if (Array.isArray(q.options)) {
+            const opt = q.options.find(o => (o.id ?? o) == raw || (o.value ?? o) === raw);
+            responses[responseKey] = opt ? (opt.value ?? opt) : raw;
+          } else {
+            responses[responseKey] = raw;
+          }
         } else {
-          // scalar: try to resolve against options (ids -> visible text)
-          responses[qKey] = raw != null ? findOptionText(q, raw) : '';
+          responses[responseKey] = raw;
         }
       });
 

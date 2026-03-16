@@ -13,7 +13,7 @@ export default function QuestionControl({
   return (
     <div
       role="toolbar"
-      aria-label={`Acciones para pregunta: ${q.title}`}
+      aria-label={`Acciones para pregunta: ${q.label || q.title || "sin título"}`}
       className={`
         flex-shrink-0 flex
         flex-row pl-2 gap-2 mb-3

@@ -4,7 +4,7 @@
  */
 import typeQuestionOptions from '../constants/typeQuestionOptions.jsx';
 
-export const DEFAULT_QUESTION_TITLE = 'Pregunta sin título';
+export const DEFAULT_QUESTION_LABEL = 'Pregunta sin título';
 export const DEFAULT_FORM_TITLE = 'Formulario sin nombre';
 export const DEFAULT_OPTION_LABEL = 'Opción sin título';
 export const DEFAULT_TYPE_OPTION = 'Sólo texto (sin respuestas)';
@@ -25,7 +25,7 @@ export const TYPE_LABELS = {
 export const createDefaultOption = () => ({ id: Date.now(), value: DEFAULT_OPTION_LABEL });
 
 export const FORM_CREATION_CONFIG = {
-  defaultQuestionTitle: DEFAULT_QUESTION_TITLE,
+  defaultQuestionLabel: DEFAULT_QUESTION_LABEL,
   defaultFormTitle: DEFAULT_FORM_TITLE,
   defaultOptionLabel: DEFAULT_OPTION_LABEL,
   createDefaultOption,
