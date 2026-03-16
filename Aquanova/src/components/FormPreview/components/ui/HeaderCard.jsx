@@ -20,7 +20,6 @@ export default function HeaderCard({ form, isMobile, titleSize, descSize, handle
         </div>
       )}
       <h1 className={`${titleSize} font-bold text-[var(--text)] mb-2 break-words leading-tight`}>{form.title}</h1>
-      {form.description && (<p className={`${descSize} text-gray-600 whitespace-pre-wrap break-words mt-2`}>{form.description}</p>)}
     </div>
   );
 }

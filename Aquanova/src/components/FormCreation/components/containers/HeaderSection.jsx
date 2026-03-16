@@ -219,7 +219,7 @@ function HeaderSection() {
                                 />
                 <div className="w-full h-wrap flex flex-col justify-between gap-1">
                     <span className="tablet:text-sm text-[13px] text-[var(--instruction-text)] opacity-50">
-                    Descripción (solo para operadores)
+                    Descripción (solo visible para administradores, no aparece en el formulario público)
                     </span>
                     <textarea
                     value={description}

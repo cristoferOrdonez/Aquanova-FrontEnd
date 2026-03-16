@@ -80,9 +80,6 @@ function PublicFormContent() {
           {/* Encabezado */}
           <div className="flex flex-col gap-1.5">
             <h1 className="font-work text-2xl font-bold text-gray-900">{formData.title}</h1>
-            {formData.description && (
-              <p className="text-sm text-[var(--gray-subtitles)]">{formData.description}</p>
-            )}
           </div>
 
           {/* Banner de sorteo */}

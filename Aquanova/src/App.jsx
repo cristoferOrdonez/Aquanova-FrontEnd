@@ -9,20 +9,19 @@ import FormSubmission from './components/FormSubmission/Index'
 import Home from './components/Home/Index'
 import PublicForm from './components/PublicForm/Index'
 import PrivateRoute from './components/ui/PrivateRoute'
+import Error404 from './components/Error404/Index'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
 function App() {
   const location = useLocation()
-  const hideNavbar =
-    location.pathname === '/form_creation' || location.pathname.startsWith('/form_creation/') || location.pathname === '/login' || location.pathname.startsWith('/geolevel_creation') || location.pathname.startsWith('/formulario/') || location.pathname.startsWith('/form/preview/') || location.pathname.startsWith('/form/')
+  
+  // Determinamos explícitamente en qué rutas principales SI se debe mostrar el Navbar.
+  // Cualquier ruta que no esté aquí (incluidas las que no existen) ocultará el Navbar.
+  const showNavbar = ['/home', '/forms', '/neighborhoods'].includes(location.pathname);
 
   const noMargin =
-    location.pathname === '/login' ||
-    location.pathname === '/form_creation' ||
-    location.pathname.startsWith('/form_creation/') ||
-    location.pathname.startsWith('/geolevel_creation') ||
-    location.pathname === '/home' ||
-    location.pathname.startsWith('/formulario/')
+    !showNavbar || // Generalmente, las vistas sin navbar tienen su propio control de márgenes.
+    location.pathname === '/home';
 
   const isHome = location.pathname === '/home'
   const isFormCreation =
@@ -31,10 +30,10 @@ function App() {
 
   return (
     <div className='App flex flex-col h-screen overflow-hidden'>
-      {!hideNavbar && <Navbar />}
+      {showNavbar && <Navbar />}
       <div className={
         isHome          ? 'flex-1 overflow-hidden' :
-        isFormCreation  ? 'flex-1 overflow-y-auto' :
+        isFormCreation  ? 'flex-1 overflow-y-auto bg-[var(--form-creation-bg)]' :
         !noMargin       ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
                           'flex-1 overflow-y-auto'
       }>
@@ -52,6 +51,7 @@ function App() {
           <Route path='/neighborhoods' element={<PrivateRoute><GeoLevelList /></PrivateRoute>} />
           <Route path='/geolevel_creation' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
           <Route path='/geolevel_creation/:id' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
+          <Route path='*' element={<Error404 />} />
         </Routes>
       </div>
     </div>
