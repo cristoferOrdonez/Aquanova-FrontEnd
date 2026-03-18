@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FormSubmissionContext from './FormSubmissionContext';
 import { formService } from '../../../services/formService';
 import { submissionsService } from '../../../services/submissionsService';
+import cloudinaryService from '../../../services/cloudinaryService';
 
 export default function FormSubmissionProvider({ children }) {
   const { id } = useParams();
@@ -12,6 +13,7 @@ export default function FormSubmissionProvider({ children }) {
   const [error, setError] = useState(null);
   const [answers, setAnswers] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null); // { current, total, percent, fileName }
 
   useEffect(() => {
     let mounted = true;
@@ -63,15 +65,76 @@ export default function FormSubmissionProvider({ children }) {
       }));
 
       const responses = {};
+      const attachments = [];
 
-      parsedFields.forEach((q, idx) => {
-        const responseKey = q.label || q.title || (q.key ?? String(q.id ?? `field_${idx}`));
+      // Procesar cada campo del schema
+      for (const q of parsedFields) {
+        const idx = parsedFields.indexOf(q);
+        // IMPORTANTE: Usar q.key como clave de la respuesta (igual que el flujo público)
+        const responseKey = q.key ?? String(q.id ?? `field_${idx}`);
         const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
         const raw = answers[idKey];
 
-        if (raw === undefined || raw === null || raw === '') return;
+        if (raw === undefined || raw === null || raw === '') continue;
 
-        if (Array.isArray(raw)) {
+        // Si es un archivo o array de archivos, subirlo a Cloudinary
+        if (raw instanceof File || (Array.isArray(raw) && raw.length > 0 && raw[0] instanceof File)) {
+          try {
+            const files = Array.isArray(raw) ? raw : [raw];
+            const validFiles = files.filter(f => f instanceof File);
+
+            if (validFiles.length > 0) {
+              console.log(`Subiendo ${validFiles.length} archivo(s) para "${responseKey}"...`);
+              const urls = await cloudinaryService.uploadMultipleFiles(
+                validFiles,
+                'submissions',
+                (progress) => {
+                  setUploadProgress({
+                    ...progress,
+                    fieldLabel: responseKey,
+                  });
+                }
+              );
+
+              // Agregar al array de attachments
+              attachments.push({
+                field_key: q.key ?? idKey,
+                media_urls: urls,
+              });
+
+              console.log(`${validFiles.length} archivo(s) subidos exitosamente para "${responseKey}"`);
+            }
+          } catch (uploadError) {
+            console.error(`Error al subir archivo(s) para "${responseKey}":`, uploadError);
+            throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
+          }
+        } else if (raw && typeof raw === 'object' && raw.file instanceof File) {
+          // Caso especial: objeto con estructura { name, previewUrl, file } del FileUploadField
+          try {
+            console.log(`Subiendo archivo para "${responseKey}"...`);
+            const urls = await cloudinaryService.uploadMultipleFiles(
+              [raw.file],
+              'submissions',
+              (progress) => {
+                setUploadProgress({
+                  ...progress,
+                  fieldLabel: responseKey,
+                });
+              }
+            );
+
+            // Agregar al array de attachments
+            attachments.push({
+              field_key: q.key ?? idKey,
+              media_urls: urls,
+            });
+
+            console.log(`Archivo subido exitosamente para "${responseKey}"`);
+          } catch (uploadError) {
+            console.error(`Error al subir archivo para "${responseKey}":`, uploadError);
+            throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
+          }
+        } else if (Array.isArray(raw)) {
           // checkbox: mapear ids/valores a texto visible de la opción
           responses[responseKey] = raw.map(id => {
             if (Array.isArray(q.options)) {
@@ -80,8 +143,8 @@ export default function FormSubmissionProvider({ children }) {
             }
             return id;
           });
-        } else if (raw && typeof raw === 'object') {
-          // archivo u objeto complejo
+        } else if (raw && typeof raw === 'object' && !(raw instanceof File)) {
+          // objeto complejo (que no sea File)
           responses[responseKey] = raw.name || raw.previewUrl || JSON.stringify(raw);
         } else if (['radio', 'select', 'Opción multiple', 'Lista desplegable'].includes(q.type)) {
           // radio/select: resolver id a texto visible
@@ -94,14 +157,24 @@ export default function FormSubmissionProvider({ children }) {
         } else {
           responses[responseKey] = raw;
         }
-      });
+      }
 
+      // Construir payload como JSON
       const payload = {
         form_id: formId,
         neighborhood_id: derivedNeighborhood,
         responses,
       };
-      if (location) payload.location = location;
+
+      // Agregar attachments si hay archivos
+      if (attachments.length > 0) {
+        payload.attachments = attachments;
+      }
+
+      // Agregar location si existe
+      if (location) {
+        payload.location = location;
+      }
 
       console.log('Submitting payload', payload);
 
@@ -113,11 +186,12 @@ export default function FormSubmissionProvider({ children }) {
       throw err;
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null); // Resetear progreso al finalizar
     }
   };
 
   return (
-    <FormSubmissionContext.Provider value={{ form, loading, error, answers, setAnswer, submit, isSubmitting }}>
+    <FormSubmissionContext.Provider value={{ form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress }}>
       {children}
     </FormSubmissionContext.Provider>
   );

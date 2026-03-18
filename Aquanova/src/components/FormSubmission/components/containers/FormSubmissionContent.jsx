@@ -101,7 +101,7 @@ function renderField(field, answers, setAnswer) {
 }
 
 export default function FormSubmissionContent() {
-  const { form, loading, error, answers, setAnswer, submit, isSubmitting } = useFormSubmissionContext();
+  const { form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress } = useFormSubmissionContext();
 
   if (loading) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.LOADING}</div>;
   if (error) return <div className="p-10 text-center text-red-500 font-work">{error}</div>;
@@ -192,9 +192,35 @@ export default function FormSubmissionContent() {
           ))}
         </div>
 
+        {/* Barra de progreso de subida */}
+        {uploadProgress && (
+          <div className="w-full flex flex-col gap-2 rounded-[5px] border-[1.5px] border-blue-200 bg-blue-50 px-4 py-3">
+            <div className="flex items-center justify-between text-xs text-blue-800">
+              <span className="font-medium">
+                {uploadProgress.fileName && `Subiendo: ${uploadProgress.fileName}`}
+                {!uploadProgress.fileName && 'Subiendo archivos...'}
+              </span>
+              <span className="font-semibold">
+                {uploadProgress.current}/{uploadProgress.total} ({uploadProgress.percent}%)
+              </span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100">
+              <div
+                className="h-full bg-[var(--blue-buttons)] transition-all duration-300 ease-out"
+                style={{ width: `${uploadProgress.percent}%` }}
+              />
+            </div>
+            {uploadProgress.fieldLabel && (
+              <span className="text-xs text-blue-600">
+                Campo: {uploadProgress.fieldLabel}
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="w-full flex justify-between items-center mt-2 pb-6 px-1">
           <button
-            className={`bg-[var(--blue-buttons)] text-white ${buttonPadding} rounded-[5px] font-semibold ${buttonTextSize} hover:brightness-110 transition shadow-sm w-full`}
+            className={`bg-[var(--blue-buttons)] text-white ${buttonPadding} rounded-[5px] font-semibold ${buttonTextSize} hover:brightness-110 transition shadow-sm w-full disabled:opacity-60 disabled:cursor-not-allowed`}
             onClick={async () => {
               try {
                 await submit();
@@ -207,7 +233,7 @@ export default function FormSubmissionContent() {
             }}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Enviando...' : 'Enviar'}
+            {isSubmitting ? (uploadProgress ? 'Subiendo archivos...' : 'Enviando...') : 'Enviar'}
           </button>
         </div>
 

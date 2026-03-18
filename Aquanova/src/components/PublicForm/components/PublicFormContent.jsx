@@ -44,6 +44,7 @@ function PublicFormContent() {
     submitting,
     successData,
     fieldErrors,
+    uploadProgress,
     handleSubmit,
   } = usePublicFormContext();
 
@@ -106,6 +107,32 @@ function PublicFormContent() {
             </div>
           )}
 
+          {/* Barra de progreso de subida */}
+          {uploadProgress && (
+            <div className="flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+              <div className="flex items-center justify-between text-xs text-blue-800">
+                <span className="font-medium">
+                  {uploadProgress.fileName && `Subiendo: ${uploadProgress.fileName}`}
+                  {!uploadProgress.fileName && 'Subiendo archivos...'}
+                </span>
+                <span className="font-semibold">
+                  {uploadProgress.current}/{uploadProgress.total} ({uploadProgress.percent}%)
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100">
+                <div
+                  className="h-full bg-[var(--blue-buttons)] transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress.percent}%` }}
+                />
+              </div>
+              {uploadProgress.fieldLabel && (
+                <span className="text-xs text-blue-600">
+                  Campo: {uploadProgress.fieldLabel}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Botón enviar */}
           <button
             type="button"
@@ -113,7 +140,7 @@ function PublicFormContent() {
             disabled={submitting}
             className="w-full rounded-full py-3 text-sm font-semibold text-white bg-[var(--blue-buttons)] hover:brightness-110 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Enviando…' : 'Enviar encuesta'}
+            {submitting ? (uploadProgress ? 'Subiendo archivos…' : 'Enviando…') : 'Enviar encuesta'}
           </button>
 
         </div>

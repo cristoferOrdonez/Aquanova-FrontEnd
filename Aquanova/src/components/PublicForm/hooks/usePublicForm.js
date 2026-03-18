@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import publicFormService from '../../../services/publicFormService';
+import cloudinaryService from '../../../services/cloudinaryService';
 
 const getGeolocation = () =>
   new Promise((resolve) => {
@@ -41,6 +42,7 @@ export const usePublicForm = () => {
   const [errorStatus, setErrorStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [successData, setSuccessData] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(null); // { current, total, percent, fileName }
 
   /** { [field.key]: string | number | string[] } */
   const [responses, setResponses] = useState({});
@@ -84,9 +86,23 @@ export const usePublicForm = () => {
         const initial = {};
         schema.forEach((field) => {
           if (field.type === 'info') return;
-          initial[field.key] = field.type === 'checkbox' ? [] : field.type === 'range' ? (field.min ?? 0) : '';
+          if (field.type === 'checkbox') {
+            initial[field.key] = [];
+          } else if (field.type === 'file') {
+            initial[field.key] = field.multiple !== false ? [] : null;
+          } else if (field.type === 'range') {
+            initial[field.key] = field.min ?? 0;
+          } else {
+            initial[field.key] = '';
+          }
         });
         setResponses(initial);
+
+        // Inicializar registration (solo nombre y documento por requerimiento)
+        setRegistrations({
+          name: '',
+          document_number: ''
+        });
       })
       .catch((err) => {
         setErrorStatus(err.status ?? null);
@@ -136,7 +152,7 @@ export const usePublicForm = () => {
       if (isEmpty) errors[field.key] = 'Este campo es obligatorio.';
     });
 
-    // Campos de registro — solo name y document_number son obligatorios fijos
+    // Campos de registro fijos (solo nombre y documento correspondientes a los requerimientos)
     if (!registration.name?.trim()) errors.name = 'Este campo es obligatorio.';
     if (!registration.document_number?.trim()) errors.document_number = 'Este campo es obligatorio.';
 
@@ -154,24 +170,71 @@ export const usePublicForm = () => {
     try {
       const location = await getGeolocation();
 
+      // Separar respuestas de archivos y respuestas normales
       const filteredResponses = {};
-      Object.entries(responses).forEach(([key, value]) => {
+      const attachments = [];
+
+      // Procesar todas las respuestas
+      for (const [key, value] of Object.entries(responses)) {
         const field = formData?.schema?.find((f) => f.key === key);
-        if (field && field.type !== 'info') {
-          const qLabel = field.label || field.title || field.key || key;
+        if (!field || field.type === 'info') continue;
+
+        const qLabel = field.label || field.title || field.key || key;
+
+        // Si es un archivo o array de archivos, subirlo(s) a Cloudinary
+        if (field.type === 'file') {
+          const files = Array.isArray(value) ? value : (value ? [value] : []);
+          const validFiles = files.filter(f => f instanceof File);
+
+          if (validFiles.length > 0) {
+            try {
+              console.log(`Subiendo ${validFiles.length} archivo(s) para "${qLabel}" a Cloudinary...`);
+              const urls = await cloudinaryService.uploadMultipleFiles(
+                validFiles,
+                'submissions',
+                (progress) => {
+                  setUploadProgress({
+                    ...progress,
+                    fieldLabel: qLabel,
+                  });
+                }
+              );
+
+              // Agregar al array de attachments
+              attachments.push({
+                field_key: key,
+                media_urls: urls,
+              });
+
+              console.log(`${validFiles.length} archivo(s) de "${qLabel}" subidos exitosamente`);
+            } catch (uploadError) {
+              console.error(`Error al subir archivo(s) de "${qLabel}":`, uploadError);
+              throw new Error(`No se pudo subir el(los) archivo(s) de "${qLabel}". ${uploadError.message}`);
+            }
+          }
+        } else {
+          // Respuesta normal (texto, número, etc.)
           filteredResponses[qLabel] = value;
         }
-      });
+      }
 
+      // Construir payload como JSON
       const payload = {
         form_key: formKey,
         neighborhood_id: formData.neighborhood_id,
         responses: filteredResponses,
         name: registration.name,
         document_number: registration.document_number,
-        ...(referralCode ? { referral_code: referralCode } : {}),
-        ...(location ? { location } : {}),
       };
+
+      // Agregar attachments si hay imágenes
+      if (attachments.length > 0) {
+        payload.attachments = attachments;
+      }
+
+      // Agregar campos opcionales solo si existen
+      if (referralCode) payload.referral_code = referralCode;
+      if (location) payload.location = location;
 
       const result = await publicFormService.onboarding(payload);
 
@@ -187,11 +250,14 @@ export const usePublicForm = () => {
         setFieldErrors({ _form: 'Este formulario ya no está disponible.' });
       } else if (err.status === 409) {
         setFieldErrors({ _form: '¿Ya tienes una cuenta? El documento o correo ya está registrado.' });
+      } else if (err.message && err.message.includes('subir la imagen')) {
+        setFieldErrors({ _form: err.message });
       } else {
         setFieldErrors({ _form: 'Ocurrió un error. Intenta de nuevo más tarde.' });
       }
     } finally {
       setSubmitting(false);
+      setUploadProgress(null); // Resetear progreso al finalizar
     }
   }, [formKey, formData, responses, registration, referralCode, validate]);
 
@@ -205,6 +271,7 @@ export const usePublicForm = () => {
     responses,
     registration,
     fieldErrors,
+    uploadProgress,
     setResponse,
     setRegistration,
     handleSubmit,
