@@ -4,15 +4,13 @@ import NeighborhoodSelector from './../ui/selectors/NeighborhoodSelector.jsx';
 import FORM_CREATION_CONFIG from '../../config/formCreationConfig';
 import {
     useHeaderContext,
-    useNeighborhoodSelectorContext,
     useEditModeContext,
 } from '../../hooks/useFormCreationContext';
 
 function HeaderSection() {
 
     const header = useHeaderContext();
-    const neighborhoodCtx = useNeighborhoodSelectorContext();
-    const { isEditMode, isLoadingEdit, editLoadError } = useEditModeContext();
+    const { isEditMode } = useEditModeContext();
     const [isSaving, setIsSaving] = useState(false);
         const {
       fileInputRef,
@@ -57,11 +55,11 @@ function HeaderSection() {
             }
         };
 
-    const { selectedOption, setSelectedOption } = neighborhoodCtx;
+    
 
     return (
         
-        <div className="relative flex flex-col tablet:items-end tablet:w-auto w-[90%]">
+        <header className="relative flex flex-col tablet:items-end tablet:w-auto w-[90%]" role="banner">
             <div className="bg-[var(--card-bg)] tablet:w-[653px] w-auto h-wrap border-[1.5px] border-[var(--card-stroke)] rounded-[5px] gap-6 px-6 py-4 flex phone:flex-row flex-col phone:m-0">
 
             <div className="phone:w-[65%] tablet:w-[44%] w-auto h-wrap gap-4 flex flex-col" >
@@ -110,6 +108,7 @@ function HeaderSection() {
                             <img 
                                 src={imagePreview} 
                                 alt="Preview" 
+                                loading="lazy"
                                 className="w-full h-full object-cover rounded-[12px]" 
                             />
                             
@@ -350,7 +349,7 @@ function HeaderSection() {
                 </div>
             </div>
             </div>
-        </div>
+        </header>
 
         );
 

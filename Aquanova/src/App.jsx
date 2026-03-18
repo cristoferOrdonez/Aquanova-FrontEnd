@@ -1,13 +1,16 @@
-import FormList from './components/FormList/Index'
+import { lazy, Suspense } from 'react'
 import Navbar from './components/ui/Navbar'
-import FormCreation from './components/FormCreation/Index'
-import Login from './components/Login/Index'
-import GeoLevelList from './components/GeoLevelList/Index'
-import NeighborhoodCreation from './components/GeoLevelCreation/Index'
-import FormPreview from './components/FormPreview/Index'
-import FormSubmission from './components/FormSubmission/Index'
-import Home from './components/Home/Index'
-import PublicForm from './components/PublicForm/Index'
+const FormList = lazy(() => import('./components/FormList/Index'))
+const FormCreation = lazy(() => import('./components/FormCreation/Index'))
+const Login = lazy(() => import('./components/Login/Index'))
+const GeoLevelList = lazy(() => import('./components/GeoLevelList/Index'))
+const NeighborhoodCreation = lazy(() => import('./components/GeoLevelCreation/Index'))
+const FormPreview = lazy(() => import('./components/FormPreview/Index'))
+const FormSubmission = lazy(() => import('./components/FormSubmission/Index'))
+const Home = lazy(() => import('./components/Home/Index'))
+const PublicForm = lazy(() => import('./components/PublicForm/Index'))
+const UserProfile = lazy(() => import('./components/UserProfile/Index'))
+const UserManagement = lazy(() => import('./components/UserManagement/Index'))
 import PrivateRoute from './components/ui/PrivateRoute'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 
@@ -38,21 +41,25 @@ function App() {
         !noMargin       ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
                           'flex-1 overflow-y-auto'
       }>
-        <Routes>
-          <Route path='/' element={<Navigate to='/login' replace />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/formulario/:formKey' element={<PublicForm />} />
+        <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Cargando…</div>}>
+          <Routes>
+            <Route path='/' element={<Navigate to='/login' replace />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/formulario/:formKey' element={<PublicForm />} />
 
-          <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
-          <Route path='/forms' element={<PrivateRoute><FormList /></PrivateRoute>} />
-          <Route path='/form_creation' element={<PrivateRoute><FormCreation /></PrivateRoute>} />
-          <Route path='/form_creation/:id' element={<PrivateRoute><FormCreation /></PrivateRoute>} />
-          <Route path='/form/preview/:id' element={<PrivateRoute><FormPreview /></PrivateRoute>} />
-          <Route path='/form/submit/:id' element={<PrivateRoute><FormSubmission /></PrivateRoute>} />
-          <Route path='/neighborhoods' element={<PrivateRoute><GeoLevelList /></PrivateRoute>} />
-          <Route path='/geolevel_creation' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
-          <Route path='/geolevel_creation/:id' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
-        </Routes>
+            <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
+            <Route path='/my-account' element={<PrivateRoute><UserProfile /></PrivateRoute>} />
+            <Route path='/user-management' element={<PrivateRoute><UserManagement /></PrivateRoute>} />
+            <Route path='/forms' element={<PrivateRoute><FormList /></PrivateRoute>} />
+            <Route path='/form_creation' element={<PrivateRoute><FormCreation /></PrivateRoute>} />
+            <Route path='/form_creation/:id' element={<PrivateRoute><FormCreation /></PrivateRoute>} />
+            <Route path='/form/preview/:id' element={<PrivateRoute><FormPreview /></PrivateRoute>} />
+            <Route path='/form/submit/:id' element={<PrivateRoute><FormSubmission /></PrivateRoute>} />
+            <Route path='/neighborhoods' element={<PrivateRoute><GeoLevelList /></PrivateRoute>} />
+            <Route path='/geolevel_creation' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
+            <Route path='/geolevel_creation/:id' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
+          </Routes>
+        </Suspense>
       </div>
     </div>
   )

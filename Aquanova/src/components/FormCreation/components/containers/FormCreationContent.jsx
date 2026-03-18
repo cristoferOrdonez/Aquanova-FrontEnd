@@ -55,8 +55,9 @@ export default function FormCreationContent() {
   }
 
   return (
-    <div
+    <main
       ref={mainContainerRef}
+      role="main"
       className="bg-[var(--bg-color-main)] font-work w-full min-h-full flex flex-col items-center justify-start pt-10 pb-20 gap-3 text-left"
     >
       {/* Indicador de modo: creación o edición */}
@@ -81,13 +82,13 @@ export default function FormCreationContent() {
 
       <HeaderSection />
 
-      <QuestionList mainContainerRef={mainContainerRef} />
+      <QuestionList />
 
       <div id="creation-editing-frame">
-        <EditingSection mainContainerRef={mainContainerRef} id={-1} />
+        <EditingSection id={-1} />
       </div>
 
       <CreationButton />
-    </div>
+    </main>
   );
 }

@@ -14,7 +14,33 @@ import {
     useCreationControlsContext,
 } from '../../hooks/useFormCreationContext';
 
-function EditingSection({ mainContainerRef, id }) {
+// Componente separado para renderizar el input según tipo (evita crearlo durante render)
+function RenderInputType({ selectedTypeQuestionOption, optionsList, setOptionsList }) {
+    if (["Opción multiple", "Casillas de verificación", "Lista desplegable"].includes(selectedTypeQuestionOption)) {
+        return (
+            <MultipleOptionsInput
+                optionsList={optionsList}
+                setOptionsList={setOptionsList}
+                selectedTypeQuestionOption={selectedTypeQuestionOption}
+            />
+        );
+    }
+
+    switch (selectedTypeQuestionOption) {
+        case 'Respuesta textual':
+            return <TextInput />;
+        case 'Numérico':
+            return <NumericInput />;
+        case 'Fecha':
+            return <DateInput />;
+        case 'Cargar imagen':
+            return <FileUploadInput />;
+        default:
+            return null;
+    }
+}
+
+function EditingSection({ id }) {
     const {
         addQuestion,
         updateQuestion,
@@ -64,8 +90,10 @@ function EditingSection({ mainContainerRef, id }) {
         editingSection.setIsEditingSectionOpen(false);
     };
 
+    
+
     return (
-        <div alt="editing_frame" className={`
+        <section aria-label="editing_frame" className={`
             tablet:w-[653px] ${id == -1 ? 'w-[90%]' : 'w-[100%]'} bg-[var(--card-bg)] drop-shadow-md border-[1.5px] border-[var(--card-stroke)] rounded-[5px]
             flex flex-col justify-between gap-2 ${!editingSection.isEditingSectionOpen ? 'overflow-hidden' : 'overflow-visible'}
 
@@ -109,30 +137,11 @@ function EditingSection({ mainContainerRef, id }) {
               </div>
             </div>
             <div className="w-full">
-                {(() => {
-                    switch (typeSelector.selectedTypeQuestionOption) {
-                        case "Opción multiple":
-                        case "Casillas de verificación":
-                        case "Lista desplegable":
-                            return (
-                                <MultipleOptionsInput 
-                                    optionsList={optionsListCtx.optionsList} setOptionsList={optionsListCtx.setOptionsList}
-                                    selectedTypeQuestionOption={typeSelector.selectedTypeQuestionOption}
-                                    mainContainerRef={mainContainerRef}
-                                />
-                            );
-                        case "Respuesta textual":
-                            return <TextInput />;
-                        case "Numérico":
-                            return <NumericInput />;
-                        case "Fecha":
-                            return <DateInput />;
-                        case "Cargar imagen":
-                            return <FileUploadInput />;
-                        default:
-                            return null;
-                    }
-                })()}
+                <RenderInputType
+                    selectedTypeQuestionOption={typeSelector.selectedTypeQuestionOption}
+                    optionsList={optionsListCtx.optionsList}
+                    setOptionsList={optionsListCtx.setOptionsList}
+                />
             </div>
             <div className="border-[1px] my-3 border-[var(--card-stroke)]"/>
             <div className="flex flex-row justify-between gap-4">
@@ -152,7 +161,7 @@ function EditingSection({ mainContainerRef, id }) {
                 selectedTypeQuestionOption={typeSelector.selectedTypeQuestionOption}
               />
             </div>
-        </div>
+        </section>
     )
 }
 

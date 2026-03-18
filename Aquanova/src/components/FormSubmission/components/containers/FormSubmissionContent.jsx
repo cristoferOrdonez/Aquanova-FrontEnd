@@ -118,7 +118,7 @@ export default function FormSubmissionContent() {
           { form.imageUrl && (
             <div className={`mb-4 overflow-hidden w-full h-auto ${isMobile ? 'max-h-[200px]' : 'max-h-[400px]'}`}>
               <div className="relative w-full h-full group">
-                <img src={form.imageUrl} alt="Form cover" className="w-full h-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-[1.01]" />
+                <img src={form.imageUrl} alt="Form cover" loading="lazy" className="w-full h-full object-cover rounded-[12px] transition-transform duration-500 group-hover:scale-[1.01]" />
               </div>
             </div>
           )}

@@ -3,7 +3,6 @@ import FORM_CREATION_CONFIG from '../../../config/formCreationConfig';
 export default function MultipleOptionsInput({
     optionsList, setOptionsList,
     selectedTypeQuestionOption,
-    mainContainerRef
 }) {
 
     const handleRemoveOption = (id) => {

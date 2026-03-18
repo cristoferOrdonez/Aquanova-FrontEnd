@@ -44,7 +44,7 @@ function Navbar() {
   const handleMyAccount = () => {
     setMenuOpen(false)
     setMobileOpen(false)
-    console.log('Mi cuenta')
+    navigate('/my-account')
   }
 
   const handleLogout = () => {

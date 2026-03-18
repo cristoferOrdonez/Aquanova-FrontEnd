@@ -21,7 +21,7 @@ export function useNeighborhoodSelector(initial = null) {
         if (!selectedOption) {
           setSelectedOption({ id: null, label: FORM_CREATION_CONFIG.neighborhoodPlaceholder });
         }
-      } catch (err) {
+      } catch {
         if (!mounted) return;
         setOptions([]);
         setSelectedOption({ id: null, label: FORM_CREATION_CONFIG.neighborhoodPlaceholder });
@@ -29,7 +29,7 @@ export function useNeighborhoodSelector(initial = null) {
     })();
 
     return () => { mounted = false; };
-  }, []);
+  }, [selectedOption]);
 
   return {
     options,
