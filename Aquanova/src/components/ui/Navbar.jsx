@@ -9,6 +9,7 @@ const navLinks = [
   { name: 'Inicio', path: '/home' },
   { name: 'Campañas', path: '/forms' },
   { name: 'Barrios', path: '/neighborhoods' },
+  { name: 'Usuarios', path: '/user-management' },
 ]
 
 function Navbar() {
@@ -81,8 +82,7 @@ function Navbar() {
 
         {/* Links centrados — solo en pantallas grandes */}
         <div className='hidden tablet:flex flex-1 justify-center gap-10'>
-          {navLinks.map((link, i) => {
-            const active = isActive(link.path)
+          {navLinks.map((link, i) => {            if (link.path === '/user-management' && user?.role?.toLowerCase() !== 'administrador' && user?.role?.toLowerCase() !== 'admin') return null;            const active = isActive(link.path)
             return (
               <motion.button
                 key={link.path}
@@ -224,6 +224,7 @@ function Navbar() {
               {/* Links de navegación */}
               <div className='flex flex-col py-4 flex-1'>
                 {navLinks.map((link, i) => {
+                  if (link.path === '/user-management' && user?.role?.toLowerCase() !== 'administrador' && user?.role?.toLowerCase() !== 'admin') return null;
                   const active = isActive(link.path)
                   return (
                     <motion.button
