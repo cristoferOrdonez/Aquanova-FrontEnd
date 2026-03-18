@@ -154,12 +154,14 @@ export const usePublicForm = () => {
     try {
       const location = await getGeolocation();
 
-      const filteredResponses = Object.fromEntries(
-        Object.entries(responses).filter(([key]) => {
-          const field = formData?.schema?.find((f) => f.key === key);
-          return field?.type !== 'info';
-        })
-      );
+      const filteredResponses = {};
+      Object.entries(responses).forEach(([key, value]) => {
+        const field = formData?.schema?.find((f) => f.key === key);
+        if (field && field.type !== 'info') {
+          const qLabel = field.label || field.title || field.key || key;
+          filteredResponses[qLabel] = value;
+        }
+      });
 
       const payload = {
         form_key: formKey,

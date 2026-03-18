@@ -63,7 +63,6 @@ const FormPreviewContent = () => {
             </div>
           )}
           <h1 className={`${titleSize} font-bold text-[var(--text)] mb-2 break-words leading-tight`}>{form.title}</h1>
-          {form.description && (<p className={`${descSize} text-gray-600 whitespace-pre-wrap break-words mt-2`}>{form.description}</p>)}
         </div>
 
         <div className={`w-full flex flex-col ${gap}`}>
@@ -71,7 +70,7 @@ const FormPreviewContent = () => {
             <div key={field.id ?? field._id ?? idx} className={`w-full bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] ${rounded} ${cardPadding} shadow-sm transition-all duration-500 transform-gpu hover:shadow-md hover:scale-[1.01]`}> 
               <div className="mb-2">
                 <label className={`block ${labelSize} font-medium text-[var(--text)] mb-1 break-words leading-snug`}>
-                  {field.title || field.label || "Sin título"}
+                  {field.label || field.title || "Sin título"}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
               </div>

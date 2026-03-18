@@ -1,23 +1,23 @@
 import { useState } from 'react';
-import FORM_CREATION_CONFIG from '../config/formCreationConfig';
+import { DEFAULT_QUESTION_LABEL } from '../config/formCreationConfig';
 
 export function useEditingSection() {
   const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [isEditingSectionOpen, setIsEditingSectionOpen] = useState(false);
-  const [questionTitle, setQuestionTitle] = useState(FORM_CREATION_CONFIG.defaultQuestionTitle);
+  const [questionLabel, setQuestionLabel] = useState(DEFAULT_QUESTION_LABEL || "Pregunta sin título");
   const [isMandatoryOn, setIsMandatoryOn] = useState(false);
   const [isFastOutEditingFrame, setIsFastOutEditingFrame] = useState(false);
 
   const openForCreate = () => {
     setEditingQuestionId(null);
-    setQuestionTitle(FORM_CREATION_CONFIG.defaultQuestionTitle);
+    setQuestionLabel(DEFAULT_QUESTION_LABEL || "Pregunta sin título");
     setIsMandatoryOn(false);
     setIsEditingSectionOpen(true);
   };
 
   const openForEdit = (question) => {
     setEditingQuestionId(question.id);
-    setQuestionTitle(question.title || FORM_CREATION_CONFIG.defaultQuestionTitle);
+    setQuestionLabel(question.label || question.title || DEFAULT_QUESTION_LABEL || "Pregunta sin título");
     setIsMandatoryOn(!!question.required);
     setIsEditingSectionOpen(true);
   };
@@ -32,8 +32,8 @@ export function useEditingSection() {
     setEditingQuestionId,
     isEditingSectionOpen,
     setIsEditingSectionOpen,
-    questionTitle,
-    setQuestionTitle,
+    questionLabel,
+    setQuestionLabel,
     isMandatoryOn,
     setIsMandatoryOn,
     isFastOutEditingFrame,

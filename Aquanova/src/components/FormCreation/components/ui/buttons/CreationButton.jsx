@@ -20,7 +20,7 @@ function CreationButton() {
         editingSection.setIsEditingSectionOpen(!editingSection.isEditingSectionOpen);
 
         // limpieza
-        editingSection.setQuestionTitle(FORM_CREATION_CONFIG.defaultQuestionTitle);
+        editingSection.setQuestionLabel(FORM_CREATION_CONFIG.defaultQuestionLabel);
         typeSelector.setSelectedTypeQuestionOption(FORM_CREATION_CONFIG.defaultType);
         optionsListCtx.setOptionsList([ FORM_CREATION_CONFIG.createDefaultOption() ]);
         editingSection.setIsMandatoryOn(false);

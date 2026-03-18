@@ -7,8 +7,20 @@ import FileUploadField from '../../../FormPreview/components/ui/fields/FileUploa
 import RadioGroup from '../../../FormPreview/components/ui/fields/RadioGroup';
 import CheckboxGroup from '../../../FormPreview/components/ui/fields/CheckboxGroup';
 
+// Mapeo de tipos estandarizados (backend) a las etiquetas usadas por FIELD_TYPES (UI)
+const TYPE_TO_FIELD_TYPES = {
+  'radio':    'Opción multiple',
+  'checkbox': 'Casillas de verificación',
+  'select':   'Lista desplegable',
+  'textarea': 'Respuesta textual',
+  'number':   'Numérico',
+  'date':     'Fecha',
+  'file':     'Cargar imagen',
+  'info':     'Sólo texto (sin respuestas)',
+};
+
 function renderField(field, answers, setAnswer) {
-  const key = field.id || field._id || field.key || field.label || `field_${field?.index}`;
+  const key = field.key ?? String(field.id ?? `field_${field?.index}`);
   const value = answers[key];
   const sizeClass = 'text-base';
 
@@ -106,11 +118,49 @@ export default function FormSubmissionContent() {
     const gap = isMobile ? 'gap-3' : 'gap-6';
     const inputSizeClass = isMobile ? 'text-xs' : 'text-base';
 
-    let fields = form.schema || form.questions || form.fields || [];
-    if (typeof fields === 'string') {
-      try { fields = JSON.parse(fields); } catch (e) { fields = []; }
+    let rawFields = form.schema || form.questions || form.fields || [];
+    if (typeof rawFields === 'string') {
+      try { rawFields = JSON.parse(rawFields); } catch (e) { rawFields = []; }
     }
-    if (!Array.isArray(fields)) fields = [];
+    if (!Array.isArray(rawFields)) rawFields = [];
+    
+    // Normalizar campos: garantizar key y convertir tipo estandarizado al label de FIELD_TYPES
+    const normalizedFields = rawFields.map((f, i) => ({
+      ...f,
+      key: f.key ?? String(f.id ?? `field_${i}`),
+      label: f.label ?? f.title ?? '',
+      type: TYPE_TO_FIELD_TYPES[f.type] ?? f.type,
+    }));
+
+    // Retrocompatibilidad: mapear respuestas antiguas (con timestamps como keys)
+    // Si detectamos que las respuestas usan ids viejos, hacemos un mapeo
+    const normalizedAnswers = { ...answers };
+    const oldIdToNewKey = {};
+    
+    // Construir mapeo: si el campo tiene un id viejo (timestamp), mapear a la nueva key
+    normalizedFields.forEach((field, idx) => {
+      if (field.id && /^\d+$/.test(String(field.id)) && field.id !== field.key) {
+        oldIdToNewKey[String(field.id)] = field.key;
+      }
+    });
+
+    // Si hay respuestas con keys antiguas, mapearlas a las nuevas keys
+    Object.keys(normalizedAnswers).forEach(oldKey => {
+      if (oldIdToNewKey[oldKey] && !normalizedAnswers[oldIdToNewKey[oldKey]]) {
+        normalizedAnswers[oldIdToNewKey[oldKey]] = normalizedAnswers[oldKey];
+        delete normalizedAnswers[oldKey];
+      }
+    });
+
+    // Crear wrapper de setAnswer que preserva el mapeo al guardar
+    const wrappedSetAnswer = (key, value) => {
+      setAnswer(key, value);
+      // Si la key es nueva (slug), no hacer nada adicional
+      // Si es una key vieja (timestamp), actualizar también la nueva key
+      if (oldIdToNewKey[key] && oldIdToNewKey[key] !== key) {
+        setAnswer(oldIdToNewKey[key], value);
+      }
+    };
 
     return (
       <div className={`flex flex-col ${gap} ${isMobile ? '' : 'w-full max-w-[770px] mx-auto'}`}>
@@ -127,16 +177,16 @@ export default function FormSubmissionContent() {
         </div>
 
         <div className={`w-full flex flex-col ${gap}`}>
-          {fields.map((field, idx) => (
+          {normalizedFields.map((field, idx) => (
             <div key={field.id || field._id || idx} className={`w-full bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] ${rounded} ${cardPadding} shadow-sm transition-all duration-500 transform-gpu hover:shadow-md hover:scale-[1.01]`}>
               <div className="mb-2">
                 <label className={`block ${labelSize} font-medium text-[var(--text)] mb-1 break-words leading-snug`}>
-                  {field.title || field.label || "Sin título"}
+                  {field.label || field.title || "Sin título"}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
               </div>
               <div className="mt-1">
-                {renderField(field, answers, setAnswer, idx)}
+                {renderField(field, normalizedAnswers, wrappedSetAnswer, idx)}
               </div>
             </div>
           ))}

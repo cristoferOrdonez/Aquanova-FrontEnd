@@ -114,9 +114,29 @@ export function useForms() {
 
       const safeTitle = formTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-      // 1. EXPORTACIÓN JSON (Crudo)
+      // Encontrar el formulario en allForms para obtener el schema
+      const form = allForms.find(f => f.id === formId);
+      const schema = form?.metadata?.schema || [];
+      const fieldMap = {};
+      schema.forEach(field => {
+        fieldMap[field.key || field.id] = field.label || field.title || field.key || field.id;
+      });
+
+      // 1. EXPORTACIÓN JSON
       if (format === 'json') {
-        const fileContent = JSON.stringify(data, null, 2);
+        const transformedData = data.map(sub => {
+          let responsesObj = typeof sub.responses === 'string' ? JSON.parse(sub.responses) : sub.responses;
+          let newResponses = {};
+          if (responsesObj) {
+             Object.keys(responsesObj).forEach(key => {
+               const qLabel = fieldMap[key] || key;
+               newResponses[qLabel] = responsesObj[key];
+             });
+          }
+          return { ...sub, responses: newResponses };
+        });
+
+        const fileContent = JSON.stringify(transformedData, null, 2);
         const blob = new Blob([fileContent], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -150,7 +170,8 @@ export function useForms() {
             if (typeof answer === 'object' && answer !== null) {
               answer = JSON.stringify(answer);
             }
-            row[questionKey] = answer; 
+            const qLabel = fieldMap[questionKey] || questionKey;
+            row[qLabel] = answer; 
           });
         }
 
