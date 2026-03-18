@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   UsersIcon,
   LockClosedIcon,
@@ -5,8 +6,10 @@ import {
   TrashIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useUsers } from './hooks/useUsers'
+import UserFormModal from './components/UserFormModal'
+import { usersService } from '../../services/usersService'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -46,7 +49,26 @@ function ActionButton({ title, icon: Icon, tone = 'default', onClick }) {
 }
 
 function Index() {
-  const { usersList, loading, error } = useUsers()
+  const { usersList, loading, error, refreshUsers } = useUsers()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleCreateUser = async (userData) => {
+    try {
+      setIsSubmitting(true)
+      await usersService.createUser(userData)
+      // Recargar la lista después de crear
+      if (refreshUsers) await refreshUsers()
+      setIsModalOpen(false)
+      // La limpieza del formulario se maneja desde el modal al cerrarse exitosamente si disparamos un evento o estado,
+      // pero para mantenerlo simple, delegaremos una prop key que reinicia el componente o la invocamos desde adentro.
+    } catch (err) {
+      console.error('Error al crear usuario:', err)
+      alert(err.data?.message || err.response?.data?.message || err.message || 'Error al crear usuario. Revisa los datos.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <motion.section
@@ -87,22 +109,28 @@ function Index() {
                   </td>
                 </tr>
               )}
-              {!loading && !error && usersList.length === 0 && (
+              {!loading && !error && (!usersList || usersList.length === 0) && (
                 <tr>
                   <td colSpan="4" className="text-center py-6 text-[var(--gray-subtitles)]">
                     No hay usuarios registrados
                   </td>
                 </tr>
               )}
-              {!loading && !error && usersList.map((user) => (
+              {!loading && !error && Array.isArray(usersList) && usersList.map((user, index) => {
+                if (!user) return null;
+                return (
                 <motion.tr
-                  key={user.id}
+                  key={user.id || `user-row-${index}`}
                   variants={rowVariants}
+                  initial="hidden"
+                  animate="visible"
                   className='border-b border-[var(--card-stroke)] last:border-b-0 hover:bg-slate-50/70 transition-colors'
                 >
                   <td className='px-5 py-4 text-sm text-[var(--text)]'>{user.document_number}</td>
                   <td className='px-5 py-4 text-sm font-medium text-[var(--text)]'>{user.name}</td>
-                  <td className='px-5 py-4 text-sm text-[var(--text)]'>{user.role?.name || (user.role_id === 1 ? 'Administrador' : 'Operador')}</td>
+                  <td className='px-5 py-4 text-sm text-[var(--text)] capitalize'>
+                    {(typeof user.role === 'object' ? user.role?.name : user.role) || (user.role_id === 1 ? 'Administrador' : 'Operador')}
+                  </td>
                   <td className='px-5 py-4'>
                     <div className='flex items-center gap-1'>
                       <ActionButton title='Bloquear usuario' icon={LockClosedIcon} onClick={() => {}} />
@@ -111,7 +139,7 @@ function Index() {
                     </div>
                   </td>
                 </motion.tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
@@ -119,6 +147,7 @@ function Index() {
 
       <motion.button
         type='button'
+        onClick={() => setIsModalOpen(true)}
         variants={rowVariants}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
@@ -128,6 +157,13 @@ function Index() {
       >
         <PlusIcon className='h-9 w-9' strokeWidth={2.8} />
       </motion.button>
+
+      <UserFormModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreateUser}
+        isSubmitting={isSubmitting}
+      />
     </motion.section>
   )
 }

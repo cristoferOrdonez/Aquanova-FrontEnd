@@ -11,10 +11,16 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       const response = await usersService.getUsers();
+      console.log('Respuesta getUsers:', response);
       if (response && response.users) {
         setUsersList(response.users);
+      } else if (response && response.data) {
+        setUsersList(response.data);
+      } else if (Array.isArray(response)) {
+        setUsersList(response);
       }
     } catch (err) {
+      console.error('Error fetching users:', err);
       setError(err.message || 'Error al cargar usuarios');
     } finally {
       setLoading(false);
