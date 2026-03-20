@@ -32,18 +32,20 @@ const LABEL_TO_TYPE = {
   'Fecha':                       'date',
   'Cargar imagen':               'file',
   'Sólo texto (sin respuestas)': 'info',
+  'Selector de Lote':            'lot_selector',
 };
 
 // Mapeo inverso: tipos estandarizados (backend) → etiquetas en español (UI)
 const TYPE_TO_LABEL = {
-  'radio':    'Opción multiple',
-  'checkbox': 'Casillas de verificación',
-  'select':   'Lista desplegable',
-  'textarea': 'Respuesta textual',
-  'number':   'Numérico',
-  'date':     'Fecha',
-  'file':     'Cargar imagen',
-  'info':     'Sólo texto (sin respuestas)',
+  'radio':        'Opción multiple',
+  'checkbox':     'Casillas de verificación',
+  'select':       'Lista desplegable',
+  'textarea':     'Respuesta textual',
+  'number':       'Numérico',
+  'date':         'Fecha',
+  'file':         'Cargar imagen',
+  'info':         'Sólo texto (sin respuestas)',
+  'lot_selector': 'Selector de Lote',
 };
 
 /**

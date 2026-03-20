@@ -33,5 +33,14 @@ export const prediosService = {
    */
   getNeighborhoods() {
     return apiRequest('/map/neighborhoods', { method: 'GET' });
+  },
+
+  /**
+   * Obtiene lotes de un barrio para el selector en formularios públicos.
+   * Incluye todos los lotes pero marca cuáles están disponibles (sin_informacion).
+   * @param {string} neighborhoodId - ID del barrio
+   */
+  getAvailableLots(neighborhoodId) {
+    return apiRequest(`/map/available-lots/${neighborhoodId}`, { method: 'GET' });
   }
 };

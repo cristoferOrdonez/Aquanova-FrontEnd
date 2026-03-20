@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // Importaciones ajustadas a la nueva estructura interna de Home
 import MapEngine from './components/containers/MapEngine';
 import LotSidePanel from './components/containers/LotSidePanel';
+import MetricsPanel from './components/containers/MetricsPanel';
 import MapLegend from './components/ui/MapLegend';
 import { useMapData } from './hooks/useMapData';
 
@@ -85,8 +86,9 @@ function Index() {
   };
 
   return (
-    <div className="w-full h-full bg-slate-100 p-4 md:p-6 flex flex-col gap-4 font-sans">
-      
+    <div className="w-full h-full bg-slate-100 overflow-y-auto">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
+
       {/* BARRA SUPERIOR */}
       <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center shrink-0">
         <div>
@@ -131,7 +133,7 @@ function Index() {
       </div>
 
       {/* ÁREA PRINCIPAL: MAPA + PANEL */}
-      <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px]">
         <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
           {!selectedNeighborhoodId || loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">Cargando sector...</div>
@@ -152,12 +154,16 @@ function Index() {
         </div>
 
         <div className="w-full md:w-100 h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden shrink-0">
-          <LotSidePanel 
-            lot={selectedLot} 
-            onSave={handleSaveLotChanges} 
-            onDeselect={() => setSelectedLot(null)} 
+          <LotSidePanel
+            lot={selectedLot}
+            onSave={handleSaveLotChanges}
+            onDeselect={() => setSelectedLot(null)}
           />
         </div>
+      </div>
+
+      {/* PANEL DE MÉTRICAS */}
+      <MetricsPanel mapData={mapData} loading={loading} />
       </div>
     </div>
   );

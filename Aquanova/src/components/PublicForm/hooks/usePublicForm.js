@@ -24,6 +24,7 @@ const TYPE_MAP = {
   'Fecha':                       'date',
   'Cargar imagen':               'file',
   'Sólo texto (sin respuestas)': 'info',
+  'Selector de Lote':            'lot_selector',
 };
 
 /**
@@ -92,6 +93,8 @@ export const usePublicForm = () => {
             initial[field.key] = field.multiple !== false ? [] : null;
           } else if (field.type === 'range') {
             initial[field.key] = field.min ?? 0;
+          } else if (field.type === 'lot_selector') {
+            initial[field.key] = null; // lot_id es null hasta que se seleccione
           } else {
             initial[field.key] = '';
           }
@@ -230,6 +233,15 @@ export const usePublicForm = () => {
       // Agregar attachments si hay imágenes
       if (attachments.length > 0) {
         payload.attachments = attachments;
+      }
+
+      // Extraer lot_id si hay un campo lot_selector
+      const lotSelectorField = formData?.schema?.find((f) => f.type === 'lot_selector');
+      if (lotSelectorField) {
+        const lotId = responses[lotSelectorField.key];
+        if (lotId) {
+          payload.lot_id = lotId;
+        }
       }
 
       // Agregar campos opcionales solo si existen

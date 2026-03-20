@@ -1,6 +1,7 @@
 // src/components/PublicForm/components/FormFieldRenderer.jsx
 import { useRef } from 'react';
 import { usePublicFormContext } from '../hooks/usePublicFormContext';
+import LotSelectorField from './LotSelectorField';
 
 const inputBase =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 outline-none transition focus:border-[var(--blue-buttons)] focus:ring-2 focus:ring-[var(--blue-buttons)]/20';
@@ -66,7 +67,7 @@ const optKey = (opt, i) =>
   opt !== null && typeof opt === 'object' ? (opt.id ?? opt.value ?? i) : (opt ?? i);
 
 function FormFieldRenderer({ field }) {
-  const { responses, setResponse, fieldErrors } = usePublicFormContext();
+  const { responses, setResponse, fieldErrors, formData } = usePublicFormContext();
   const value = responses[field.key];
   const error = fieldErrors[field.key];
 
@@ -241,6 +242,15 @@ function FormFieldRenderer({ field }) {
             {value ?? field.min ?? 0}
           </span>
         </div>
+      )}
+
+      {field.type === 'lot_selector' && (
+        <LotSelectorField
+          neighborhoodId={formData?.neighborhood_id}
+          value={value}
+          onChange={(lotId) => setResponse(field.key, lotId)}
+          error={error}
+        />
       )}
 
       {error && <p className="text-xs text-red-500">{error}</p>}
