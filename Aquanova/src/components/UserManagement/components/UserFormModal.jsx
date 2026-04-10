@@ -38,8 +38,19 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, isSubmitting 
   const validate = () => {
     const newErrors = {}
     if (!formData.name.trim()) newErrors.name = 'El nombre es requerido'
-    if (!formData.document_number.trim()) newErrors.document_number = 'El documento es requerido'
-    if (!formData.password) newErrors.password = 'La contraseña es requerida'
+
+    if (!formData.document_number.trim()) {
+      newErrors.document_number = 'El documento es requerido'
+    } else if (!/^\d{8,10}$/.test(formData.document_number.trim())) {
+      newErrors.document_number = 'La cédula debe tener entre 8 y 10 dígitos numéricos'
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'La contraseña es requerida'
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}/.test(formData.password)) {
+      newErrors.password = 'Mín. 8 caracteres, mayúscula, minúscula, número y un símbolo especial'
+    }
+
     if (formData.password !== formData.confirm_password) {
       newErrors.confirm_password = 'Las contraseñas no coinciden'
     }
@@ -71,6 +82,11 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, isSubmitting 
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    if (name === 'document_number' && value && !/^\d*$/.test(value)) {
+      return // Solo permite números
+    }
+
     setFormData(prev => ({ 
       ...prev, 
       [name]: name === 'role_id' ? parseInt(value, 10) : value 
