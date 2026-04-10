@@ -25,9 +25,10 @@ export const publicFormService = {
    * @param {string}  payload.form_key
    * @param {string}  payload.neighborhood_id
    * @param {object}  payload.responses          - { [field_key]: value }
+   * @param {Array}   [payload.attachments]      - Array de { field_key, media_urls[] } con URLs de Cloudinary
    * @param {string}  payload.name
    * @param {string}  payload.document_number
-   * @param {string}  payload.password
+   * @param {string}  [payload.password]
    * @param {string}  [payload.referral_code]
    * @param {string}  [payload.email]
    * @param {string}  [payload.phone]

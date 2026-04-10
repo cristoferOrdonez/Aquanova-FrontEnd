@@ -69,7 +69,7 @@ function FormListContent() {
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
       <div className="flex flex-col sm:flex-row flex-1 items-center gap-5 justify-between mb-4">
         <div className="w-full sm:w-auto flex-1 max-w-2xl">
           <SearchBar 

@@ -130,39 +130,7 @@ async function loadForm(formKey) {
 
 `schema` es un array de objetos. Cada objeto representa un campo del formulario.
 
-> **Parsing defensivo requerido:** Aunque el backend debería retornar `schema` como array deserializado, al crear una nueva versión del formulario (tras edición), el campo puede llegar como **string JSON**. Siempre aplicar el siguiente patrón antes de iterar:
-
-```js
-const raw = data.schema;
-let schema = [];
-if (typeof raw === 'string') {
-  try { schema = JSON.parse(raw); } catch { schema = []; }
-} else if (Array.isArray(raw)) {
-  schema = raw;
-}
-```
-
-> **Normalización de campos:** El backend almacena los campos con `id` y `title` en lugar de `key` y `label`, y los tipos en español. Al cargar, normalizar cada campo:
-
-```js
-// Mapeo de tipos en español → tipos de input HTML
-const TYPE_MAP = {
-  'Opción multiple':          'radio',
-  'Casillas de verificación': 'checkbox',
-  'Lista desplegable':        'select',
-  'Respuesta textual':        'text',
-  'Numérico':                 'text',
-  'Fecha':                    'text',
-  'Cargar imagen':            'text',
-};
-
-schema = schema.map((field, i) => ({
-  ...field,
-  key:   field.key   ?? String(field.id ?? `field_${i}`),
-  label: field.label ?? field.title ?? '',
-  type:  TYPE_MAP[field.type] ?? field.type,
-}));
-```
+> **`schema` siempre llega como un array JavaScript deserializado.** No es necesario aplicar `JSON.parse()` — el backend lo entrega listo para iterar directamente con `.map()` o `forEach`.
 
 ### Estructura de un campo
 
@@ -398,7 +366,7 @@ function getLocation() {
     navigator.geolocation.getCurrentPosition(
       pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       ()  => resolve(null),   // si el usuario rechaza el permiso, se omite
-      { timeout: 5000, maximumAge: 0 }  // maximumAge: 0 fuerza ubicación fresca (sin caché del navegador)
+      { timeout: 5000 }
     );
   });
 }
@@ -425,6 +393,15 @@ Content-Type: application/json
     "problemas_movi":    ["Falta de andenes", "Sin ciclovía"],
     "tiene_vehiculo":    "No"
   },
+  "attachments": [
+    {
+      "field_key": "foto_fachada",
+      "media_urls": [
+        "https://res.cloudinary.com/db/image/upload/v17.../foto1.jpg",
+        "https://res.cloudinary.com/db/image/upload/v17.../foto2.jpg"
+      ]
+    }
+  ],
   "referral_code":   "EAL34TM",
   "name":            "Carlos Pérez",
   "document_number": "1098765432",
@@ -601,8 +578,9 @@ Frontend                                     Backend
    │                                            │
    │  POST /api/submissions/onboarding          │
    │  { form_key, neighborhood_id, responses,   │
-   │    referral_code, name, document_number,   │
-   │    password, email?, phone?, location? }   │
+   │    attachments?, referral_code, name,      │
+   │    document_number, password, email?,      │
+   │    phone?, location? }                     │
    │──────────────────────────────────────────►│
    │                                            │  ┌─ INSERT user (bcrypt hash)
    │                                            │  ├─ INSERT user_roles (role=3)

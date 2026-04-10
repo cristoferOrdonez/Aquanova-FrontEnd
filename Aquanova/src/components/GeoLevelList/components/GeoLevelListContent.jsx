@@ -62,7 +62,7 @@ const GeoLevelListContent = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
       <div className="flex flex-row items-center gap-5 mb-4">
         <SearchBar onSearch={handleSearch} isLoading={loading} className="flex-1" />
 

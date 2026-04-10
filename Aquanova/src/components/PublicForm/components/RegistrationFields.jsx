@@ -8,7 +8,7 @@ const errorBorder = 'border-red-400 focus:border-red-400 focus:ring-red-200';
 
 /**
  * Sección de identificación del usuario.
- * Solo captura los dos campos mínimos obligatorios para el registro.
+ * Solo captura los dos campos mínimos obligatorios para el registro: nombre y número de documento.
  */
 function RegistrationFields() {
   const { formData, registration, setRegistration, fieldErrors } = usePublicFormContext();
@@ -36,7 +36,7 @@ function RegistrationFields() {
         <input
           type="text"
           className={`${inputBase} ${fieldErrors.name ? errorBorder : ''}`}
-          value={registration.name}
+          value={registration.name || ''}
           onChange={(e) => setRegistration('name', e.target.value)}
           autoComplete="off"
         />
@@ -54,7 +54,7 @@ function RegistrationFields() {
         <input
           type="text"
           className={`${inputBase} ${fieldErrors.document_number ? errorBorder : ''}`}
-          value={registration.document_number}
+          value={registration.document_number || ''}
           onChange={(e) => setRegistration('document_number', e.target.value)}
           autoComplete="off"
         />
