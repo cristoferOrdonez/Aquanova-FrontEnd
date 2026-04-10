@@ -19,8 +19,13 @@ function FormCard({
     is_active,
     neighborhoods = [],
     created_by,
-    share_link,
+    key: formKey,
   } = form
+
+  // El backend NO incluye share_link en GET /api/forms.
+  // Lo construimos en el frontend usando el `key` del formulario,
+  // que sí viene en la respuesta y es el slug único de la ruta pública.
+  const share_link = formKey ? `${window.location.origin}/formulario/${formKey}` : null
 
   // La imagen de portada viene de Cloudinary dentro de metadata.
   // Guarda defensiva: si metadata llega como string (MySQL JSON column)
