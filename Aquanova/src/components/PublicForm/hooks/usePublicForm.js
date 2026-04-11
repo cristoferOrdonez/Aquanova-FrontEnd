@@ -104,7 +104,8 @@ export const usePublicForm = () => {
         // Inicializar registration (solo nombre y documento por requerimiento)
         setRegistrations({
           name: '',
-          document_number: ''
+          document_number: '',
+          signature: null,
         });
       })
       .catch((err) => {
@@ -158,6 +159,7 @@ export const usePublicForm = () => {
     // Campos de registro fijos (solo nombre y documento correspondientes a los requerimientos)
     if (!registration.name?.trim()) errors.name = 'Este campo es obligatorio.';
     if (!registration.document_number?.trim()) errors.document_number = 'Este campo es obligatorio.';
+    if (!registration.signature) errors.signature = 'Debes firmar antes de enviar el formulario.';
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -229,6 +231,24 @@ export const usePublicForm = () => {
         name: registration.name,
         document_number: registration.document_number,
       };
+
+      // Si hay firma, subirla
+      if (registration.signature instanceof File) {
+        try {
+          const signatureUrls = await cloudinaryService.uploadMultipleFiles(
+            [registration.signature],
+            'signatures',
+            (progress) => {
+              setUploadProgress({ ...progress, fieldLabel: 'Firma de usuario' });
+            }
+          );
+          if (signatureUrls && signatureUrls.length > 0) {
+            payload.responses['Firma Digital'] = signatureUrls[0];
+          }
+        } catch (uploadError) {
+          throw new Error('No se pudo subir la firma. ' + uploadError.message);
+        }
+      }
 
       // Agregar attachments si hay imágenes
       if (attachments.length > 0) {

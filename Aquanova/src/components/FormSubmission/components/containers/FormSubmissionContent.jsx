@@ -7,6 +7,7 @@ import FileUploadField from '../../../FormPreview/components/ui/fields/FileUploa
 import RadioGroup from '../../../FormPreview/components/ui/fields/RadioGroup';
 import CheckboxGroup from '../../../FormPreview/components/ui/fields/CheckboxGroup';
 import LotSelectorField from '../../../PublicForm/components/LotSelectorField';
+import SignaturePad from '../../../PublicForm/components/SignaturePad';
 
 // Mapeo de tipos estandarizados (backend) a las etiquetas usadas por FIELD_TYPES (UI)
 const TYPE_TO_FIELD_TYPES = {
@@ -113,7 +114,7 @@ function renderField(field, answers, setAnswer, form) {
 }
 
 export default function FormSubmissionContent() {
-  const { form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress } = useFormSubmissionContext();
+  const { form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress, signature, setSignature, signatureError } = useFormSubmissionContext();
 
   if (loading) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.LOADING}</div>;
   if (error) return <div className="p-10 text-center text-red-500 font-work">{error}</div>;
@@ -202,6 +203,15 @@ export default function FormSubmissionContent() {
               </div>
             </div>
           ))}
+
+          {/* User Signature Field */}
+          <div className={`w-full bg-[var(--card-bg)] border-[1.5px] ${signatureError ? 'border-red-500 bg-red-50' : 'border-[var(--card-stroke)]'} ${rounded} ${cardPadding} shadow-sm transition-all duration-500 transform-gpu hover:shadow-md hover:scale-[1.01]`}>
+            <SignaturePad
+              value={signature}
+              onChange={(file) => setSignature(file)}
+              error={signatureError ? "Firma digital requerida" : null}
+            />
+          </div>
         </div>
 
         {/* Barra de progreso de subida */}
