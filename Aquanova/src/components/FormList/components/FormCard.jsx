@@ -2,7 +2,28 @@
 import { useState, useRef, useEffect } from 'react'
 import defaultImage from './../../../assets/images/humedal.jpg'
 import FormStateElement from './FormStateElement'
+import { authService } from './../../../services/authService'
 import { TrashIcon, PencilIcon, EyeIcon, ArrowDownTrayIcon, ShareIcon, UserCircleIcon, CheckIcon } from '@heroicons/react/24/outline'
+
+function copyTextFallback(text) {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  let copied = false
+  try {
+    copied = document.execCommand('copy')
+  } catch {
+    copied = false
+  }
+
+  document.body.removeChild(textarea)
+  return copied
+}
 
 function FormCard({
   form,
@@ -20,12 +41,32 @@ function FormCard({
     neighborhoods = [],
     created_by,
     key: formKey,
+    share_link: backendShareLink,
   } = form
 
-  // El backend NO incluye share_link en GET /api/forms.
-  // Lo construimos en el frontend usando el `key` del formulario,
-  // que sí viene en la respuesta y es el slug único de la ruta pública.
-  const share_link = formKey ? `${window.location.origin}/formulario/${formKey}` : null
+  // Prioridad del link a copiar:
+  // 1) `share_link` del backend (si viene)
+  // 2) fallback armado con `formKey`
+  // Si el usuario autenticado tiene código de referido, se agrega `?ref=...`
+  // cuando el link aún no lo trae.
+  const user = authService.getUser() || {}
+  const referralCode = user.referral_code || user.referralCode || user.ref_code || null
+  const baseShareLink = backendShareLink || (formKey ? `/formulario/${formKey}` : null)
+
+  const share_link = (() => {
+    if (!baseShareLink) return null
+    try {
+      const url = new URL(baseShareLink, window.location.origin)
+      if (referralCode && !url.searchParams.get('ref')) {
+        url.searchParams.set('ref', referralCode)
+      }
+      return url.toString()
+    } catch {
+      if (!formKey) return null
+      const fallback = `${window.location.origin}/formulario/${formKey}`
+      return referralCode ? `${fallback}?ref=${encodeURIComponent(referralCode)}` : fallback
+    }
+  })()
 
   // La imagen de portada viene de Cloudinary dentro de metadata.
   // Guarda defensiva: si metadata llega como string (MySQL JSON column)
@@ -62,12 +103,22 @@ function FormCard({
     onExport(format);
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!share_link) return
-    navigator.clipboard.writeText(share_link).then(() => {
+
+    try {
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(share_link)
+      } else {
+        const copiedWithFallback = copyTextFallback(share_link)
+        if (!copiedWithFallback) throw new Error('No se pudo copiar usando fallback')
+      }
+
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    })
+    } catch (error) {
+      console.error('Error copiando link de referido:', error)
+    }
   }
 
   return (

@@ -2,6 +2,26 @@
 import { useState } from 'react';
 import { CheckCircleIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 
+function copyTextFallback(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  }
+
+  document.body.removeChild(textarea);
+  return copied;
+}
+
 /**
  * Pantalla de éxito que se muestra al completar el onboarding.
  *
@@ -10,12 +30,22 @@ import { CheckCircleIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon } fr
 function SuccessScreen({ result, giveaway }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!result.share_link) return;
-    navigator.clipboard.writeText(result.share_link).then(() => {
+
+    try {
+      if (navigator.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(result.share_link);
+      } else {
+        const copiedWithFallback = copyTextFallback(result.share_link);
+        if (!copiedWithFallback) throw new Error('No se pudo copiar usando fallback');
+      }
+
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
-    });
+    } catch (error) {
+      console.error('Error copiando enlace de referido:', error);
+    }
   };
 
   return (
