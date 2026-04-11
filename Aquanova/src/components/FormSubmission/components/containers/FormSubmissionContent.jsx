@@ -6,6 +6,7 @@ import Dropdown from '../../../FormPreview/components/ui/fields/Dropdown';
 import FileUploadField from '../../../FormPreview/components/ui/fields/FileUploadField';
 import RadioGroup from '../../../FormPreview/components/ui/fields/RadioGroup';
 import CheckboxGroup from '../../../FormPreview/components/ui/fields/CheckboxGroup';
+import LotSelectorField from '../../../PublicForm/components/LotSelectorField';
 
 // Mapeo de tipos estandarizados (backend) a las etiquetas usadas por FIELD_TYPES (UI)
 const TYPE_TO_FIELD_TYPES = {
@@ -17,9 +18,10 @@ const TYPE_TO_FIELD_TYPES = {
   'date':     'Fecha',
   'file':     'Cargar imagen',
   'info':     'Sólo texto (sin respuestas)',
+  'lot_selector': 'Selector de Lote',
 };
 
-function renderField(field, answers, setAnswer) {
+function renderField(field, answers, setAnswer, form) {
   const key = field.key ?? String(field.id ?? `field_${field?.index}`);
   const value = answers[key];
   const sizeClass = 'text-base';
@@ -27,6 +29,16 @@ function renderField(field, answers, setAnswer) {
   switch (field.type) {
     case FIELD_TYPES.TEXT_ONLY:
       return null;
+
+    case FIELD_TYPES.LOT_SELECTOR:
+      return (
+        <LotSelectorField
+          neighborhoodId={form?.neighborhood_id || (Array.isArray(form?.neighborhoods) && form.neighborhoods[0]?.id)}
+          value={value}
+          onChange={(lotId) => setAnswer(key, lotId)}
+          error={null}
+        />
+      );
 
     case FIELD_TYPES.TEXT_RESPONSE:
       return (
@@ -186,7 +198,7 @@ export default function FormSubmissionContent() {
                 </label>
               </div>
               <div className="mt-1">
-                {renderField(field, normalizedAnswers, wrappedSetAnswer, idx)}
+                {renderField(field, normalizedAnswers, wrappedSetAnswer, form)}
               </div>
             </div>
           ))}

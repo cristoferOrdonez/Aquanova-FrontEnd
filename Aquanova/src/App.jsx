@@ -20,7 +20,7 @@ function App() {
   
   // Determinamos explícitamente en qué rutas principales SI se debe mostrar el Navbar.
   // Cualquier ruta que no esté aquí (incluidas las que no existen) ocultará el Navbar.
-  const showNavbar = ['/home', '/forms', '/neighborhoods'].includes(location.pathname);
+  const showNavbar = ['/home', '/forms', '/neighborhoods', '/user-management'].includes(location.pathname);
 
   const noMargin =
     !showNavbar || // Generalmente, las vistas sin navbar tienen su propio control de márgenes.

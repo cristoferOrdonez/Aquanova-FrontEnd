@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import {
   UsersIcon,
   LockClosedIcon,
@@ -10,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useUsers } from './hooks/useUsers'
 import UserFormModal from './components/UserFormModal'
 import { usersService } from '../../services/usersService'
+import { authService } from '../../services/authService'
 
 const containerVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -52,6 +54,13 @@ function Index() {
   const { usersList, loading, error, refreshUsers } = useUsers()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const currentUser = authService.getUser()
+  const isAdmin = currentUser?.role?.toLowerCase() === 'administrador' || currentUser?.role?.toLowerCase() === 'admin'
+
+  if (!isAdmin) {
+    return <Navigate to="/home" replace />
+  }
 
   const handleCreateUser = async (userData) => {
     try {

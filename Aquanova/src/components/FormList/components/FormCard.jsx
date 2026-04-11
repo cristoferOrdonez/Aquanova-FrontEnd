@@ -109,8 +109,8 @@ function FormCard({
   }
 
   return (
-    <article className="group flex flex-col overflow-hidden w-full h-full bg-white border border-[var(--stroke-selectors-and-search-bars)] rounded-2xl font-work shadow-md hover:shadow-xl transition-all hover:-translate-y-1 duration-300 text-center relative">
-      <div className="relative h-48 overflow-hidden bg-gray-100">
+    <article className="group flex flex-col w-full h-full bg-white border border-[var(--stroke-selectors-and-search-bars)] rounded-2xl font-work shadow-md hover:shadow-xl transition-all hover:-translate-y-1 duration-300 text-center relative">
+      <div className="relative h-48 overflow-hidden bg-gray-100 rounded-t-2xl">
         <img src={imageUrl || defaultImage} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={`Portada: ${title}`} onError={(e) => { e.currentTarget.src = defaultImage }} loading="lazy" />
         <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
       </div>

@@ -30,7 +30,7 @@ function SignInSection({
         <div className="flex flex-row justify-center gap-4">
           <img src={Logo}  width={150} height={150} className='shrink-0 ' alt='Logo' />
           <div className="max-w-xs flex flex-col justify-center gap-3">
-            <span className="text-xl font-semibold">El nombre de nuestra GRAN APP</span>
+            <span className="text-xl font-semibold">Aquanova</span>
             <span className="text-[#4E5A68] text-base">
               Accede al portal de servicios de visualización de predios y creación de formularios.
             </span>

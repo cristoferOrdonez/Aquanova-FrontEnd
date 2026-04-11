@@ -179,7 +179,7 @@ export function FormCreationProvider({ children }) {
     // Construir schema estandarizado (key/label/type en inglés/options como strings)
     const questions = questionList.questions || [];
     const schema = questions.map(q => ({
-      key: q.key ?? String(q.id ?? ''),
+      key: q.key || String(q.id || (Date.now() + Math.random())),
       label: q.label ?? q.title,
       type: LABEL_TO_TYPE[q.type] ?? q.type,
       required: !!q.required,
@@ -214,7 +214,7 @@ export function FormCreationProvider({ children }) {
     // Construir schema estandarizado (key/label/type en inglés/options como strings)
     const questions = questionList.questions || [];
     const schema = questions.map(q => ({
-      key: q.key ?? String(q.id ?? ''),
+      key: q.key || String(q.id || (Date.now() + Math.random())),
       label: q.label ?? q.title,
       type: LABEL_TO_TYPE[q.type] ?? q.type,
       required: !!q.required,

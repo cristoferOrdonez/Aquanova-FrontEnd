@@ -60,9 +60,11 @@ function DateInput({ value, onChange, error, inputBase, errorBorder }) {
  *
  * @param {{ field: import('../context/PublicFormContext').SchemaField }} props
  */
-// Normaliza una opción que puede ser string u objeto { id, value }
+// Normaliza una opción que puede ser string u objeto
 const optStr = (opt) =>
-  opt !== null && typeof opt === 'object' ? (opt.value ?? opt.label ?? '') : String(opt ?? '');
+  opt !== null && typeof opt === 'object' 
+    ? (opt.value ?? opt.label ?? opt.text ?? opt.name ?? String(opt.id ?? '')) 
+    : String(opt ?? '');
 const optKey = (opt, i) =>
   opt !== null && typeof opt === 'object' ? (opt.id ?? opt.value ?? i) : (opt ?? i);
 
@@ -185,46 +187,58 @@ function FormFieldRenderer({ field }) {
           onChange={(e) => setResponse(field.key, e.target.value)}
         >
           <option value="">Selecciona una opción</option>
-          {(field.options || []).map((opt, i) => (
-            <option key={optKey(opt, i)} value={optStr(opt)}>
-              {optStr(opt)}
-            </option>
-          ))}
+          {(field.options || []).map((opt, i) => {
+            const optionValue = optStr(opt);
+            return (
+              <option key={optKey(opt, i)} value={optionValue}>
+                {optionValue}
+              </option>
+            );
+          })}
         </select>
       )}
 
       {field.type === 'radio' && (
         <div className={`flex flex-col gap-2 ${error ? 'rounded-xl border border-red-400 p-3' : ''}`}>
-          {(field.options || []).map((opt, i) => (
-            <label key={optKey(opt, i)} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
-              <input
-                type="radio"
-                name={field.key}
-                value={optStr(opt)}
-                checked={value === optStr(opt)}
-                onChange={() => setResponse(field.key, optStr(opt))}
-                className="accent-[var(--blue-buttons)]"
-              />
-              {optStr(opt)}
-            </label>
-          ))}
+          {(field.options || []).map((opt, i) => {
+            const optionValue = optStr(opt);
+            const radioId = `${field.key}_radio_${i}`;
+            console.log("Radio render:", field.key, "opt:", opt, "value:", optionValue, "current_answ:", value);
+            return (
+              <label key={optKey(opt, i)} htmlFor={radioId} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
+                <input
+                  id={radioId}
+                  type="radio"
+                  name={field.key}
+                  value={optionValue}
+                  checked={String(value) === String(optionValue)}
+                  onChange={() => setResponse(field.key, optionValue)}
+                  className="accent-[var(--blue-buttons)]"
+                />
+                {optionValue}
+              </label>
+            );
+          })}
         </div>
       )}
 
       {field.type === 'checkbox' && (
         <div className={`flex flex-col gap-2 ${error ? 'rounded-xl border border-red-400 p-3' : ''}`}>
-          {(field.options || []).map((opt, i) => (
-            <label key={optKey(opt, i)} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                value={optStr(opt)}
-                checked={Array.isArray(value) && value.includes(optStr(opt))}
-                onChange={() => handleCheckbox(optStr(opt))}
-                className="accent-[var(--blue-buttons)]"
-              />
-              {optStr(opt)}
-            </label>
-          ))}
+          {(field.options || []).map((opt, i) => {
+            const optionValue = optStr(opt);
+            return (
+              <label key={optKey(opt, i)} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  value={optionValue}
+                  checked={Array.isArray(value) && value.includes(optionValue)}
+                  onChange={() => handleCheckbox(optionValue)}
+                  className="accent-[var(--blue-buttons)]"
+                />
+                {optionValue}
+              </label>
+            );
+          })}
         </div>
       )}
 
