@@ -54,6 +54,47 @@ export const usePublicForm = () => {
   });
   const [fieldErrors, setFieldErrors] = useState({});
 
+  // ── Auto-Guardado (Caché Local) ────────────────────────────────────────────
+  const CACHE_KEY = formKey ? `public_form_draft_${formKey}` : null;
+
+  useEffect(() => {
+    if (!CACHE_KEY || !formData) return; // Solo guardar después de haber cargado el form inicial
+
+    const timeoutId = setTimeout(() => {
+      // Filtrar archivos de respuestas y registro
+      const cleanResponses = Object.entries(responses).reduce((acc, [key, value]) => {
+        const isNativeFile = (v) => 
+          v instanceof File || 
+          v instanceof Blob || 
+          (typeof FileList !== 'undefined' && v instanceof FileList);
+        
+        const hasFile = (v) => {
+          if (isNativeFile(v)) return true;
+          if (Array.isArray(v)) return v.some((i) => isNativeFile(i));
+          if (v && typeof v === 'object') return isNativeFile(v.file);
+          return false;
+        };
+
+        if (!hasFile(value)) acc[key] = value;
+        return acc;
+      }, {});
+
+      const cleanReg = {
+        name: registration.name,
+        document_number: registration.document_number,
+        signature: typeof registration.signature === 'string' ? registration.signature : null,
+      };
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        responses: cleanResponses,
+        registration: cleanReg,
+        updatedAt: new Date().toISOString(),
+      }));
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [responses, registration, CACHE_KEY, formData]);
+
   // ── Cargar formulario ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!formKey) return;
@@ -83,10 +124,32 @@ export const usePublicForm = () => {
         }));
         setFormData({ ...res.data, schema });
 
-        // Inicializar respuestas vacías con el tipo correcto (omitir campos info)
+        // Intentar leer caché previo recuperarlo si existe
+        let cachedResponses = {};
+        let cachedReg = null;
+        if (CACHE_KEY) {
+          try {
+            const saved = localStorage.getItem(CACHE_KEY);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              cachedResponses = parsed.responses || {};
+              cachedReg = parsed.registration || null;
+            }
+          } catch (e) {
+            console.warn('Error al cargar borrador público:', e);
+          }
+        }
+
+        // Inicializar respuestas combinando caché y valores por defecto
         const initial = {};
         schema.forEach((field) => {
           if (field.type === 'info') return;
+          
+          if (cachedResponses[field.key] !== undefined) {
+            initial[field.key] = cachedResponses[field.key];
+            return;
+          }
+
           if (field.type === 'checkbox') {
             initial[field.key] = [];
           } else if (field.type === 'file') {
@@ -101,11 +164,11 @@ export const usePublicForm = () => {
         });
         setResponses(initial);
 
-        // Inicializar registration (solo nombre y documento por requerimiento)
+        // Inicializar registration con caché si existe, sino valores por defecto (solo nombre y documento por requerimiento)
         setRegistrations({
-          name: '',
-          document_number: '',
-          signature: null,
+          name: cachedReg?.name || '',
+          document_number: cachedReg?.document_number || '',
+          signature: typeof cachedReg?.signature === 'string' ? cachedReg.signature : null,
         });
       })
       .catch((err) => {
@@ -263,6 +326,9 @@ export const usePublicForm = () => {
       // Guardar token y usuario en localStorage (login automático)
       if (result.token) localStorage.setItem('token', result.token);
       if (result.user) localStorage.setItem('user', JSON.stringify(result.user));
+
+      // Eliminar borrador tras envío exitoso
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
 
       setSuccessData(result);
     } catch (err) {

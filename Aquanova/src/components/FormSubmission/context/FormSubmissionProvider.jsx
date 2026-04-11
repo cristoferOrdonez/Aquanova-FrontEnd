@@ -18,14 +18,75 @@ const getGeolocation = () =>
 export default function FormSubmissionProvider({ children }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const CACHE_KEY = `aquanova_draft_${id}`;
+
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [answers, setAnswers] = useState({});
-  const [signature, setSignature] = useState(null);
+  
+  // 1. Lazy Initialization: Leer del caché al iniciar el estado
+  const [answers, setAnswers] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CACHE_KEY);
+      return saved ? JSON.parse(saved).answers || {} : {};
+    } catch (e) {
+      console.warn('Error al cargar borrador de answers:', e);
+      return {};
+    }
+  });
+
+  const [signature, setSignature] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CACHE_KEY);
+      const signatureValue = saved ? JSON.parse(saved).signature : null;
+      // Recuperamos la firma solo si es un string (Data URL / Base64)
+      return typeof signatureValue === 'string' ? signatureValue : null;
+    } catch (e) {
+      console.warn('Error al cargar borrador de signature:', e);
+      return null;
+    }
+  });
+
   const [signatureError, setSignatureError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null); // { current, total, percent, fileName }
+
+  // 2. Performance (Debounce): Persistir cambios con retardo para evitar bloqueos
+  useEffect(() => {
+    if (!id) return;
+
+    const timeoutId = setTimeout(() => {
+      // Regla Crítica: Filtrar objetos nativos que no son serializables (File, Blob, FileList)
+      const cleanAnswers = Object.entries(answers).reduce((acc, [key, value]) => {
+        const isNativeFile = (v) => 
+          v instanceof File || 
+          v instanceof Blob || 
+          (typeof FileList !== 'undefined' && v instanceof FileList);
+        
+        const hasFile = (v) => {
+          if (isNativeFile(v)) return true;
+          if (Array.isArray(v)) return v.some(i => isNativeFile(i));
+          if (v && typeof v === 'object') return isNativeFile(v.file);
+          return false;
+        };
+
+        if (!hasFile(value)) {
+          acc[key] = value;
+        }
+        return acc;
+      }, {});
+
+      const cleanSignature = typeof signature === 'string' ? signature : null;
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        answers: cleanAnswers,
+        signature: cleanSignature,
+        updatedAt: new Date().toISOString()
+      }));
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [answers, signature, CACHE_KEY, id]);
 
   useEffect(() => {
     let mounted = true;
@@ -221,6 +282,9 @@ export default function FormSubmissionProvider({ children }) {
 
       // 10. Envío final
       const res = await submissionsService.submit(payload);
+
+      // 4. Limpieza post-envío: Eliminar borrador tras éxito
+      localStorage.removeItem(CACHE_KEY);
 
       navigate('/forms');
       return res;
