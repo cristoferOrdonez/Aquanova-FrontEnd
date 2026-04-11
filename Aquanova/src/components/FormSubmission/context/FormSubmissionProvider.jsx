@@ -5,6 +5,16 @@ import { formService } from '../../../services/formService';
 import { submissionsService } from '../../../services/submissionsService';
 import cloudinaryService from '../../../services/cloudinaryService';
 
+const getGeolocation = () =>
+  new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => resolve(null),
+      { timeout: 5000 }
+    );
+  });
+
 export default function FormSubmissionProvider({ children }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,6 +53,7 @@ export default function FormSubmissionProvider({ children }) {
     if (!formId) throw new Error('Formulario no cargado');
     setIsSubmitting(true);
     try {
+      const geoLoc = location || await getGeolocation();
       // derive neighborhood_id from form if not provided
       const derivedNeighborhood = neighborhood_id || form?.neighborhood_id || (Array.isArray(form?.neighborhoods) && (form.neighborhoods[0]?.id || form.neighborhoods[0]?._id));
 
@@ -70,12 +81,12 @@ export default function FormSubmissionProvider({ children }) {
       // Procesar cada campo del schema
       for (const q of parsedFields) {
         const idx = parsedFields.indexOf(q);
-        // IMPORTANTE: Usar q.key como clave de la respuesta (igual que el flujo público)
-        const responseKey = q.key ?? String(q.id ?? `field_${idx}`);
+        // IMPORTANTE: Usar label o title como clave de la respuesta (igual que el flujo público)
+        const responseKey = q.label || q.title || q.key || String(q.id ?? `field_${idx}`);
         const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
         const raw = answers[idKey];
 
-        if (raw === undefined || raw === null || raw === '') continue;
+        if (raw === undefined || raw === null || raw === '' || q.type === 'info') continue;
 
         // Si es un archivo o array de archivos, subirlo a Cloudinary
         if (raw instanceof File || (Array.isArray(raw) && raw.length > 0 && raw[0] instanceof File)) {
@@ -171,9 +182,19 @@ export default function FormSubmissionProvider({ children }) {
         payload.attachments = attachments;
       }
 
+      // Extraer lot_id si hay un campo lot_selector
+      const lotSelectorField = parsedFields.find((f) => f.type === 'lot_selector');
+      if (lotSelectorField) {
+        const idKey = lotSelectorField.id || lotSelectorField._id || lotSelectorField.key || lotSelectorField.label;
+        const lotId = answers[idKey];
+        if (lotId) {
+          payload.lot_id = lotId;
+        }
+      }
+
       // Agregar location si existe
-      if (location) {
-        payload.location = location;
+      if (geoLoc) {
+        payload.location = geoLoc;
       }
 
       console.log('Submitting payload', payload);

@@ -7,6 +7,7 @@ import Dropdown from '../ui/fields/Dropdown';
 import FileUploadField from '../ui/fields/FileUploadField';
 import RadioGroup from '../ui/fields/RadioGroup';
 import CheckboxGroup from '../ui/fields/CheckboxGroup';
+import LotSelectorField from '../../../PublicForm/components/LotSelectorField';
 
 const FormPreviewContent = () => {
   const {
@@ -75,7 +76,7 @@ const FormPreviewContent = () => {
                 </label>
               </div>
               <div className="mt-1">
-                {renderFieldInput(field, answers, handleInputChange, handleCheckboxChange, inputSizeClass)}
+                {renderFieldInput(field, answers, handleInputChange, handleCheckboxChange, inputSizeClass, form)}
               </div>
             </div>
           ))}
@@ -142,13 +143,23 @@ const FormPreviewContent = () => {
   );
 };
 
-function renderFieldInput(field, answers, onTextChange, onCheckboxChange, sizeClass) {
+function renderFieldInput(field, answers, onTextChange, onCheckboxChange, sizeClass, form) {
   const value = answers[field.id];
   const commonClasses = `w-full border-b border-[#00000033] bg-transparent py-2 px-1 focus:border-[var(--blue-buttons)] focus:border-b-2 outline-none transition-colors placeholder-gray-400 ${sizeClass}`;
 
   switch (field.type) {
     case FIELD_TYPES.TEXT_ONLY:
       return null;
+
+    case FIELD_TYPES.LOT_SELECTOR:
+      return (
+        <LotSelectorField
+          neighborhoodId={form?.neighborhood_id || (Array.isArray(form?.neighborhoods) && form.neighborhoods[0]?.id)}
+          value={value}
+          onChange={(lotId) => onTextChange(field.id, lotId)}
+          error={null}
+        />
+      );
 
     case FIELD_TYPES.TEXT_RESPONSE:
       return (

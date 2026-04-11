@@ -7,7 +7,8 @@ export const FIELD_TYPES = {
   TEXT_RESPONSE: "Respuesta textual",
   NUMBER: "Numérico",
   DATE: "Fecha",
-  FILE_UPLOAD: "Cargar imagen"
+  FILE_UPLOAD: "Cargar imagen",
+  LOT_SELECTOR: "Selector de Lote"
 };
 
 export const DEFAULT_TEXTS = {
