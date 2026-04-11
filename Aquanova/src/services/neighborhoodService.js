@@ -261,11 +261,7 @@ export const neighborhoodService = {
       // Nueva imagen (la anterior se elimina automáticamente de Cloudinary)
       formData.append('imagen', imageFile);
 
-      // DEBUG: log FormData entries
-      console.log('[neighborhoodService.update] FormData entries:');
-      for (const [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.type}, ${value.size} bytes)` : value);
-      }
+
 
       return apiRequest(`/neighborhoods/${id}`, {
         method: 'PUT',
@@ -275,7 +271,7 @@ export const neighborhoodService = {
     }
 
     // Sin nueva imagen: enviar como JSON
-    console.log('[neighborhoodService.update] JSON body:', JSON.stringify(payload));
+
     return apiRequest(`/neighborhoods/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),

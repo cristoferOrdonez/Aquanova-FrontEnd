@@ -192,7 +192,7 @@ export const usePublicForm = () => {
 
           if (validFiles.length > 0) {
             try {
-              console.log(`Subiendo ${validFiles.length} archivo(s) para "${qLabel}" a Cloudinary...`);
+
               const urls = await cloudinaryService.uploadMultipleFiles(
                 validFiles,
                 'submissions',
@@ -206,7 +206,7 @@ export const usePublicForm = () => {
 
               filteredResponses[qLabel] = urls;
 
-              console.log(`${validFiles.length} archivo(s) de "${qLabel}" subidos exitosamente`);
+
             } catch (uploadError) {
               console.error(`Error al subir archivo(s) de "${qLabel}":`, uploadError);
               throw new Error(`No se pudo subir el(los) archivo(s) de "${qLabel}". ${uploadError.message}`);

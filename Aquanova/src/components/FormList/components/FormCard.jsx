@@ -10,7 +10,7 @@ function FormCard({
   onPreview = () => {},
   onEdit = () => {},
   onDelete = () => {},
-  onExport = (format) => {}, // Nueva prop
+  onExport = () => {}, // Nueva prop
 }) {
   const {
     title = 'Título del formulario',
@@ -50,7 +50,7 @@ function FormCard({
   const location = neighborhoods.map((n) => n.name).filter(Boolean)
   const locationLabel = location.length > 0 ? location.join(' | ') : 'Ubicación no definida'
   // El API puede retornar is_active como booleano (true/false) o entero MySQL (1/0)
-  const activeLabel = Boolean(is_active) ? 'Activa' : 'Inactiva'
+  const activeLabel = is_active ? 'Activa' : 'Inactiva'
 
   const handleExportClick = (format) => {
     setIsMenuOpen(false);

@@ -203,7 +203,7 @@ function FormFieldRenderer({ field }) {
           {(field.options || []).map((opt, i) => {
             const optionValue = optStr(opt);
             const radioId = `${field.key}_radio_${i}`;
-            console.log("Radio render:", field.key, "opt:", opt, "value:", optionValue, "current_answ:", value);
+
             return (
               <label key={optKey(opt, i)} htmlFor={radioId} className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
                 <input

@@ -25,8 +25,8 @@ export function useForms() {
   /** Aplica el filtro de estado sobre un array de formularios */
   const applyFilter = useCallback((list, filter) => {
     if (!filter || filter === 'Todas') return list;
-    if (filter === 'Activas') return list.filter((f) => Boolean(f.is_active));
-    if (filter === 'Inactivas') return list.filter((f) => !Boolean(f.is_active));
+    if (filter === 'Activas') return list.filter((f) => f.is_active);
+    if (filter === 'Inactivas') return list.filter((f) => !f.is_active);
     return list;
   }, []);
 

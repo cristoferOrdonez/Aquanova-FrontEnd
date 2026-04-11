@@ -50,182 +50,186 @@ export default function FormSubmissionProvider({ children }) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
+  const resolveLocation = async (overrideLocation) => {
+    if (overrideLocation) return overrideLocation;
+    return await getGeolocation();
+  };
+
+  const processFileUploads = async (parsedFields, currentAnswers, onProgress) => {
+    const responses = {};
+
+    for (const q of parsedFields) {
+      const idx = parsedFields.indexOf(q);
+      const responseKey = q.label || q.title || q.key || String(q.id ?? `field_${idx}`);
+      const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
+      const raw = currentAnswers[idKey];
+
+      if (raw === undefined || raw === null || raw === '' || q.type === 'info') continue;
+
+      // Caso 1: Array de archivos o un solo archivo nativo
+      if (raw instanceof File || (Array.isArray(raw) && raw.length > 0 && raw[0] instanceof File)) {
+        try {
+          const files = Array.isArray(raw) ? raw : [raw];
+          const validFiles = files.filter((f) => f instanceof File);
+
+          if (validFiles.length > 0) {
+            const urls = await cloudinaryService.uploadMultipleFiles(validFiles, 'submissions', (progress) => {
+              onProgress({ ...progress, fieldLabel: responseKey });
+            });
+            responses[responseKey] = urls;
+          }
+        } catch (uploadError) {
+          throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
+        }
+      }
+      // Caso 2: Estructura especial { file: File }
+      else if (raw && typeof raw === 'object' && raw.file instanceof File) {
+        try {
+          const urls = await cloudinaryService.uploadMultipleFiles([raw.file], 'submissions', (progress) => {
+            onProgress({ ...progress, fieldLabel: responseKey });
+          });
+          responses[responseKey] = urls;
+        } catch (uploadError) {
+          throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
+        }
+      }
+      // Caso 3: Array (checkboxes)
+      else if (Array.isArray(raw)) {
+        responses[responseKey] = raw.map((id) => {
+          if (Array.isArray(q.options)) {
+            const opt = q.options.find((o) => (o.id ?? o) == id || (o.value ?? o) === id);
+            return opt ? (opt.value ?? opt) : id;
+          }
+          return id;
+        });
+      }
+      // Caso 4: Radio/Select
+      else if (['radio', 'select', 'Opción multiple', 'Lista desplegable'].includes(q.type)) {
+        if (Array.isArray(q.options)) {
+          const opt = q.options.find((o) => (o.id ?? o) == raw || (o.value ?? o) === raw);
+          responses[responseKey] = opt ? (opt.value ?? opt) : raw;
+        } else {
+          responses[responseKey] = raw;
+        }
+      }
+      // Caso 5: Objeto genérico
+      else if (raw && typeof raw === 'object' && !(raw instanceof File)) {
+        responses[responseKey] = raw.name || raw.previewUrl || JSON.stringify(raw);
+      }
+      // Caso 6: Texto/Default
+      else {
+        responses[responseKey] = raw;
+      }
+    }
+    return responses;
+  };
+
+  const processSignature = async (currentSignature, onProgress) => {
+    if (!currentSignature) return null;
+
+    if (currentSignature instanceof File) {
+      try {
+        const signatureUrls = await cloudinaryService.uploadMultipleFiles([currentSignature], 'signatures', (progress) => {
+          onProgress({ ...progress, fieldLabel: 'Firma de usuario' });
+        });
+        return signatureUrls?.[0] || null;
+      } catch (uploadError) {
+        throw new Error('No se pudo subir la firma. ' + uploadError.message);
+      }
+    }
+
+    if (typeof currentSignature === 'string' && currentSignature.startsWith('http')) {
+      return currentSignature;
+    }
+
+    return null;
+  };
+
   const submit = async ({ neighborhood_id = null, location = null } = {}) => {
-    // Validar firma
+    // 1. Validar firma
     if (!signature) {
       setSignatureError(true);
       throw new Error('Firma digital requerida');
     }
     setSignatureError(false);
 
+    // 2. Preparar ID y estado
     const formId = (form && (form.id || form._id)) || id;
     if (!formId) throw new Error('Formulario no cargado');
+
     setIsSubmitting(true);
+    setUploadProgress(null);
+
     try {
-      const geoLoc = location || await getGeolocation();
-      // derive neighborhood_id from form if not provided
-      const derivedNeighborhood = neighborhood_id || form?.neighborhood_id || (Array.isArray(form?.neighborhoods) && (form.neighborhoods[0]?.id || form.neighborhoods[0]?._id));
+      // 3. Obtener localización
+      const geoLoc = await resolveLocation(location);
 
-      // validate required pieces
-      if (!derivedNeighborhood) throw new Error('Faltan datos: form_id, neighborhood_id o responses (falta id del barrio)');
-      if (!answers || Object.keys(answers).length === 0) throw new Error('No hay respuestas para enviar');
+      // 4. Derivar barrio
+      const derivedNeighborhood =
+        neighborhood_id ||
+        form?.neighborhood_id ||
+        (Array.isArray(form?.neighborhoods) && (form.neighborhoods[0]?.id || form.neighborhoods[0]?._id));
 
-      // Build responses: key = field.key (estandarizado), value = texto visible
-      const schemaFields = form?.schema || form?.questions || form?.fields || [];
-      let parsedFields = schemaFields;
-      if (typeof parsedFields === 'string') {
-        try { parsedFields = JSON.parse(parsedFields); } catch (e) { parsedFields = []; }
+      if (!derivedNeighborhood) {
+        throw new Error('Faltan datos: No se pudo determinar el ID del barrio');
       }
 
-      // Normalizar campos con fallback para formularios del formato antiguo
-      parsedFields = (Array.isArray(parsedFields) ? parsedFields : []).map((field, i) => ({
+      if (!answers || Object.keys(answers).length === 0) {
+        throw new Error('No hay respuestas para enviar');
+      }
+
+      // 5. Normalizar campos del esquema
+      const schemaFields = form?.schema || form?.questions || form?.fields || [];
+      let parsedFields = Array.isArray(schemaFields) ? schemaFields : [];
+      if (typeof schemaFields === 'string') {
+        try {
+          parsedFields = JSON.parse(schemaFields);
+        } catch (e) {
+          parsedFields = [];
+        }
+      }
+
+      const normalizedFields = parsedFields.map((field, i) => ({
         ...field,
         key: field.key ?? String(field.id ?? `field_${i}`),
         label: field.label ?? field.title ?? '',
       }));
 
-      const responses = {};
+      // 6. Procesar respuestas y subidas paralelas
+      const responses = await processFileUploads(normalizedFields, answers, setUploadProgress);
 
-      // Procesar cada campo del schema
-      for (const q of parsedFields) {
-        const idx = parsedFields.indexOf(q);
-        // IMPORTANTE: Usar label o title como clave de la respuesta (igual que el flujo público)
-        const responseKey = q.label || q.title || q.key || String(q.id ?? `field_${idx}`);
-        const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
-        const raw = answers[idKey];
-
-        if (raw === undefined || raw === null || raw === '' || q.type === 'info') continue;
-
-        // Si es un archivo o array de archivos, subirlo a Cloudinary
-        if (raw instanceof File || (Array.isArray(raw) && raw.length > 0 && raw[0] instanceof File)) {
-          try {
-            const files = Array.isArray(raw) ? raw : [raw];
-            const validFiles = files.filter(f => f instanceof File);
-
-            if (validFiles.length > 0) {
-              console.log(`Subiendo ${validFiles.length} archivo(s) para "${responseKey}"...`);
-              const urls = await cloudinaryService.uploadMultipleFiles(
-                validFiles,
-                'submissions',
-                (progress) => {
-                  setUploadProgress({
-                    ...progress,
-                    fieldLabel: responseKey,
-                  });
-                }
-              );
-
-              responses[responseKey] = urls;
-
-              console.log(`${validFiles.length} archivo(s) subidos exitosamente para "${responseKey}"`);
-            }
-          } catch (uploadError) {
-            console.error(`Error al subir archivo(s) para "${responseKey}":`, uploadError);
-            throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
-          }
-        } else if (raw && typeof raw === 'object' && raw.file instanceof File) {
-          // Caso especial: objeto con estructura { name, previewUrl, file } del FileUploadField
-          try {
-            console.log(`Subiendo archivo para "${responseKey}"...`);
-            const urls = await cloudinaryService.uploadMultipleFiles(
-              [raw.file],
-              'submissions',
-              (progress) => {
-                setUploadProgress({
-                  ...progress,
-                  fieldLabel: responseKey,
-                });
-              }
-            );
-
-            responses[responseKey] = urls;
-
-            console.log(`Archivo subido exitosamente para "${responseKey}"`);
-          } catch (uploadError) {
-            console.error(`Error al subir archivo para "${responseKey}":`, uploadError);
-            throw new Error(`No se pudo subir el archivo "${responseKey}". ${uploadError.message}`);
-          }
-        } else if (Array.isArray(raw)) {
-          // checkbox: mapear ids/valores a texto visible de la opción
-          responses[responseKey] = raw.map(id => {
-            if (Array.isArray(q.options)) {
-              const opt = q.options.find(o => (o.id ?? o) == id || (o.value ?? o) === id);
-              return opt ? (opt.value ?? opt) : id;
-            }
-            return id;
-          });
-        } else if (raw && typeof raw === 'object' && !(raw instanceof File)) {
-          // objeto complejo (que no sea File)
-          responses[responseKey] = raw.name || raw.previewUrl || JSON.stringify(raw);
-        } else if (['radio', 'select', 'Opción multiple', 'Lista desplegable'].includes(q.type)) {
-          // radio/select: resolver id a texto visible
-          if (Array.isArray(q.options)) {
-            const opt = q.options.find(o => (o.id ?? o) == raw || (o.value ?? o) === raw);
-            responses[responseKey] = opt ? (opt.value ?? opt) : raw;
-          } else {
-            responses[responseKey] = raw;
-          }
-        } else {
-          responses[responseKey] = raw;
-        }
+      // 7. Procesar firma
+      const signatureUrl = await processSignature(signature, setUploadProgress);
+      if (signatureUrl) {
+        responses['Firma Digital'] = signatureUrl;
       }
 
-      // Construir payload como JSON
+      // 8. Construir payload
       const payload = {
         form_id: formId,
         neighborhood_id: derivedNeighborhood,
         responses,
+        location: geoLoc,
       };
 
-      // Si hay firma, subirla
-      if (signature instanceof File) {
-        try {
-          const signatureUrls = await cloudinaryService.uploadMultipleFiles(
-            [signature],
-            'signatures',
-            (progress) => {
-              setUploadProgress({ ...progress, fieldLabel: 'Firma de usuario' });
-            }
-          );
-          if (signatureUrls && signatureUrls.length > 0) {
-            payload.responses['Firma Digital'] = signatureUrls[0];
-          }
-        } catch (uploadError) {
-          throw new Error('No se pudo subir la firma. ' + uploadError.message);
-        }
-      } else if (typeof signature === 'string' && signature.startsWith('http')) {
-        // En caso de que se pase una URL ya existente
-        payload.responses['Firma Digital'] = signature;
-      }
-
-      // Extraer lot_id si hay un campo lot_selector
-      const lotSelectorField = parsedFields.find((f) => f.type === 'lot_selector');
+      // 9. Extraer lot_id si aplica
+      const lotSelectorField = normalizedFields.find((f) => f.type === 'lot_selector');
       if (lotSelectorField) {
         const idKey = lotSelectorField.id || lotSelectorField._id || lotSelectorField.key || lotSelectorField.label;
-        const lotId = answers[idKey];
-        if (lotId) {
-          payload.lot_id = lotId;
-        }
+        if (answers[idKey]) payload.lot_id = answers[idKey];
       }
 
-      // Agregar location si existe
-      if (geoLoc) {
-        payload.location = geoLoc;
-      }
-
-      console.log('Submitting payload', payload);
-
+      // 10. Envío final
       const res = await submissionsService.submit(payload);
-      // On success navigate to list or show success toast
+
       navigate('/forms');
       return res;
-    } catch (err) {
-      throw err;
     } finally {
       setIsSubmitting(false);
-      setUploadProgress(null); // Resetear progreso al finalizar
+      setUploadProgress(null);
     }
   };
+
 
   return (
     <FormSubmissionContext.Provider value={{ form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress, signature, setSignature, signatureError, setSignatureError }}>

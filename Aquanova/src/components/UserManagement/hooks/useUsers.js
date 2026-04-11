@@ -11,7 +11,7 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       const response = await usersService.getUsers();
-      console.log('Respuesta getUsers:', response);
+
       if (response && response.users) {
         setUsersList(response.users);
       } else if (response && response.data) {
