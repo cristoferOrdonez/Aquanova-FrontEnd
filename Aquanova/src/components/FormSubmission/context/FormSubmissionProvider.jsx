@@ -22,6 +22,8 @@ export default function FormSubmissionProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [answers, setAnswers] = useState({});
+  const [signature, setSignature] = useState(null);
+  const [signatureError, setSignatureError] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null); // { current, total, percent, fileName }
 
@@ -49,6 +51,13 @@ export default function FormSubmissionProvider({ children }) {
   };
 
   const submit = async ({ neighborhood_id = null, location = null } = {}) => {
+    // Validar firma
+    if (!signature) {
+      setSignatureError(true);
+      throw new Error('Firma digital requerida');
+    }
+    setSignatureError(false);
+
     const formId = (form && (form.id || form._id)) || id;
     if (!formId) throw new Error('Formulario no cargado');
     setIsSubmitting(true);
@@ -76,7 +85,6 @@ export default function FormSubmissionProvider({ children }) {
       }));
 
       const responses = {};
-      const attachments = [];
 
       // Procesar cada campo del schema
       for (const q of parsedFields) {
@@ -107,11 +115,7 @@ export default function FormSubmissionProvider({ children }) {
                 }
               );
 
-              // Agregar al array de attachments
-              attachments.push({
-                field_key: q.key ?? idKey,
-                media_urls: urls,
-              });
+              responses[responseKey] = urls;
 
               console.log(`${validFiles.length} archivo(s) subidos exitosamente para "${responseKey}"`);
             }
@@ -134,11 +138,7 @@ export default function FormSubmissionProvider({ children }) {
               }
             );
 
-            // Agregar al array de attachments
-            attachments.push({
-              field_key: q.key ?? idKey,
-              media_urls: urls,
-            });
+            responses[responseKey] = urls;
 
             console.log(`Archivo subido exitosamente para "${responseKey}"`);
           } catch (uploadError) {
@@ -177,9 +177,25 @@ export default function FormSubmissionProvider({ children }) {
         responses,
       };
 
-      // Agregar attachments si hay archivos
-      if (attachments.length > 0) {
-        payload.attachments = attachments;
+      // Si hay firma, subirla
+      if (signature instanceof File) {
+        try {
+          const signatureUrls = await cloudinaryService.uploadMultipleFiles(
+            [signature],
+            'signatures',
+            (progress) => {
+              setUploadProgress({ ...progress, fieldLabel: 'Firma de usuario' });
+            }
+          );
+          if (signatureUrls && signatureUrls.length > 0) {
+            payload.responses['Firma Digital'] = signatureUrls[0];
+          }
+        } catch (uploadError) {
+          throw new Error('No se pudo subir la firma. ' + uploadError.message);
+        }
+      } else if (typeof signature === 'string' && signature.startsWith('http')) {
+        // En caso de que se pase una URL ya existente
+        payload.responses['Firma Digital'] = signature;
       }
 
       // Extraer lot_id si hay un campo lot_selector
@@ -225,7 +241,7 @@ export default function FormSubmissionProvider({ children }) {
   };
 
   return (
-    <FormSubmissionContext.Provider value={{ form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress }}>
+    <FormSubmissionContext.Provider value={{ form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress, signature, setSignature, signatureError, setSignatureError }}>
       {children}
     </FormSubmissionContext.Provider>
   );

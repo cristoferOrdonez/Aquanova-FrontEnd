@@ -104,7 +104,8 @@ export const usePublicForm = () => {
         // Inicializar registration (solo nombre y documento por requerimiento)
         setRegistrations({
           name: '',
-          document_number: ''
+          document_number: '',
+          signature: null,
         });
       })
       .catch((err) => {
@@ -158,6 +159,7 @@ export const usePublicForm = () => {
     // Campos de registro fijos (solo nombre y documento correspondientes a los requerimientos)
     if (!registration.name?.trim()) errors.name = 'Este campo es obligatorio.';
     if (!registration.document_number?.trim()) errors.document_number = 'Este campo es obligatorio.';
+    if (!registration.signature) errors.signature = 'Debes firmar antes de enviar el formulario.';
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -175,7 +177,6 @@ export const usePublicForm = () => {
 
       // Separar respuestas de archivos y respuestas normales
       const filteredResponses = {};
-      const attachments = [];
 
       // Procesar todas las respuestas
       for (const [key, value] of Object.entries(responses)) {
@@ -203,11 +204,7 @@ export const usePublicForm = () => {
                 }
               );
 
-              // Agregar al array de attachments
-              attachments.push({
-                field_key: key,
-                media_urls: urls,
-              });
+              filteredResponses[qLabel] = urls;
 
               console.log(`${validFiles.length} archivo(s) de "${qLabel}" subidos exitosamente`);
             } catch (uploadError) {
@@ -230,9 +227,22 @@ export const usePublicForm = () => {
         document_number: registration.document_number,
       };
 
-      // Agregar attachments si hay imágenes
-      if (attachments.length > 0) {
-        payload.attachments = attachments;
+      // Si hay firma, subirla
+      if (registration.signature instanceof File) {
+        try {
+          const signatureUrls = await cloudinaryService.uploadMultipleFiles(
+            [registration.signature],
+            'signatures',
+            (progress) => {
+              setUploadProgress({ ...progress, fieldLabel: 'Firma de usuario' });
+            }
+          );
+          if (signatureUrls && signatureUrls.length > 0) {
+            payload.responses['Firma Digital'] = signatureUrls[0];
+          }
+        } catch (uploadError) {
+          throw new Error('No se pudo subir la firma. ' + uploadError.message);
+        }
       }
 
       // Extraer lot_id si hay un campo lot_selector

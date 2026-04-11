@@ -3,6 +3,7 @@ import defaultImage from '../../../assets/images/humedal.jpg';
 import GiveawayBanner from './GiveawayBanner';
 import FormFieldRenderer from './FormFieldRenderer';
 import RegistrationFields from './RegistrationFields';
+import SignaturePad from './SignaturePad';
 import SuccessScreen from './SuccessScreen';
 import { usePublicFormContext } from '../hooks/usePublicFormContext';
 
@@ -46,6 +47,8 @@ function PublicFormContent() {
     fieldErrors,
     uploadProgress,
     handleSubmit,
+    registration,
+    setRegistration,
   } = usePublicFormContext();
 
   if (loading) return <LoadingState />;
@@ -132,6 +135,14 @@ function PublicFormContent() {
               )}
             </div>
           )}
+
+          {/* Firma */}
+          <div className="flex flex-col gap-2 pt-4 border-t border-[var(--stroke-selectors-and-search-bars)]">
+            <SignaturePad
+              error={fieldErrors.signature}
+              onChange={(file) => setRegistration('signature', file)}
+            />
+          </div>
 
           {/* Botón enviar */}
           <button
