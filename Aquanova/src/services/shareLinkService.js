@@ -4,18 +4,27 @@ function isLocalHost(hostname = '') {
   return LOCAL_HOSTS.has(hostname) || hostname.endsWith('.localhost')
 }
 
+function sanitizePublicOrigin(url) {
+  if (url.port === '5173' && !isLocalHost(url.hostname)) {
+    url.port = ''
+  }
+  return url
+}
+
 function getPreferredFrontendOrigin() {
   const envUrl = import.meta.env.VITE_FRONTEND_URL
   if (envUrl) {
     try {
-      return new URL(envUrl).origin
+      const parsed = sanitizePublicOrigin(new URL(envUrl))
+      return parsed.origin
     } catch {
       // Si la variable viene mal formada, usamos el origin actual como fallback.
     }
   }
 
   if (typeof window !== 'undefined') {
-    return window.location.origin
+    const parsed = sanitizePublicOrigin(new URL(window.location.origin))
+    return parsed.origin
   }
 
   return null
@@ -52,6 +61,8 @@ export function normalizeShareLink(rawLink, { formKey = null, referralCode = nul
     url.protocol = 'https:'
     url.host = 'aquavisor.co'
   }
+
+  sanitizePublicOrigin(url)
 
   if (referralCode && !url.searchParams.get('ref')) {
     url.searchParams.set('ref', referralCode)
