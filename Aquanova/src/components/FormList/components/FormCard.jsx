@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import defaultImage from './../../../assets/images/humedal.jpg'
 import FormStateElement from './FormStateElement'
 import { authService } from './../../../services/authService'
+import { normalizeShareLink } from './../../../services/shareLinkService'
 import { TrashIcon, PencilIcon, EyeIcon, ArrowDownTrayIcon, ShareIcon, UserCircleIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 function copyTextFallback(text) {
@@ -52,21 +53,7 @@ function FormCard({
   const user = authService.getUser() || {}
   const referralCode = user.referral_code || user.referralCode || user.ref_code || null
   const baseShareLink = backendShareLink || (formKey ? `/formulario/${formKey}` : null)
-
-  const share_link = (() => {
-    if (!baseShareLink) return null
-    try {
-      const url = new URL(baseShareLink, window.location.origin)
-      if (referralCode && !url.searchParams.get('ref')) {
-        url.searchParams.set('ref', referralCode)
-      }
-      return url.toString()
-    } catch {
-      if (!formKey) return null
-      const fallback = `${window.location.origin}/formulario/${formKey}`
-      return referralCode ? `${fallback}?ref=${encodeURIComponent(referralCode)}` : fallback
-    }
-  })()
+  const share_link = normalizeShareLink(baseShareLink, { formKey, referralCode })
 
   // La imagen de portada viene de Cloudinary dentro de metadata.
   // Guarda defensiva: si metadata llega como string (MySQL JSON column)

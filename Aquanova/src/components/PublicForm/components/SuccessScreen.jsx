@@ -1,6 +1,7 @@
 // src/components/PublicForm/components/SuccessScreen.jsx
 import { useState } from 'react';
 import { CheckCircleIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
+import { normalizeShareLink } from './../../../services/shareLinkService';
 
 function copyTextFallback(text) {
   const textarea = document.createElement('textarea');
@@ -29,15 +30,18 @@ function copyTextFallback(text) {
  */
 function SuccessScreen({ result, giveaway }) {
   const [copied, setCopied] = useState(false);
+  const normalizedShareLink = normalizeShareLink(result?.share_link, {
+    referralCode: result?.referral_code,
+  });
 
   const handleCopy = async () => {
-    if (!result.share_link) return;
+    if (!normalizedShareLink) return;
 
     try {
       if (navigator.clipboard?.writeText && window.isSecureContext) {
-        await navigator.clipboard.writeText(result.share_link);
+        await navigator.clipboard.writeText(normalizedShareLink);
       } else {
-        const copiedWithFallback = copyTextFallback(result.share_link);
+        const copiedWithFallback = copyTextFallback(normalizedShareLink);
         if (!copiedWithFallback) throw new Error('No se pudo copiar usando fallback');
       }
 
@@ -80,7 +84,7 @@ function SuccessScreen({ result, giveaway }) {
 
         <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5">
           <span className="flex-1 truncate text-left text-xs text-gray-500">
-            {result.share_link}
+            {normalizedShareLink}
           </span>
           <button
             type="button"
