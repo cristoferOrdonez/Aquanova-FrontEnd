@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://whitesmoke-mule-772754.hostingersite.com',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       }
     }
