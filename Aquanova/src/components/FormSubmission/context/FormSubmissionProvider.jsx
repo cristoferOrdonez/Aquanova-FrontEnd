@@ -85,7 +85,6 @@ export default function FormSubmissionProvider({ children }) {
       }));
 
       const responses = {};
-      const attachments = [];
 
       // Procesar cada campo del schema
       for (const q of parsedFields) {
@@ -116,11 +115,7 @@ export default function FormSubmissionProvider({ children }) {
                 }
               );
 
-              // Agregar al array de attachments
-              attachments.push({
-                field_key: q.key ?? idKey,
-                media_urls: urls,
-              });
+              responses[responseKey] = urls;
 
               console.log(`${validFiles.length} archivo(s) subidos exitosamente para "${responseKey}"`);
             }
@@ -143,11 +138,7 @@ export default function FormSubmissionProvider({ children }) {
               }
             );
 
-            // Agregar al array de attachments
-            attachments.push({
-              field_key: q.key ?? idKey,
-              media_urls: urls,
-            });
+            responses[responseKey] = urls;
 
             console.log(`Archivo subido exitosamente para "${responseKey}"`);
           } catch (uploadError) {
@@ -205,11 +196,6 @@ export default function FormSubmissionProvider({ children }) {
       } else if (typeof signature === 'string' && signature.startsWith('http')) {
         // En caso de que se pase una URL ya existente
         payload.responses['Firma Digital'] = signature;
-      }
-
-      // Agregar attachments si hay archivos
-      if (attachments.length > 0) {
-        payload.attachments = attachments;
       }
 
       // Extraer lot_id si hay un campo lot_selector

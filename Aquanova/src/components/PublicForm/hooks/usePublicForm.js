@@ -177,7 +177,6 @@ export const usePublicForm = () => {
 
       // Separar respuestas de archivos y respuestas normales
       const filteredResponses = {};
-      const attachments = [];
 
       // Procesar todas las respuestas
       for (const [key, value] of Object.entries(responses)) {
@@ -205,11 +204,7 @@ export const usePublicForm = () => {
                 }
               );
 
-              // Agregar al array de attachments
-              attachments.push({
-                field_key: key,
-                media_urls: urls,
-              });
+              filteredResponses[qLabel] = urls;
 
               console.log(`${validFiles.length} archivo(s) de "${qLabel}" subidos exitosamente`);
             } catch (uploadError) {
@@ -248,11 +243,6 @@ export const usePublicForm = () => {
         } catch (uploadError) {
           throw new Error('No se pudo subir la firma. ' + uploadError.message);
         }
-      }
-
-      // Agregar attachments si hay imágenes
-      if (attachments.length > 0) {
-        payload.attachments = attachments;
       }
 
       // Extraer lot_id si hay un campo lot_selector
