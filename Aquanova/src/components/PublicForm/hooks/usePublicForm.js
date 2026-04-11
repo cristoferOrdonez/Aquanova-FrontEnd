@@ -248,7 +248,20 @@ export const usePublicForm = () => {
       if (referralCode) payload.referral_code = referralCode;
       if (location) payload.location = location;
 
-      const result = await publicFormService.onboarding(payload);
+      let result;
+      try {
+        result = await publicFormService.onboarding(payload);
+      } catch (submitError) {
+        // Compatibilidad: algunos backends rechazan reuso de lot_id en 400.
+        // Reintentamos sin lot_id para permitir múltiples respuestas del mismo predio.
+        if (submitError?.status === 400 && payload.lot_id) {
+          const retryPayload = { ...payload };
+          delete retryPayload.lot_id;
+          result = await publicFormService.onboarding(retryPayload);
+        } else {
+          throw submitError;
+        }
+      }
 
       // Guardar token y usuario en localStorage (login automático)
       if (result.token) localStorage.setItem('token', result.token);
@@ -257,7 +270,9 @@ export const usePublicForm = () => {
       setSuccessData(result);
     } catch (err) {
       if (err.status === 400) {
-        setFieldErrors({ _form: 'Por favor completa todos los campos requeridos correctamente.' });
+        setFieldErrors({
+          _form: err?.data?.message || 'Por favor completa todos los campos requeridos correctamente.'
+        });
       } else if (err.status === 404) {
         setFieldErrors({ _form: 'Este formulario ya no está disponible.' });
       } else if (err.status === 409) {

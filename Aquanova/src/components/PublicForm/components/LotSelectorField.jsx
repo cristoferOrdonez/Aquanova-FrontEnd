@@ -12,7 +12,7 @@ const STATUS_COLORS = {
 
 /**
  * Componente para seleccionar un lote del mapa dentro de un formulario.
- * Muestra el mapa del barrio y permite seleccionar lotes disponibles.
+ * Muestra el mapa del barrio y permite seleccionar cualquier lote.
  */
 function LotSelectorField({ neighborhoodId, value, onChange, error }) {
   const [mapData, setMapData] = useState(null);
@@ -29,7 +29,7 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
       return;
     }
 
-    const fetchAvailableLots = async () => {
+    const fetchLots = async () => {
       setLoading(true);
       setMapError(null);
       try {
@@ -47,7 +47,7 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
       }
     };
 
-    fetchAvailableLots();
+    fetchLots();
   }, [neighborhoodId]);
 
   // Sincronizar valor externo con estado interno
@@ -67,11 +67,6 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
   }, [value, mapData]);
 
   const handleLotSelect = (lot) => {
-    // Solo permitir selección de lotes disponibles
-    if (!lot.available) {
-      return;
-    }
-
     setSelectedLot(lot);
     onChange(lot.id);
   };
@@ -160,7 +155,6 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
                     <g key={block.id}>
                       {block.lots.map((lot) => {
                         const isSelected = selectedLot?.id === lot.id;
-                        const isAvailable = lot.available;
 
                         return (
                           <path
@@ -169,9 +163,9 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
                             fill={isSelected ? '#1976D2' : STATUS_COLORS[lot.status] || '#9E9E9E'}
                             stroke={isSelected ? '#0D47A1' : '#ffffff'}
                             strokeWidth={isSelected ? 1.5 : 0.5}
-                            opacity={isSelected ? 1 : isAvailable ? 0.9 : 0.4}
+                            opacity={isSelected ? 1 : 0.9}
                             style={{
-                              cursor: isAvailable ? 'pointer' : 'not-allowed',
+                              cursor: 'pointer',
                               transition: 'fill 0.15s, opacity 0.15s',
                             }}
                             onClick={() => handleLotSelect(lot)}
@@ -245,7 +239,7 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
       {/* Mensaje si no hay selección */}
       {!selectedLot && (
         <p className="text-sm text-gray-500 text-center py-1">
-          Haz clic en un lote gris (disponible) para seleccionarlo
+          Haz clic en cualquier lote para seleccionarlo
         </p>
       )}
     </div>

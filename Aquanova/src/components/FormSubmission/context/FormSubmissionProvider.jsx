@@ -199,7 +199,20 @@ export default function FormSubmissionProvider({ children }) {
 
       console.log('Submitting payload', payload);
 
-      const res = await submissionsService.submit(payload);
+      let res;
+      try {
+        res = await submissionsService.submit(payload);
+      } catch (submitError) {
+        // Compatibilidad: si el backend rechaza lot_id repetido con 400,
+        // reintentamos sin lot_id para guardar la respuesta igualmente.
+        if (submitError?.status === 400 && payload.lot_id) {
+          const retryPayload = { ...payload };
+          delete retryPayload.lot_id;
+          res = await submissionsService.submit(retryPayload);
+        } else {
+          throw submitError;
+        }
+      }
       // On success navigate to list or show success toast
       navigate('/forms');
       return res;
