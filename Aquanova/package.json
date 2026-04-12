@@ -13,6 +13,7 @@
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@turf/turf": "^7.3.4",
+    "browser-image-compression": "^2.0.2",
     "classnames": "^2.5.1",
     "framer-motion": "^12.34.3",
     "react": "^19.2.0",
