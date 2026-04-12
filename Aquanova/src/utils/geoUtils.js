@@ -127,8 +127,8 @@ export const geoJSONToSvgPath = (geoJson) => {
 export const mergeLots = (lotsArray) => {
   if (!lotsArray || lotsArray.length < 2) return null;
 
-  // Buffer mínimo en espacio normalizado para cerrar micro-gaps de dibujo
-  const BUFFER_VAL = 0.0001;
+  // Buffer mínimo en espacio normalizado para cerrar micro-gaps de dibujo (1.5 px)
+  const BUFFER_VAL = 0.0015;
   let mergedPolygon = null;
 
   for (const lot of lotsArray) {
@@ -171,6 +171,21 @@ export const mergeLots = (lotsArray) => {
     if (deflated) mergedPolygon = deflated;
   } catch (deflateErr) {
     console.warn('[mergeLots] Desinflado falló:', deflateErr.message);
+  }
+
+  // 3.5 Eliminar huecos internos (para que quede solo el contorno exterior de la unión, sin bordes independientes)
+  try {
+    if (mergedPolygon.geometry.type === 'Polygon') {
+      // Un Polygon tiene arreglo de anillos: [anilloExterior, hueco1, hueco2...] -> dejamos solo el exterior
+      mergedPolygon.geometry.coordinates = [mergedPolygon.geometry.coordinates[0]];
+    } else if (mergedPolygon.geometry.type === 'MultiPolygon') {
+      // Un MultiPolygon tiene una lista de Polygon: [ [exterior, hueco1], [exterior2, hueco2] ]
+      mergedPolygon.geometry.coordinates = mergedPolygon.geometry.coordinates.map(polygonData => {
+        return [polygonData[0]]; // conservar solo el anillo exterior de cada componente
+      });
+    }
+  } catch (stripErr) {
+    console.warn('[mergeLots] Error al eliminar huecos:', stripErr.message);
   }
 
   // 4. Centroide en espacio normalizado → reescalar a píxeles SVG
