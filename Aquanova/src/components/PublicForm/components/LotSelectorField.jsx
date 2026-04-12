@@ -82,11 +82,8 @@ function LotSelectorField({ neighborhoodId, value, onChange, error, formResponse
   }, [value, mapData]);
 
   const handleLotSelect = (lot) => {
-    // Solo permitir selección de lotes disponibles
-    if (!lot.available) {
-      return;
-    }
-
+    // Permitir selección de todos los lotes, incluso los censados
+    // ya que se debe poder contestar más de una vez en un mismo predio.
     setSelectedLot(lot);
     onChange(lot.id);
   };
@@ -200,9 +197,9 @@ function LotSelectorField({ neighborhoodId, value, onChange, error, formResponse
                               fill={isSelected ? activeColor : baseColor}
                               stroke={isSelected ? '#0D47A1' : '#ffffff'}
                               strokeWidth={isSelected ? 1.5 : 0.5}
-                              opacity={isSelected ? 1 : isAvailable ? 0.9 : 0.4}
+                              opacity={isSelected ? 1 : 0.9}
                               style={{
-                                cursor: isAvailable ? 'pointer' : 'not-allowed',
+                                cursor: 'pointer',
                                 transition: 'fill 0.15s, opacity 0.15s',
                               }}
                               onClick={() => handleLotSelect(lot)}
