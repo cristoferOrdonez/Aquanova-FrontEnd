@@ -28,7 +28,7 @@ const getClusterCentroid = (lots) => {
  * @param {Object} data - Datos del backend { viewBox, blocks }
  * @returns {Object} - Mismos datos pero con bloques reordenados por geometría
  */
-const applyTopologyDiscovery = (data) => {
+export const applyTopologyDiscovery = (data) => {
   if (!data?.blocks?.length) return data;
 
   // 1. Aplanar todos los lotes y DEDUPLICAR por ID para evitar errores de duplicidad de llaves en React

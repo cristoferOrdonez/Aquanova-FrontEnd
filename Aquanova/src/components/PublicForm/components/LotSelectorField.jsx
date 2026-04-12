@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { prediosService } from '../../../services/prediosService';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { applyTopologyDiscovery } from '../../Home/hooks/useMapData';
 
 // Colores según status
 const STATUS_COLORS = {
@@ -23,6 +24,12 @@ const PROPERTY_STATE_COLORS = {
   'Predio sin construir (solo)': '#10B981',                // Verde
   'Lote en construcción o en obras': '#F97316',            // Naranja
   'Lote con cuenta contrato - vinculado': '#EAB308',       // Amarillo
+};
+
+// Función para obtener el nombre a renderizar uniformemente
+const getLotDisplayName = (lot) => {
+  if (!lot) return '';
+  return lot.display_id || lot.customName || lot.name || lot.number?.replace('Lote-', '') || 'Sin Nombre';
 };
 
 /**
@@ -50,7 +57,10 @@ function LotSelectorField({ neighborhoodId, value, onChange, error, formResponse
       try {
         const response = await prediosService.getAvailableLots(neighborhoodId);
         if (response.ok && response.data) {
-          setMapData(response.data);
+          // Asegurarnos de que el texto del lote (display_id) se genere exactamente igual que en el Dashboard
+          const processedData = applyTopologyDiscovery(response.data);
+          
+          setMapData(processedData);
         } else {
           setMapError('No se pudo cargar el mapa del barrio.');
         }
@@ -206,24 +216,30 @@ function LotSelectorField({ neighborhoodId, value, onChange, error, formResponse
                             />
                           );
                         })}
-                      {/* Números de lote */}
-                      {block.lots.map((lot) =>
-                        lot.centroid ? (
+                      {/* Números de lote / Nombre del Predio */}
+                      {block.lots.map((lot) => {
+                        if (!lot.centroid) return null;
+                        
+                        // Recolectar el nombre del predio desde display_id (usado en BD) u omitiremos Lote-
+                        const displayName = getLotDisplayName(lot);
+                        const isLongName = displayName && displayName.toString().length > 4;
+
+                        return (
                           <text
                             key={`label-${lot.id}`}
                             x={lot.centroid.x}
                             y={lot.centroid.y}
                             textAnchor="middle"
                             dominantBaseline="middle"
-                            fontSize="3"
+                            fontSize={isLongName ? "4.5" : "3"}
                             fill="#ffffff"
-                            fontWeight="500"
-                            style={{ pointerEvents: 'none', userSelect: 'none' }}
+                            fontWeight="bold"
+                            style={{ pointerEvents: 'none', userSelect: 'none', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
                           >
-                            {lot.number?.replace('Lote-', '')}
+                            {displayName}
                           </text>
-                        ) : null
-                      )}
+                        );
+                      })}
                     </g>
                   ))}
                 </svg>
@@ -255,15 +271,15 @@ function LotSelectorField({ neighborhoodId, value, onChange, error, formResponse
       {selectedLot && (
         <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-sm bg-[#1976D2]"></span>
+            <span className="flex-shrink-0 w-4 h-4 rounded-sm" style={{ backgroundColor: '#1976D2' }}></span>
             <span className="text-sm font-medium text-blue-800">
-              Lote seleccionado: <strong>{selectedLot.number}</strong>
+              Predio seleccionado: <strong>{getLotDisplayName(selectedLot)}</strong>
             </span>
           </div>
           <button
             type="button"
             onClick={handleClearSelection}
-            className="text-blue-600 hover:text-blue-800 text-sm underline"
+            className="flex-shrink-0 text-blue-600 hover:text-blue-800 text-sm underline ml-3"
           >
             Cambiar
           </button>
