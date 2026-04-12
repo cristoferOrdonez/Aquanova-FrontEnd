@@ -126,6 +126,25 @@ export const useMapData = (neighborhoodId) => {
         setLoading(true);
         const response = await prediosService.getDigitalTwinData(neighborhoodId);
         if (response && response.data) {
+          // 0. WORKAROUND FRONTEND: Inyectar colores de Property State cacheados localmente 
+          // hasta que Backend envíe la columna nativamente en el endpoint de getDigitalTwinData
+          try {
+            const cachedStates = JSON.parse(localStorage.getItem('temp_property_states') || '{}');
+            if (Object.keys(cachedStates).length > 0 && response.data.blocks) {
+              response.data.blocks.forEach(block => {
+                if (block.lots) {
+                  block.lots.forEach(lot => {
+                    if (cachedStates[lot.id] && !lot.property_state) {
+                      lot.property_state = cachedStates[lot.id];
+                    }
+                  });
+                }
+              });
+            }
+          } catch(e) {
+            console.error("Error leyendo caché local de states", e);
+          }
+
           // 1. Aplicar descubrimiento topológico (reagrupación por colindancia)
           const processedData = applyTopologyDiscovery(response.data);
 

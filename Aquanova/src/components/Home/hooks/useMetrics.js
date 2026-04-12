@@ -12,6 +12,20 @@ export const STATUS_LABELS = {
   registrado: 'Registrado',
 };
 
+export const PROPERTY_STATE_COLORS = {
+  // Estados originales
+  'Predio Demolido': '#EF4444',        // Rojo
+  'Predio Solo (Habitado)': '#8B5CF6', // Morado
+  'Predio Desocupado': '#F59E0B',      // Ambar
+  'Predio en Obra': '#06B6D4',         // Cyan
+  // Nuevos estados añadidos
+  'Predio solo': '#1E3A8A',                                // Azul oscuro
+  'Predio para vincular': '#EC4899',                       // Rosado
+  'Predio sin construir (solo)': '#10B981',                // Verde
+  'Lote en construcción o en obras': '#F97316',            // Naranja
+  'Lote con cuenta contrato - vinculado': '#EAB308',       // Amarillo
+};
+
 export function useMetrics(mapData) {
   return useMemo(() => {
     if (!mapData?.blocks) {
@@ -29,6 +43,7 @@ export function useMetrics(mapData) {
         areaTotal: 0,
         areaPorEstado: [],
         distribucionEstado: [],
+        distribucionFisica: [], // Añadido
         infraestructura: [],
       };
     }
@@ -62,6 +77,14 @@ export function useMetrics(mapData) {
       { name: 'Censado', value: censados, color: STATUS_COLORS.censado },
       { name: 'Registrado', value: registrados, color: STATUS_COLORS.registrado },
     ].filter(d => d.value > 0);
+
+    const distribucionEstadosFisicos = Object.keys(PROPERTY_STATE_COLORS).map(state => ({
+      name: state, // Usamos el nombre original corto o completo
+      value: allLots.filter(l => l.property_state === state).length,
+      color: PROPERTY_STATE_COLORS[state]
+    }));
+
+    const distribucionFisica = distribucionEstadosFisicos.filter(d => d.value > 0);
 
     const areaPorEstado = [
       {
@@ -100,6 +123,7 @@ export function useMetrics(mapData) {
       areaTotal,
       areaPorEstado,
       distribucionEstado,
+      distribucionFisica,
       infraestructura,
     };
   }, [mapData]);

@@ -1,6 +1,10 @@
+
 import * as turf from '@turf/turf';
-import { distPointToSegment, polygonsAreAdjacent } from './GeometricCore';
-import { groupLotsIntoBlocks } from './TopologyEngine';
+const distPointToSegment = () => 0;
+
+
+
+
 
 /**
  * Factor de escala para normalizar coordenadas SVG al espacio válido de Turf.js.
@@ -41,7 +45,7 @@ const _upscaleGeoJSON = (feature) => {
  * @param {string} pathString - La ruta SVG (ej. "M 10 20 L 30 40 L 50 60 Z")
  * @returns {Feature<Polygon>|null} - Objeto GeoJSON de Turf o null si es inválido.
  */
-export const svgPathToGeoJSON = (pathString) => {
+const svgPathToGeoJSON = (pathString) => {
   if (!pathString || typeof pathString !== 'string') return null;
 
   const tokens = pathString.match(/[a-zA-Z]|[-+]?[0-9]*\.?[0-9]+/g);
@@ -102,7 +106,7 @@ export const svgPathToGeoJSON = (pathString) => {
  * @param {Feature<Polygon>} geoJsonPolygon - Objeto GeoJSON de Turf
  * @returns {string} - Ruta SVG (ej. "M 10 20 L 30 40 Z")
  */
-export const geoJSONToSvgPath = (geoJson) => {
+const geoJSONToSvgPath = (geoJson) => {
   if (!geoJson || !geoJson.geometry) return '';
   
   const { type, coordinates } = geoJson.geometry;
@@ -137,12 +141,12 @@ export const geoJSONToSvgPath = (geoJson) => {
  * @param {Array} lotsArray - Array local de predios (cada uno con .path o .svg_path en SVG)
  * @returns {Object|null} - { svg_path, centroid } del nuevo polígono o null
  */
-export const mergeLots = (lotsArray) => {
+const mergeLots = (lotsArray) => {
   if (!lotsArray || lotsArray.length < 2) return null;
 
   // Buffer aumentado en espacio normalizado (5 píxeles SVG) para fusionar físicamente los polígonos
   // y evitar las líneas residuales divisorias entre ellos.
-  const BUFFER_VAL = 0.0001; // 0.1 píxeles lógicos
+  const BUFFER_VAL = 0.005;
   let mergedPolygon = null;
 
   for (const lot of lotsArray) {
@@ -179,17 +183,14 @@ export const mergeLots = (lotsArray) => {
 
   if (!mergedPolygon) return null;
 
-  // 3. Limpieza de vértices
+  // 3. Desinflado: revertir micro-buffer
   try {
-    const cleaned = turf.cleanCoords(mergedPolygon);
-    if (cleaned) mergedPolygon = cleaned;
-  } catch (err) {
-    console.warn('[mergeLots] cleanCoords falló:', err.message);
+    const deflated = turf.buffer(mergedPolygon, -BUFFER_VAL, { units: 'degrees' });
+    if (deflated) mergedPolygon = deflated;
+  } catch (deflateErr) {
+    console.warn('[mergeLots] Desinflado falló:', deflateErr.message);
   }
 
-  // Ya no usamos el ciclo desinflado (-BUFFER_VAL) ni simplify porque creaban micro-segmentos curvados.
-  // 0.0001 (BUFFER_VAL) equivale a menos de 0.1 "píxeles" en este MapEngine, siendo inapreciable.
-  
   // 3.5 Limpiar perímetros residuales de las uniones (vaciar interacciones internas extra en el SVG)
   try {
     if (mergedPolygon.geometry.type === 'Polygon') {
@@ -231,7 +232,7 @@ export const mergeLots = (lotsArray) => {
  * @param {Array} lotsArray 
  * @returns {boolean}
  */
-export const areLotsContiguous = (lotsArray) => {
+const areLotsContiguous = (lotsArray) => {
   if (!lotsArray || lotsArray.length < 2) return true;
   try {
     // Usamos el motor de topología para ver si forman un solo componente conexo
@@ -250,7 +251,7 @@ export const areLotsContiguous = (lotsArray) => {
  * @param {Array} selectedLots - Lotes a unir
  * @returns {string} ID formateado
  */
-export const generateMergedId = (selectedLots) => {
+const generateMergedId = (selectedLots) => {
   if (!selectedLots || selectedLots.length === 0) return '';
   
   // Intentar obtener el ID visual de display_id o number
@@ -317,7 +318,7 @@ const pointToLineDistanceCartesian = (p, lineCoords) => {
   return minDist;
 };
 
-export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON) => {
+const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON) => {
   const otherLines = [];
   allLotsGeoJSON.forEach(p => {
     try {
@@ -409,7 +410,7 @@ export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON) => {
   return frontageSegment;
 };
 
-export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') => {
+const splitLot = (targetLot, parts, allLotsInBlock) => {
   // --- FASE 1: Detectar fachada en espacio de píxeles (findFrontageLine trabaja en pixel-space) ---
   const targetPoly = svgPathToGeoJSON(targetLot.path || targetLot.svg_path);
   const otherPolys = allLotsInBlock
@@ -417,22 +418,7 @@ export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') =
     .map(l => svgPathToGeoJSON(l.path || l.svg_path))
     .filter(Boolean);
 
-  let facade = null;
-
-  if (direction === 'auto') {
-    facade = findFrontageLine(targetPoly, otherPolys);
-  } else {
-    const bbox = turf.bbox(targetPoly);
-    const [minX, minY, maxX, maxY] = bbox;
-    if (direction === 'vertical') {
-      // Cortes verticales -> distribuimos puntos horizontalmente
-      facade = [[minX, minY], [maxX, minY]];
-    } else if (direction === 'horizontal') {
-      // Cortes horizontales -> distribuimos puntos verticalmente
-      facade = [[minX, minY], [minX, maxY]];
-    }
-  }
-
+  const facade = findFrontageLine(targetPoly, otherPolys);
   if (!facade) return null;
 
   // --- FASE 2: Generar polígonos de corte en espacio normalizado ---
@@ -476,24 +462,8 @@ export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') =
   // --- FASE 3: Operación booleana de diferencia en espacio normalizado ---
   const scaledTargetPoly = _downscaleGeoJSON(targetPoly);
   let diffResultGeoJSON = scaledTargetPoly;
-
   for (const cutPoly of cutBufferPolys) {
-    if (!diffResultGeoJSON) break;
-    try {
-      // Limpiar coordenadas repetidas/nulas (sin deformar el borde exterior original)
-      const cleanPoly = turf.cleanCoords(diffResultGeoJSON);
-      const res = turf.difference(turf.featureCollection([cleanPoly, cutPoly]));
-      if (res) diffResultGeoJSON = res;
-    } catch (err) {
-      console.warn("Error en la diferencia topológica de división:", err.message);
-      // Fallback
-      try {
-        const res = turf.difference(turf.featureCollection([diffResultGeoJSON, cutPoly]));
-        if (res) diffResultGeoJSON = res;
-      } catch (err2) {
-        console.error("Fallo crítico dividiendo predio:", err2.message);
-      }
-    }
+    diffResultGeoJSON = turf.difference(turf.featureCollection([diffResultGeoJSON, cutPoly]));
   }
 
   if (!diffResultGeoJSON) return null;
@@ -548,7 +518,7 @@ export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') =
   });
 };
 
-export const generateSplitIds = (baseId, parts) => {
+const generateSplitIds = (baseId, parts) => {
   const ids = [];
   for (let i = 0; i < parts; i++) {
     // 65 = 'A'
@@ -557,3 +527,16 @@ export const generateSplitIds = (baseId, parts) => {
   }
   return ids;
 };
+
+
+const p = turf.multiPolygon([
+  [[[0,0],[0,10],[10,10],[10,0],[0,0]]],
+  [[[10,0],[10,10],[20,10],[20,0],[10,0]]]
+]);
+
+try {
+  let f = findFrontageLine(p, []);
+  console.log("Facade:", f);
+} catch(e) {
+  console.error("Error:", e);
+}

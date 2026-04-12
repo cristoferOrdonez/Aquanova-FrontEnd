@@ -31,6 +31,13 @@ export const prediosService = {
     });
   },
 
+  undoTopology(payload) {
+    return apiRequest('/map/topology-update', {
+      method: 'POST',
+      body: payload
+    });
+  },
+
   /**
    * Actualiza el código/nombre de una manzana (bloque).
    * @param {string} databaseBlockId - UUID real de la manzana en la tabla `blocks`

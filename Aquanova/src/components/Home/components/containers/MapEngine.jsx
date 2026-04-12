@@ -9,8 +9,26 @@ const STATUS_COLORS = {
   registrado:      '#4CAF50',
 };
 
-function getColor(status) {
-  return STATUS_COLORS[status] ?? STATUS_COLORS.sin_informacion;
+// Colores según el estado físico u ocupacional del predio
+const PROPERTY_STATE_COLORS = {
+  // Estados originales
+  'Predio Demolido': '#EF4444',        // Rojo
+  'Predio Solo (Habitado)': '#8B5CF6', // Morado
+  'Predio Desocupado': '#F59E0B',      // Ambar
+  'Predio en Obra': '#06B6D4',         // Cyan
+  // Nuevos estados añadidos
+  'Predio solo': '#1E3A8A',                                // Azul oscuro
+  'Predio para vincular': '#EC4899',                       // Rosado
+  'Predio sin construir (solo)': '#10B981',                // Verde
+  'Lote en construcción o en obras': '#F97316',            // Naranja
+  'Lote con cuenta contrato - vinculado': '#EAB308',       // Amarillo
+};
+
+function getColor(lot) {
+  if (lot.property_state && PROPERTY_STATE_COLORS[lot.property_state]) {
+    return PROPERTY_STATE_COLORS[lot.property_state];
+  }
+  return STATUS_COLORS[lot.status] ?? STATUS_COLORS.sin_informacion;
 }
 
 const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
@@ -30,7 +48,7 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
     <>
       <path
         d={svgPath}
-        fill={getColor(lot.status)}
+        fill={getColor(lot)}
         stroke={strokeColor}
         strokeWidth={strokeW}
         strokeDasharray={strokeDash}
@@ -58,6 +76,7 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
     prevProps.isSelected === nextProps.isSelected &&
     (prevProps.lot.path || prevProps.lot.svg_path) === (nextProps.lot.path || nextProps.lot.svg_path) &&
     prevProps.lot.status === nextProps.lot.status &&
+    prevProps.lot.property_state === nextProps.lot.property_state &&
     prevProps.lot.display_id === nextProps.lot.display_id &&
     prevProps.lot.topology_mismatch === nextProps.lot.topology_mismatch
   );
@@ -76,10 +95,12 @@ const MapEngine = ({ data, onSelectLot, selectedLots = [] }) => {
       <TransformWrapper
         initialScale={1}
         minScale={0.5}
-        maxScale={8}
+        maxScale={20}
         limitToBounds={false}
         wheel={{ step: 0.1 }}
         doubleClick={{ disabled: true }}
+        disablePadding={true}
+        centerZoomedOut={false}
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>

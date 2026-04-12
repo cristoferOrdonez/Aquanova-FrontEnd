@@ -264,6 +264,7 @@ function FormFieldRenderer({ field }) {
           value={value}
           onChange={(lotId) => setResponse(field.key, lotId)}
           error={error}
+          formResponses={responses}
         />
       )}
 

@@ -323,12 +323,21 @@ export const usePublicForm = () => {
 
       const result = await publicFormService.onboarding(payload);
 
-      // Guardar token y usuario en localStorage (login automático)
-      if (result.token) localStorage.setItem('token', result.token);
-      if (result.user) localStorage.setItem('user', JSON.stringify(result.user));
+        // WORKAROUND FRONTEND (MIENTRAS BACKEND ADAPTA EL README):
+        // Guardar el state en localStorage para que el Dashboard principal se coloree instantáneamente
+        // aunque el backend todavía no esté mandando "property_state" en el JSON
+          const targetStates = [
+            'Predio Demolido', 'Predio Solo (Habitado)', 'Predio Desocupado', 'Predio en Obra',
+            'Predio solo', 'Predio para vincular', 'Predio sin construir (solo)', 
+            'Lote en construcción o en obras', 'Lote con cuenta contrato - vinculado'
+          ];
+        const selectedState = Object.values(responses).find(v => targetStates.includes(v));
+        if (payload.lot_id && selectedState) {
+          const cachedStates = JSON.parse(localStorage.getItem('temp_property_states') || '{}');
+          cachedStates[payload.lot_id] = selectedState;
+          localStorage.setItem('temp_property_states', JSON.stringify(cachedStates));
+        }
 
-      // Eliminar borrador tras envío exitoso
-      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
 
       setSuccessData(result);
     } catch (err) {
