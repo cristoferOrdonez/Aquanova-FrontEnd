@@ -127,11 +127,14 @@ export default function FormSubmissionProvider({ children }) {
 
       if (raw === undefined || raw === null || raw === '' || q.type === 'info') continue;
 
-      // Caso 1: Array de archivos o un solo archivo nativo
-      if (raw instanceof File || (Array.isArray(raw) && raw.length > 0 && raw[0] instanceof File)) {
+      // Caso 1: Array de archivos, un solo archivo nativo, o array de objetos { file: File }
+      if (
+        raw instanceof File || 
+        (Array.isArray(raw) && raw.length > 0 && (raw[0] instanceof File || (raw[0] && typeof raw[0] === 'object' && raw[0].file instanceof File)))
+      ) {
         try {
-          const files = Array.isArray(raw) ? raw : [raw];
-          const validFiles = files.filter((f) => f instanceof File);
+          const rawArray = Array.isArray(raw) ? raw : [raw];
+          const validFiles = rawArray.map(item => item instanceof File ? item : item?.file).filter((f) => f instanceof File);
 
           if (validFiles.length > 0) {
             const urls = await cloudinaryService.uploadMultipleFiles(validFiles, 'submissions', (progress) => {

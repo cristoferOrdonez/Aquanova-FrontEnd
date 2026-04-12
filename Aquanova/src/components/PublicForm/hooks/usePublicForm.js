@@ -251,7 +251,7 @@ export const usePublicForm = () => {
         // Si es un archivo o array de archivos, subirlo(s) a Cloudinary
         if (field.type === 'file') {
           const files = Array.isArray(value) ? value : (value ? [value] : []);
-          const validFiles = files.filter(f => f instanceof File);
+          const validFiles = files.map(f => f instanceof File ? f : f?.file).filter(f => f instanceof File);
 
           if (validFiles.length > 0) {
             try {

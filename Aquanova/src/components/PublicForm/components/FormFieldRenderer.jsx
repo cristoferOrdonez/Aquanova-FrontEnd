@@ -1,5 +1,5 @@
 // src/components/PublicForm/components/FormFieldRenderer.jsx
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { usePublicFormContext } from '../hooks/usePublicFormContext';
 import LotSelectorField from './LotSelectorField';
 
@@ -67,6 +67,167 @@ const optStr = (opt) =>
     : String(opt ?? '');
 const optKey = (opt, i) =>
   opt !== null && typeof opt === 'object' ? (opt.id ?? opt.value ?? i) : (opt ?? i);
+
+function PublicFileFieldRenderer({ field, value, setResponse, error }) {
+  const filesArray = Array.isArray(value) ? value : (value ? [value] : []);
+  const [activeMenuIndex, setActiveMenuIndex] = useState(null);
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
+
+    let validFiles = [];
+    let overSize = false;
+
+    selectedFiles.forEach(file => {
+      const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        overSize = true;
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (overSize) {
+      alert(`Algunos archivos son demasiado grandes y fueron omitidos. Máximo 50MB para videos, 10MB para imágenes.`);
+    }
+
+    if (validFiles.length === 0) return;
+    
+    setResponse(field.key, field.multiple !== false ? [...filesArray, ...validFiles] : validFiles[0] || null);
+  };
+
+  const removeFile = (indexToRemove) => {
+    const newFiles = filesArray.filter((_, idx) => idx !== indexToRemove);
+    setResponse(field.key, newFiles.length > 0 ? newFiles : null);
+    setActiveMenuIndex(null);
+  };
+
+  const openOptions = (idx) => {
+    setActiveMenuIndex(activeMenuIndex === idx ? null : idx);
+  };
+
+  const openInNewTab = (url, isVideo) => {
+    if (url) {
+      if (typeof url === 'string' && (url.startsWith('http://') || url.startsWith('https://'))) {
+        window.open(url, '_blank');
+      } else {
+        const newTab = window.open();
+        if (newTab) {
+          newTab.document.write(`
+            <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Archivo Adjunto</title>
+              <style>
+                body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+                img, video { max-width: 100%; max-height: 100%; object-fit: contain; }
+              </style>
+            </head>
+            <body>
+              ${isVideo ? `<video src="${url}" controls autoplay></video>` : `<img src="${url}" alt="Vista completa" />`}
+            </body>
+            </html>
+          `);
+          newTab.document.close();
+        } else {
+          alert('Por favor, permite las ventanas emergentes (pop-ups) en tu navegador para ver la imagen.');
+        }
+      }
+    }
+    setActiveMenuIndex(null);
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full mt-1">
+      {filesArray.length === 0 ? (
+        <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400'} rounded-xl cursor-pointer transition-all`}>
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            <svg aria-hidden="true" className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <p className="mb-2 text-gray-500 text-center text-sm"><span className="font-semibold">Haz clic para subir archivos</span></p>
+            <p className="text-gray-400 text-center px-4 text-xs">Puedes seleccionar uno o varios archivos a la vez. <br />PNG, JPG, MP4, MOV (Imágenes: 10MB, Videos: 50MB)</p>
+          </div>
+          <input
+            type="file"
+            accept="image/*,video/*"
+            multiple={field.multiple !== false}
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </label>
+      ) : (
+        <div className="w-full">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            {filesArray.map((fileObj, idx) => {
+              const isNative = fileObj instanceof File;
+              const previewUrl = isNative ? URL.createObjectURL(fileObj) : (typeof fileObj === 'string' ? fileObj : null);
+              const isVideo = isNative ? fileObj.type.startsWith('video/') : (typeof fileObj === 'string' && (fileObj.includes('.mp4') || fileObj.includes('.mov')));
+              const isStringUrl = typeof fileObj === 'string';
+
+              return (
+                <div key={idx} className="relative aspect-square border border-gray-200 rounded-lg overflow-hidden group shadow-sm cursor-pointer" onClick={() => openOptions(idx)}>
+                  {previewUrl ? (
+                    isVideo ? (
+                      <video src={previewUrl} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <img src={previewUrl} alt={`Vista previa ${idx}`} loading="lazy" className="absolute inset-0 w-full h-full object-cover bg-gray-100" />
+                    )
+                  ) : isStringUrl ? (
+                    <div className="absolute inset-0 flex items-center justify-center p-2 bg-gray-50">
+                      <span className="text-gray-600 truncate break-all text-xs text-center">{fileObj}</span>
+                    </div>
+                  ) : null}
+                  
+                  {activeMenuIndex === idx && (
+                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-1 md:p-1.5 gap-1 md:gap-1.5 z-20 backdrop-blur-sm overflow-hidden text-center">
+                      <button
+                        type="button"
+                        className="w-full flex-1 max-h-6 bg-white text-gray-800 text-[9px] sm:text-[10px] rounded shadow-sm hover:bg-gray-100 transition-colors font-medium flex items-center justify-center leading-none"
+                        onClick={(e) => { e.stopPropagation(); openInNewTab(previewUrl || fileObj, isVideo || false); }}
+                      >
+                        Ver
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full flex-1 max-h-6 bg-red-500 text-white text-[9px] sm:text-[10px] rounded shadow-sm hover:bg-red-600 transition-colors font-medium flex items-center justify-center leading-none"
+                        onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                      >
+                        Borrar
+                      </button>
+                      <button
+                        type="button"
+                        className="w-full flex-1 max-h-6 bg-gray-500 text-white text-[9px] sm:text-[10px] rounded shadow-sm hover:bg-gray-600 transition-colors font-medium flex items-center justify-center leading-none"
+                        onClick={(e) => { e.stopPropagation(); setActiveMenuIndex(null); }}
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {field.multiple !== false && (
+              <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all flex flex-col items-center justify-center text-center shadow-sm">
+                <svg aria-hidden="true" className="w-6 h-6 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                <span className="text-gray-500 font-medium text-xs">Añadir más</span>
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function FormFieldRenderer({ field }) {
   const { responses, setResponse, fieldErrors, formData } = usePublicFormContext();
@@ -138,41 +299,12 @@ function FormFieldRenderer({ field }) {
       )}
 
       {field.type === 'file' && (
-        <div className="flex flex-col gap-2">
-          <input
-            type="file"
-            accept="image/*,video/*"
-            multiple
-            className={`w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--blue-buttons)]/10 file:px-3 file:py-2 file:text-[var(--blue-buttons)] file:font-medium hover:file:bg-[var(--blue-buttons)]/20 cursor-pointer ${error ? 'rounded-xl border border-red-400 p-1' : ''}`}
-            onChange={(e) => {
-              const files = Array.from(e.target.files || []);
-              // Si permite múltiples archivos, guardar array; si no, solo el primero
-              setResponse(field.key, field.multiple !== false ? files : files[0] || null);
-            }}
-          />
-          {/* Mostrar preview de archivos seleccionados */}
-          {value && (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {(Array.isArray(value) ? value : [value]).map((file, idx) => {
-                if (!(file instanceof File)) return null;
-                const isVideo = file.type.startsWith('video/');
-                const isImage = file.type.startsWith('image/');
-                const fileSize = (file.size / 1024).toFixed(1);
-                const icon = isVideo ? '🎥' : isImage ? '🖼️' : '📄';
-
-                return (
-                  <div key={idx} className="flex items-center gap-1.5 text-xs text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
-                    <span className="text-base">{icon}</span>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{file.name}</span>
-                      <span className="text-gray-500">{fileSize} KB</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <PublicFileFieldRenderer
+          field={field}
+          value={value}
+          setResponse={setResponse}
+          error={error}
+        />
       )}
 
       {field.type === 'info' && (
