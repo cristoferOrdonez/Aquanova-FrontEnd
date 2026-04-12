@@ -11,7 +11,7 @@ export const buildAdjacencyGraph = (lots, epsilon = 0.5) => {
   const graph = new Map();
   const polygonData = lots.map(lot => ({
     id: lot.id,
-    coords: svgPathToGeoJSON(lot.path)?.geometry?.coordinates[0] || []
+    coords: svgPathToGeoJSON(lot.path || lot.svg_path)?.geometry?.coordinates[0] || []
   })).filter(d => d.coords.length > 0);
 
   // Inicializar grafo

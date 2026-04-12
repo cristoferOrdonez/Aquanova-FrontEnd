@@ -20,13 +20,20 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
   // Si no hay path válido, no renderizar este lote (evita huecos o errores SVG)
   if (!svgPath) return null;
 
+  // Estilo de auditoría topológica: lotes mal asignados tienen borde naranja punteado
+  const hasMismatch = lot.topology_mismatch === true;
+  const strokeColor = hasMismatch ? '#F97316' : (isSelected ? '#FBBF24' : '#ffffff');
+  const strokeW = (hasMismatch || isSelected) ? 2 : 0.3;
+  const strokeDash = hasMismatch ? '3,2' : undefined;
+
   return (
     <>
       <path
         d={svgPath}
         fill={getColor(lot.status)}
-        stroke={isSelected ? 'yellow' : '#ffffff'}
-        strokeWidth={isSelected ? 2 : 0.3}
+        stroke={strokeColor}
+        strokeWidth={strokeW}
+        strokeDasharray={strokeDash}
         opacity={isSelected ? 0.75 : 1}
         style={{ cursor: 'pointer', transition: 'all 0.15s' }}
         onClick={() => onClick(lot)}
@@ -41,7 +48,7 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
           fill="#ffffff"
           style={{ pointerEvents: 'none', userSelect: 'none', fontWeight: 'bold' }}
         >
-          {lot.display_id || lot.number?.replace('Lote-', '')}
+          {lot.display_id || lot.number?.replace('Lote-', '')}{hasMismatch ? ' ⚠' : ''}
         </text>
       )}
     </>
@@ -51,7 +58,8 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
     prevProps.isSelected === nextProps.isSelected &&
     (prevProps.lot.path || prevProps.lot.svg_path) === (nextProps.lot.path || nextProps.lot.svg_path) &&
     prevProps.lot.status === nextProps.lot.status &&
-    prevProps.lot.display_id === nextProps.lot.display_id
+    prevProps.lot.display_id === nextProps.lot.display_id &&
+    prevProps.lot.topology_mismatch === nextProps.lot.topology_mismatch
   );
 });
 

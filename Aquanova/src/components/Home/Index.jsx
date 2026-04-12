@@ -26,6 +26,14 @@ function Index() {
   const { mapData, setMapData, loading, error } = useMapData(selectedNeighborhoodId);
   const isColindante = React.useMemo(() => areLotsContiguous(selectedLots), [selectedLots]);
 
+  // Auditoría topológica: detectar predios cuyo block_id de DB no coincide con su manzana geométrica
+  const topologyMismatches = React.useMemo(() => {
+    if (!mapData?.blocks) return [];
+    return mapData.blocks
+      .flatMap(b => b.lots || [])
+      .filter(l => l.topology_mismatch === true);
+  }, [mapData]);
+
   useEffect(() => {
     const fetchNeighborhoods = async () => {
       try {
@@ -346,7 +354,22 @@ function Index() {
             )}
           </div>
         </div>
-        
+
+        {/* Banner de Auditoría Topológica */}
+        {topologyMismatches.length > 0 && (
+          <div className="w-full flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm">
+            <span className="text-orange-500 text-lg leading-none mt-0.5">⚠</span>
+            <div className="flex-1">
+              <p className="font-semibold text-orange-700">
+                {topologyMismatches.length} {topologyMismatches.length === 1 ? 'predio detectado' : 'predios detectados'} con asignación de manzana inconsistente
+              </p>
+              <p className="text-orange-600 mt-0.5">
+                El motor topológico encontró predios cuya posición geométrica no coincide con su manzana en la base de datos.
+                Están marcados con <strong>⚠</strong> y borde naranja en el mapa. Revísalos y corrígelos manualmente.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full" ref={searchRef}>
           <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Sector:</label>
           <div className="relative w-full sm:max-w-md">
