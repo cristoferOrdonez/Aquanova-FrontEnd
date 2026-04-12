@@ -31,13 +31,23 @@ const getClusterCentroid = (lots) => {
 const applyTopologyDiscovery = (data) => {
   if (!data?.blocks?.length) return data;
 
-  // 1. Aplanar todos los lotes conservando la asignación original de la DB
-  const allLots = data.blocks.flatMap(block =>
+  // 1. Aplanar todos los lotes y DEDUPLICAR por ID para evitar errores de duplicidad de llaves en React
+  const rawLots = data.blocks.flatMap(block =>
     (block.lots || []).map(lot => ({
       ...lot,
       _db_block_id: lot.block_id || block.id,
     }))
   );
+
+  const lotMap = new Map();
+  rawLots.forEach(lot => {
+    if (lotMap.has(lot.id)) {
+      console.warn(`[TopologyDiscovery] Se detectó un predio duplicado en la DB: ID ${lot.id}. Omitiendo duplicado.`);
+    } else {
+      lotMap.set(lot.id, lot);
+    }
+  });
+  const allLots = Array.from(lotMap.values());
 
   if (allLots.length === 0) return data;
 
@@ -78,18 +88,24 @@ const applyTopologyDiscovery = (data) => {
     );
 
     // Asignar display_id y marcar discrepancias
+    const uniqueBlockId = `MZ${mzNum}`;
+    const blockLabel = originalBlock.code || uniqueBlockId;
+
     sortedLots.forEach((lot, lotIndex) => {
-      const idNum = String(lotIndex).padStart(2, '0');
-      lot.display_id = `MZ${mzNum}ID${idNum}`;
-      lot.block_id = canonicalBlockId;
-      // Flag de auditoría: si la DB decía una manzana diferente, lo marcamos
+      const idNum = String(lotIndex + 1).padStart(2, '0');
+      // El display_id ahora refleja el nombre real de la manzana (ej: "55-01" en vez de "MZ01ID01")
+      lot.display_id = `${blockLabel}-${idNum}`;
+      lot.block_id = uniqueBlockId; 
+      lot.database_block_id = canonicalBlockId;
+      lot.block_code = blockLabel; 
       lot.topology_mismatch = lot._db_block_id !== canonicalBlockId;
       delete lot._db_block_id;
     });
 
     return {
-      id: canonicalBlockId,
-      code: originalBlock.code || `MZ${mzNum}`,
+      id: uniqueBlockId, // ID único para React Keys (MZ01, MZ02...)
+      database_block_id: canonicalBlockId,
+      code: originalBlock.code || uniqueBlockId,
       geom_path: originalBlock.geom_path,
       label_position: originalBlock.label_position,
       lots: sortedLots,

@@ -303,16 +303,59 @@ function Index() {
 
   const handleSaveLotChanges = async (lotId, updatedData) => {
     try {
-      await prediosService.updateLotInfo(lotId, updatedData);
-      setMapData((prevData) => {
-        const newData = { ...prevData };
-        newData.blocks = newData.blocks.map(block => ({
-          ...block,
-          lots: block.lots.map(lot => lot.id === lotId ? { ...lot, ...updatedData } : lot)
-        }));
-        return newData;
-      });
-      setSelectedLot((prev) => ({ ...prev, ...updatedData }));
+      // Extraer cambio de manzana del payload combinado
+      const { _block_code_changed, _database_block_id, _geometric_block_id, ...lotData } = updatedData;
+
+      // 1. Guardar cambios del LOTE (status, number, water_meter_code, cadastral_id)
+      await prediosService.updateLotInfo(lotId, lotData);
+
+      // 2. Si el código de manzana cambió, actualizar en DB y propagar al estado
+      if (_block_code_changed && _database_block_id) {
+        await prediosService.updateBlockInfo(_database_block_id, { code: _block_code_changed });
+
+        // Propagar el nuevo block_code y recalcular display_ids a TODOS los predios de la misma manzana geométrica
+        setMapData((prevData) => {
+          if (!prevData?.blocks) return prevData;
+          return {
+            ...prevData,
+            blocks: prevData.blocks.map(block => {
+              if (block.id !== _geometric_block_id) return block;
+              return {
+                ...block,
+                code: _block_code_changed,
+                lots: block.lots.map(lot => {
+                  // Extraer el sufijo del ID actual (ej: "-01" de "MZ01-01")
+                  const parts = lot.display_id.split('-');
+                  const idNum = parts.length > 1 ? parts[parts.length - 1] : '01';
+                  return {
+                    ...lot,
+                    block_code: _block_code_changed,
+                    display_id: `${_block_code_changed}-${idNum}`
+                  };
+                })
+              };
+            })
+          };
+        });
+
+        // Actualizar el lote actualmente seleccionado en el panel lateral
+        const parts = (selectedLot?.display_id || '').split('-');
+        const idNum = parts.length > 1 ? parts[parts.length - 1] : '01';
+        setSelectedLot((prev) => prev ? { ...prev, ...lotData, block_code: _block_code_changed, display_id: `${_block_code_changed}-${idNum}` } : prev);
+        
+        alert(`Manzana actualizada exitosamente a: ${_block_code_changed}`);
+      } else {
+        // Solo actualizar el lote en el estado sin cambio de manzana
+        setMapData((prevData) => {
+          const newData = { ...prevData };
+          newData.blocks = newData.blocks.map(block => ({
+            ...block,
+            lots: block.lots.map(lot => lot.id === lotId ? { ...lot, ...lotData } : lot)
+          }));
+          return newData;
+        });
+        setSelectedLot((prev) => prev ? { ...prev, ...lotData } : prev);
+      }
     } catch (err) {
       alert("Hubo un error al guardar los cambios: " + err.message);
     }
