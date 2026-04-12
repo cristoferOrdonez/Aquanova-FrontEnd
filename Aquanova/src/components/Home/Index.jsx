@@ -1,15 +1,15 @@
 // src/components/Home/Index.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// Importaciones ajustadas a la nueva estructura interna de Home
 import MapEngine from './components/containers/MapEngine';
 import LotSidePanel from './components/containers/LotSidePanel';
 import MetricsPanel from './components/containers/MetricsPanel';
 import MapLegend from './components/ui/MapLegend';
+import SplitModal from './components/modals/SplitModal';
+import Toast from './components/ui/Toast';
 import { useMapData } from './hooks/useMapData';
 
-// Importación del servicio (asegúrate de que la cantidad de '../' sea correcta según tu proyecto)
-import { prediosService } from '../../services/prediosService'; 
+import { prediosService } from '../../services/prediosService';
 
 import { mergeLots, areLotsContiguous, generateMergedId, splitLot, generateSplitIds } from '../../utils/geoUtils';
 
@@ -22,6 +22,20 @@ function Index() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const searchRef = useRef(null);
+
+  // --- Modo Unificación ---
+  const [isMergeMode, setIsMergeMode] = useState(false);
+
+  // --- Modal de División ---
+  const [splitModalOpen, setSplitModalOpen] = useState(false);
+  const [splitTargetLot, setSplitTargetLot] = useState(null);
+
+  // --- Toast de notificación ---
+  const [toast, setToast] = useState({ message: '', type: 'success' });
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type });
+  }, []);
+  const dismissToast = useCallback(() => setToast({ message: '', type: 'success' }), []);
 
   const { mapData, setMapData, loading, error } = useMapData(selectedNeighborhoodId);
   const isColindante = React.useMemo(() => areLotsContiguous(selectedLots), [selectedLots]);
@@ -62,20 +76,32 @@ function Index() {
   }, []);
 
   const handleLotSelect = (lot) => {
-    setSelectedLots(prev => {
-      const exists = prev.find(l => l.id === lot.id);
-      if (exists) {
-        return prev.filter(l => l.id !== lot.id);
-      } else {
-        // Regla: Bloquear selección de predios de diferentes manzanas
+    if (isMergeMode) {
+      // En modo unificación: acumular lotes en la selección
+      setSelectedLots(prev => {
+        const exists = prev.find(l => l.id === lot.id);
+        if (exists) return prev.filter(l => l.id !== lot.id);
         if (prev.length > 0 && prev[0].block_id !== lot.block_id) {
-          alert("Solo puedes seleccionar predios de la misma manzana.");
+          showToast('Solo puedes seleccionar predios de la misma manzana.', 'warning');
           return prev;
         }
         return [...prev, lot];
+      });
+    } else {
+      // Modo normal: solo abrir el panel lateral con el predio
+      setSelectedLots([lot]);
+      setSelectedLot(lot);
+    }
+  };
+
+  const handleToggleMergeMode = () => {
+    setIsMergeMode(prev => {
+      if (prev) {
+        // Al salir del modo, limpiar selección múltiple
+        setSelectedLots([]);
       }
+      return !prev;
     });
-    setSelectedLot(lot);
   };
 
   const handleMergeLots = async () => {
@@ -86,16 +112,16 @@ function Index() {
       mergeResult = mergeLots(selectedLots);
     } catch (err) {
       if (err.message === 'NON_CONTIGUOUS') {
-        alert("Solo puedes unificar predios que estén tocándose directamente (colindantes).");
+        showToast('Solo puedes unificar predios que estén tocándose directamente (colindantes).', 'warning');
         return;
       }
       console.error(err);
-      alert("Error interno en la librería geometría.");
+      showToast('Error interno en la librería de geometría.', 'error');
       return;
     }
     
     if (!mergeResult || !mergeResult.svg_path) {
-      alert("Error al fusionar matemáticamente los polígonos. Revisa la consola del navegador para más detalles.");
+      showToast('Error al fusionar los polígonos matemáticamente.', 'error');
       return;
     }
 
@@ -183,41 +209,32 @@ function Index() {
       setSelectedLot(null);
     } catch (err) {
       if (err.message === 'NON_CONTIGUOUS') {
-        alert("Error: Los predios seleccionados no están tocándose. Solo puedes unificar predios colindantes.");
+        showToast('Los predios seleccionados no están tocándose directamente.', 'warning');
       } else if (err.status === 409) {
-        alert("Este plano ha sido modificado por otro usuario recientemente. Por favor, recargue la página para ver la versión más reciente.");
+        showToast('Este plano fue modificado recientemente. Recargue la página.', 'warning');
       } else {
-        alert("Error en la transacción en el servidor: " + err.message);
+        showToast('Error en la transacción: ' + err.message, 'error');
       }
     } finally {
       setIsProcessing(false);
+      setIsMergeMode(false);
+      setSelectedLots([]);
     }
   };
 
-  const handleSplitLot = async () => {
+  // Abrir modal de división (no ejecuta todavía)
+  const handleSplitLot = () => {
     if (selectedLots.length !== 1 || isProcessing) return;
+    setSplitTargetLot(selectedLots[0]);
+    setSplitModalOpen(true);
+  };
 
-    // Paso 1: elegir dirección del corte
-    const dirChoice = window.confirm(
-      "¿Cómo desea dividir el predio?\n\n" +
-      "✅ Aceptar → Por el ANCHO (cada parte mantiene frente a la calle)\n" +
-      "❌ Cancelar → Por la PROFUNDIDAD (cada parte tiene distinta calle/fondo)"
-    );
-    // confirm retorna true = 'depth' (ancho); false = 'width' (profundidad)
-    const splitDirection = dirChoice ? 'depth' : 'width';
+  // Llamado por el modal cuando el usuario confirma dirección + partes
+  const handleSplitConfirm = async ({ direction: splitDirection, parts }) => {
+    setSplitModalOpen(false);
+    const targetLot = splitTargetLot;
+    if (!targetLot) return;
 
-    // Paso 2: elegir número de partes
-    const partsStr = window.prompt("¿En cuántas partes desea dividir el predio? (Ingrese un número entero mayor a 1)");
-    if (!partsStr) return;
-    
-    const parts = parseInt(partsStr, 10);
-    if (isNaN(parts) || parts < 2) {
-      alert("Debe ingresar un número entero mayor a 1.");
-      return;
-    }
-
-    const targetLot = selectedLots[0];
-    
     // Find context lots and block_id
     let blockContext = [];
     let targetDatabaseBlockId = targetLot.database_block_id;
@@ -236,7 +253,7 @@ function Index() {
 
     const splitResults = splitLot(targetLot, parts, blockContext, splitDirection);
     if (!splitResults || splitResults.length === 0) {
-      alert("No se pudo calcular la división del polígono matemáticamente.");
+      showToast('No se pudo calcular la división del polígono matemáticamente.', 'error');
       return;
     }
 
@@ -290,9 +307,9 @@ function Index() {
       setSelectedLot(null);
     } catch (err) {
       if (err.status === 409) {
-        alert("Este plano ha sido modificado por otro usuario recientemente. Por favor, recargue la página para ver la versión más reciente.");
+        showToast('Este plano fue modificado recientemente. Recargue la página.', 'warning');
       } else {
-        alert("Error en la transacción en el servidor: " + err.message);
+        showToast('Error al guardar en el servidor: ' + err.message, 'error');
       }
     } finally {
       setIsProcessing(false);
@@ -361,7 +378,7 @@ function Index() {
         const idNum = parts.length > 1 ? parts[parts.length - 1] : '01';
         setSelectedLot((prev) => prev ? { ...prev, ...lotData, block_code: _block_code_changed, display_id: `${_block_code_changed}-${idNum}` } : prev);
         
-        alert(`Manzana actualizada exitosamente a: ${_block_code_changed}`);
+        showToast(`Manzana actualizada a: ${_block_code_changed}`, 'success');
       } else {
         // Solo actualizar el lote en el estado sin cambio de manzana
         setMapData((prevData) => {
@@ -373,14 +390,24 @@ function Index() {
           return newData;
         });
         setSelectedLot((prev) => prev ? { ...prev, ...lotData } : prev);
+        showToast('Predio actualizado correctamente.', 'success');
       }
     } catch (err) {
-      alert("Hubo un error al guardar los cambios: " + err.message);
+      showToast('Error al guardar: ' + err.message, 'error');
     }
   };
 
   return (
     <div className="w-full h-full bg-slate-100 overflow-y-auto">
+      {/* Modales y notificaciones globales */}
+      <SplitModal
+        isOpen={splitModalOpen}
+        lotDisplayId={splitTargetLot?.display_id}
+        onConfirm={handleSplitConfirm}
+        onCancel={() => setSplitModalOpen(false)}
+      />
+      <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />
+
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
 
       {/* BARRA SUPERIOR */}
@@ -390,33 +417,72 @@ function Index() {
             <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
             <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
           </div>
-          <div className="flex gap-2">
-            {selectedLots.length === 1 && (
+          <div className="flex items-center gap-2">
+
+            {/* Botón: Dividir (solo 1 lote seleccionado, fuera del modo unificación) */}
+            {!isMergeMode && selectedLots.length === 1 && (
               <button
                 disabled={isProcessing}
                 onClick={handleSplitLot}
-                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors"
+                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm"
               >
-                {isProcessing ? 'Procesando...' : 'Dividir Predio'}
+                {isProcessing ? 'Procesando...' : '✂ Dividir Predio'}
               </button>
             )}
-            {selectedLots.length >= 2 && (
+
+            {/* Botón: Iniciar / Cancelar Modo Unificación */}
+            <button
+              onClick={handleToggleMergeMode}
+              disabled={isProcessing}
+              className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-all text-sm border-2 ${
+                isMergeMode
+                  ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              {isMergeMode
+                ? `⬡ Modo Unir activo (${selectedLots.length} selec.) — Cancelar`
+                : '⬡ Iniciar Unificación'}
+            </button>
+
+            {/* Botón: Confirmar unificación (solo en modo unificación con ≥2 lotes) */}
+            {isMergeMode && selectedLots.length >= 2 && (
               <button
                 disabled={isProcessing || !isColindante}
                 onClick={handleMergeLots}
-                className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-colors ${
-                  !isColindante 
-                    ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
-                    : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm ${
+                  !isColindante
+                    ? 'bg-gray-300 cursor-not-allowed text-gray-400'
+                    : 'bg-amber-500 hover:bg-amber-600 text-white'
                 }`}
               >
-                {isProcessing ? 'Uniendo...' : !isColindante ? 'No colindantes' : `Unificar Predios (${selectedLots.length})`}
+                {isProcessing
+                  ? 'Uniendo...'
+                  : !isColindante
+                  ? 'No colindantes'
+                  : `Unificar ${selectedLots.length} predios`}
               </button>
             )}
+
           </div>
         </div>
 
+        {/* Banner de Modo Unificación */}
+        {isMergeMode && (
+          <div className="w-full flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm">
+            <span className="text-amber-500 text-lg leading-none shrink-0">⬡</span>
+            <div className="flex-1">
+              <p className="font-semibold text-amber-800">Modo Unificación activo</p>
+              <p className="text-amber-700 mt-0.5">
+                Haz clic en los predios que deseas unir (<strong>{selectedLots.length}</strong> seleccionados).
+                Cuando hayas elegido todos, presiona <strong>"Unificar"</strong>. Para cancelar, vuelve a presionar el botón <strong>"⬡ Modo Unir activo"</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Banner de Auditoría Topológica */}
+
         {topologyMismatches.length > 0 && (
           <div className="w-full flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm">
             <span className="text-orange-500 text-lg leading-none mt-0.5">⚠</span>
