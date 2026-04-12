@@ -85,7 +85,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Distribución Catastral
           </h3>
-          <div className="h-48">
+          <div className="h-56">
             <StatusPieChart data={metrics.distribucionEstado} />
           </div>
         </div>
@@ -95,11 +95,13 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Estado Físico (Predios)
           </h3>
-          <div className="h-48 flex items-center justify-center">
+          <div className="h-56 relative">
             {metrics.distribucionFisica.length > 0 ? (
               <StatusPieChart data={metrics.distribucionFisica} />
             ) : (
-              <span className="text-xs text-gray-400">Sin datos registrados</span>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs text-gray-400">Sin datos registrados</span>
+              </div>
             )}
           </div>
         </div>
