@@ -1,25 +1,44 @@
 import React, { useState } from 'react';
+import imageCompression from 'browser-image-compression';
 
 export default function FileUploadField({ field, value, onChange, sizeClass }) {
   // Asegurarnos de que value sea siempre un array
   const filesArray = Array.isArray(value) ? value : (value ? [value] : []);
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length === 0) return;
 
     let validFiles = [];
     let overSize = false;
 
-    selectedFiles.forEach(file => {
-      const maxSize = file.type.startsWith('video/') ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
-      if (file.size > maxSize) {
+    for (let file of selectedFiles) {
+      let currentFile = file;
+
+      if (file.type.startsWith('image/')) {
+        try {
+          const options = {
+            maxSizeMB: 10,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            fileType: 'image/webp',
+          };
+          const compressedBlob = await imageCompression(file, options);
+          const newName = file.name.substring(0, file.name.lastIndexOf('.')) + '.webp';
+          currentFile = new File([compressedBlob], newName || 'imagen.webp', { type: 'image/webp' });
+        } catch (error) {
+          console.error('Error al comprimir la imagen:', error);
+        }
+      }
+
+      const maxSize = currentFile.type.startsWith('video/') ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+      if (currentFile.size > maxSize) {
         overSize = true;
       } else {
-        validFiles.push(file);
+        validFiles.push(currentFile);
       }
-    });
+    }
 
     if (overSize) {
       alert(`Algunos archivos son demasiado grandes y fueron omitidos. Máximo 50MB para videos, 10MB para imágenes.`);
