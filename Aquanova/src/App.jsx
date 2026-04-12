@@ -32,7 +32,7 @@ function App() {
     location.pathname.startsWith('/form_creation/')
 
   return (
-    <div className='App flex flex-col h-screen overflow-hidden'>
+    <div className='App flex flex-col h-dvh overflow-hidden'>
       {showNavbar && <Navbar />}
       <div className={
         isHome          ? 'flex-1 overflow-hidden' :

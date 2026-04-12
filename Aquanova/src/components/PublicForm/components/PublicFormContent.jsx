@@ -66,7 +66,7 @@ function PublicFormContent() {
   const coverImage = formData.metadata?.imagen || defaultImage;
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-10">
+    <div className="mx-auto max-w-xl px-4 pt-10 pb-20 md:pb-10">
       <div className="overflow-hidden rounded-2xl border border-[var(--stroke-selectors-and-search-bars)] bg-white shadow-md">
 
         {/* Imagen de portada */}

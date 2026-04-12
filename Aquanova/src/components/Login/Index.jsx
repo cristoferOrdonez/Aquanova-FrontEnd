@@ -9,11 +9,11 @@ function Index() {
     const loginForm = useLoginForm();
     
     return (
-        <div className="w-screen h-screen flex flex-row font-work">
-            <div className="w-[50%] h-screen">
-                <img src={LoginImg} className = "w-full h-screen object-cover object-center"/>
+        <div className="w-screen h-screen flex flex-col md:flex-row font-work">
+            <div className="w-full h-[30vh] md:w-[50%] md:h-screen">
+                <img src={LoginImg} className="w-full h-full object-cover object-center"/>
             </div>
-            <div className="w-[50%] h-screen">
+            <div className="w-full h-[70vh] md:w-[50%] md:h-screen overflow-y-auto">
                 <SignInSection {...loginForm} />
             </div>
         </div>

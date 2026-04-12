@@ -19,17 +19,19 @@ function SignInSection({
 
   return (
     <form
-      className="py-6 px-12 bg-[var(--bg-main)] h-screen flex flex-col text-center"
+      className="py-6 px-6 md:px-12 bg-[var(--bg-main)] h-full min-h-full flex flex-col"
       onSubmit={submit}
     >
+      {/* 
       <div className = "text-sm flex flex-row justify-end gap-2 mb-6">
         <span className="text-[#4E5A68]">¿Tiene algún inconveniente?</span>
         <span className="text-[#0D448A] hover:font-semibold hover:underline">Soporte técnico</span>
       </div>
-      <div className="flex flex-1 flex-col justify-evenly">
-        <div className="flex flex-row justify-center gap-4">
-          <img src={Logo}  width={150} height={150} className='shrink-0 ' alt='Logo' />
-          <div className="max-w-xs flex flex-col justify-center gap-3">
+      */}
+      <div className="flex flex-1 flex-col justify-evenly gap-8 md:gap-0">
+        <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+          <img src={Logo}  width={150} height={150} className='shrink-0' alt='Logo' />
+          <div className="max-w-xs flex flex-col justify-center gap-3 text-center md:text-left">
             <span className="text-xl font-semibold">Aquanova</span>
             <span className="text-[#4E5A68] text-base">
               Accede al portal de servicios de visualización de predios y creación de formularios.
@@ -73,6 +75,7 @@ function SignInSection({
           >
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
+          {/*
           <div className="flex flex-row justify-between w-full mt-3">
             <span className="text-sm text-[#0D448A] hover:font-semibold hover:underline cursor-pointer">Recuperar Contraseña o Usuario</span>
             <div className="flex flex-row gap-2">
@@ -80,6 +83,7 @@ function SignInSection({
               <span className="text-sm text-[#0D448A] hover:font-semibold hover:underline cursor-pointer">Regístrate</span>
             </div>
           </div>
+          */}
         </div>  
 
       </div>
