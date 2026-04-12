@@ -14,6 +14,7 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
     water_meter_code: '',
     cadastral_id: '',
     status: 'sin_informacion',
+    block_code: '',
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -24,6 +25,7 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
         water_meter_code: lot.water_meter_code || '',
         cadastral_id:     lot.cadastral_id     || '',
         status:           lot.status           || 'sin_informacion',
+        block_code:       lot.block_code       || '',
       });
     }
   }, [lot]);
@@ -45,7 +47,18 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    await onSave(lot.id, formData);
+    // Separar los datos del lote de los de la manzana
+    const { block_code, ...lotFields } = formData;
+    const saveData = { ...lotFields };
+
+    // Si el código de manzana cambió, adjuntar info para propagación masiva
+    if (block_code.trim() !== (lot.block_code || '').trim()) {
+      saveData._block_code_changed = block_code.trim();
+      saveData._database_block_id = lot.database_block_id;
+      saveData._geometric_block_id = lot.block_id;
+    }
+
+    await onSave(lot.id, saveData);
     setIsSaving(false);
   };
 
@@ -84,6 +97,25 @@ const LotSidePanel = ({ lot, onSave, onDeselect }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+        {/* Campo Manzana */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <label className="block text-xs font-semibold text-blue-700 uppercase tracking-wide mb-1">
+            Manzana
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-blue-500">🏘️</span>
+            <input
+              type="text"
+              name="block_code"
+              value={formData.block_code}
+              onChange={handleChange}
+              placeholder="Ej: MZ01, Manzana 5, 10-A"
+              className="flex-1 border border-blue-300 bg-white rounded-md px-3 py-1.5 text-sm font-medium text-blue-800 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all"
+            />
+          </div>
+          <p className="text-xs text-blue-500 mt-1">Cambiar esto actualiza todos los predios de esta manzana.</p>
+        </div>
+
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Dirección / Número de Lote</label>
           <input

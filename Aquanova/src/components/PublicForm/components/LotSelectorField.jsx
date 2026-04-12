@@ -10,11 +10,26 @@ const STATUS_COLORS = {
   registrado: '#4CAF50',
 };
 
+// Colores según el estado físico/ocupacional del predio (Dinámico o Backend)
+const PROPERTY_STATE_COLORS = {
+  // Estados originales
+  'Predio Demolido': '#EF4444',        // Rojo
+  'Predio Solo (Habitado)': '#8B5CF6', // Morado
+  'Predio Desocupado': '#F59E0B',      // Ambar
+  'Predio en Obra': '#06B6D4',         // Cyan
+  // Nuevos estados añadidos
+  'Predio solo': '#1E3A8A',                                // Azul oscuro
+  'Predio para vincular': '#EC4899',                       // Rosado
+  'Predio sin construir (solo)': '#10B981',                // Verde
+  'Lote en construcción o en obras': '#F97316',            // Naranja
+  'Lote con cuenta contrato - vinculado': '#EAB308',       // Amarillo
+};
+
 /**
  * Componente para seleccionar un lote del mapa dentro de un formulario.
  * Muestra el mapa del barrio y permite seleccionar cualquier lote.
  */
-function LotSelectorField({ neighborhoodId, value, onChange, error }) {
+function LotSelectorField({ neighborhoodId, value, onChange, error, formResponses = {} }) {
   const [mapData, setMapData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedLot, setSelectedLot] = useState(null);
@@ -67,6 +82,8 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
   }, [value, mapData]);
 
   const handleLotSelect = (lot) => {
+    // Permitir selección de todos los lotes, incluso los censados
+    // ya que se debe poder contestar más de una vez en un mismo predio.
     setSelectedLot(lot);
     onChange(lot.id);
   };
@@ -114,9 +131,10 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
           ref={transformRef}
           initialScale={1}
           minScale={0.5}
-          maxScale={4}
+          maxScale={20}
           centerOnInit
           limitToBounds={false}
+          wheel={{ step: 0.1 }}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
@@ -154,24 +172,40 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
                   {mapData.blocks.map((block) => (
                     <g key={block.id}>
                       {block.lots.map((lot) => {
-                        const isSelected = selectedLot?.id === lot.id;
+                          const isSelected = selectedLot?.id === lot.id;
+                          const isAvailable = lot.available;
 
-                        return (
-                          <path
-                            key={lot.id}
-                            d={lot.path}
-                            fill={isSelected ? '#1976D2' : STATUS_COLORS[lot.status] || '#9E9E9E'}
-                            stroke={isSelected ? '#0D47A1' : '#ffffff'}
-                            strokeWidth={isSelected ? 1.5 : 0.5}
-                            opacity={isSelected ? 1 : 0.9}
-                            style={{
-                              cursor: 'pointer',
-                              transition: 'fill 0.15s, opacity 0.15s',
-                            }}
-                            onClick={() => handleLotSelect(lot)}
-                          />
-                        );
-                      })}
+                          let baseColor = STATUS_COLORS[lot.status] || '#9E9E9E';
+                          if (lot.property_state && PROPERTY_STATE_COLORS[lot.property_state]) {
+                            baseColor = PROPERTY_STATE_COLORS[lot.property_state];
+                          }
+
+                          let activeColor = '#1976D2';
+                          if (isSelected) {
+                            const answeredState = Object.values(formResponses || {}).find(ans => PROPERTY_STATE_COLORS[ans]);
+                            if (answeredState) {
+                              activeColor = PROPERTY_STATE_COLORS[answeredState];
+                            } else if (lot.property_state && PROPERTY_STATE_COLORS[lot.property_state]) {
+                              activeColor = PROPERTY_STATE_COLORS[lot.property_state];
+                            }
+                          }
+
+                          return (
+                            <path
+                              key={lot.id}
+                              d={lot.path}
+                              fill={isSelected ? activeColor : baseColor}
+                              stroke={isSelected ? '#0D47A1' : '#ffffff'}
+                              strokeWidth={isSelected ? 1.5 : 0.5}
+                              opacity={isSelected ? 1 : 0.9}
+                              style={{
+                                cursor: 'pointer',
+                                transition: 'fill 0.15s, opacity 0.15s',
+                              }}
+                              onClick={() => handleLotSelect(lot)}
+                            />
+                          );
+                        })}
                       {/* Números de lote */}
                       {block.lots.map((lot) =>
                         lot.centroid ? (

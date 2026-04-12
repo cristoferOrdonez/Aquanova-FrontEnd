@@ -54,6 +54,47 @@ export const usePublicForm = () => {
   });
   const [fieldErrors, setFieldErrors] = useState({});
 
+  // ── Auto-Guardado (Caché Local) ────────────────────────────────────────────
+  const CACHE_KEY = formKey ? `public_form_draft_${formKey}` : null;
+
+  useEffect(() => {
+    if (!CACHE_KEY || !formData) return; // Solo guardar después de haber cargado el form inicial
+
+    const timeoutId = setTimeout(() => {
+      // Filtrar archivos de respuestas y registro
+      const cleanResponses = Object.entries(responses).reduce((acc, [key, value]) => {
+        const isNativeFile = (v) => 
+          v instanceof File || 
+          v instanceof Blob || 
+          (typeof FileList !== 'undefined' && v instanceof FileList);
+        
+        const hasFile = (v) => {
+          if (isNativeFile(v)) return true;
+          if (Array.isArray(v)) return v.some((i) => isNativeFile(i));
+          if (v && typeof v === 'object') return isNativeFile(v.file);
+          return false;
+        };
+
+        if (!hasFile(value)) acc[key] = value;
+        return acc;
+      }, {});
+
+      const cleanReg = {
+        name: registration.name,
+        document_number: registration.document_number,
+        signature: typeof registration.signature === 'string' ? registration.signature : null,
+      };
+
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        responses: cleanResponses,
+        registration: cleanReg,
+        updatedAt: new Date().toISOString(),
+      }));
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [responses, registration, CACHE_KEY, formData]);
+
   // ── Cargar formulario ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!formKey) return;
@@ -83,10 +124,32 @@ export const usePublicForm = () => {
         }));
         setFormData({ ...res.data, schema });
 
-        // Inicializar respuestas vacías con el tipo correcto (omitir campos info)
+        // Intentar leer caché previo recuperarlo si existe
+        let cachedResponses = {};
+        let cachedReg = null;
+        if (CACHE_KEY) {
+          try {
+            const saved = localStorage.getItem(CACHE_KEY);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              cachedResponses = parsed.responses || {};
+              cachedReg = parsed.registration || null;
+            }
+          } catch (e) {
+            console.warn('Error al cargar borrador público:', e);
+          }
+        }
+
+        // Inicializar respuestas combinando caché y valores por defecto
         const initial = {};
         schema.forEach((field) => {
           if (field.type === 'info') return;
+          
+          if (cachedResponses[field.key] !== undefined) {
+            initial[field.key] = cachedResponses[field.key];
+            return;
+          }
+
           if (field.type === 'checkbox') {
             initial[field.key] = [];
           } else if (field.type === 'file') {
@@ -101,11 +164,11 @@ export const usePublicForm = () => {
         });
         setResponses(initial);
 
-        // Inicializar registration (solo nombre y documento por requerimiento)
+        // Inicializar registration con caché si existe, sino valores por defecto (solo nombre y documento por requerimiento)
         setRegistrations({
-          name: '',
-          document_number: '',
-          signature: null,
+          name: cachedReg?.name || '',
+          document_number: cachedReg?.document_number || '',
+          signature: typeof cachedReg?.signature === 'string' ? cachedReg.signature : null,
         });
       })
       .catch((err) => {
@@ -192,7 +255,7 @@ export const usePublicForm = () => {
 
           if (validFiles.length > 0) {
             try {
-              console.log(`Subiendo ${validFiles.length} archivo(s) para "${qLabel}" a Cloudinary...`);
+
               const urls = await cloudinaryService.uploadMultipleFiles(
                 validFiles,
                 'submissions',
@@ -206,7 +269,7 @@ export const usePublicForm = () => {
 
               filteredResponses[qLabel] = urls;
 
-              console.log(`${validFiles.length} archivo(s) de "${qLabel}" subidos exitosamente`);
+
             } catch (uploadError) {
               console.error(`Error al subir archivo(s) de "${qLabel}":`, uploadError);
               throw new Error(`No se pudo subir el(los) archivo(s) de "${qLabel}". ${uploadError.message}`);
@@ -273,9 +336,21 @@ export const usePublicForm = () => {
         }
       }
 
-      // Guardar token y usuario en localStorage (login automático)
-      if (result.token) localStorage.setItem('token', result.token);
-      if (result.user) localStorage.setItem('user', JSON.stringify(result.user));
+        // WORKAROUND FRONTEND (MIENTRAS BACKEND ADAPTA EL README):
+        // Guardar el state en localStorage para que el Dashboard principal se coloree instantáneamente
+        // aunque el backend todavía no esté mandando "property_state" en el JSON
+          const targetStates = [
+            'Predio Demolido', 'Predio Solo (Habitado)', 'Predio Desocupado', 'Predio en Obra',
+            'Predio solo', 'Predio para vincular', 'Predio sin construir (solo)', 
+            'Lote en construcción o en obras', 'Lote con cuenta contrato - vinculado'
+          ];
+        const selectedState = Object.values(responses).find(v => targetStates.includes(v));
+        if (payload.lot_id && selectedState) {
+          const cachedStates = JSON.parse(localStorage.getItem('temp_property_states') || '{}');
+          cachedStates[payload.lot_id] = selectedState;
+          localStorage.setItem('temp_property_states', JSON.stringify(cachedStates));
+        }
+
 
       setSuccessData(result);
     } catch (err) {
@@ -312,5 +387,37 @@ export const usePublicForm = () => {
     setResponse,
     setRegistration,
     handleSubmit,
+    clearCache: useCallback(() => {
+      if (CACHE_KEY) {
+        localStorage.removeItem(CACHE_KEY);
+      }
+      
+      // Reset responses to default values
+      const initial = {};
+      (formData?.schema || []).forEach((field) => {
+        if (field.type === 'info') return;
+        if (field.type === 'checkbox') {
+          initial[field.key] = [];
+        } else if (field.type === 'file') {
+          initial[field.key] = field.multiple !== false ? [] : null;
+        } else if (field.type === 'range') {
+          initial[field.key] = field.min ?? 0;
+        } else if (field.type === 'lot_selector') {
+          initial[field.key] = null;
+        } else {
+          initial[field.key] = '';
+        }
+      });
+      setResponses(initial);
+      
+      // Reset registration to default values
+      setRegistrations({
+        name: '',
+        document_number: '',
+        signature: null,
+      });
+      
+      setFieldErrors({});
+    }, [CACHE_KEY, formData]),
   };
 };

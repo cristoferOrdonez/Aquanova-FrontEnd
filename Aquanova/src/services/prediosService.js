@@ -2,24 +2,13 @@
 import { apiRequest } from './apiClient';
 
 export const prediosService = {
-  /**
-   * Obtiene la estructura completa del mapa (Manzanas + Predios)
-   * @param {string} [neighborhoodId] - ID del barrio (opcional)
-   */
   getDigitalTwinData(neighborhoodId) {
     const path = neighborhoodId 
       ? `/map/digital-twin/${neighborhoodId}` 
       : `/map/digital-twin`;
-      
-    // Usamos el apiClient que ya tienes configurado
     return apiRequest(path, { method: 'GET' });
   },
 
-  /**
-   * Actualiza la información de un predio (Estado, Medidor, Catastro)
-   * @param {string} lotId - ID del predio en la base de datos
-   * @param {object} payload - Objeto con los datos a actualizar { status, water_meter_code, ... }
-   */
   updateLotInfo(lotId, payload) {
     return apiRequest(`/map/predios/${lotId}`, {
       method: 'PATCH',
@@ -27,20 +16,37 @@ export const prediosService = {
     });
   },
 
-  /**
-   * Obtiene la lista de todos los sectores/barrios disponibles
-   * para llenar el selector de mapas en el frontend.
-   */
   getNeighborhoods() {
     return apiRequest('/map/neighborhoods', { method: 'GET' });
   },
 
-  /**
-   * Obtiene lotes de un barrio para el selector en formularios públicos.
-   * Incluye todos los lotes pero marca cuáles están disponibles (sin_informacion).
-   * @param {string} neighborhoodId - ID del barrio
-   */
   getAvailableLots(neighborhoodId) {
     return apiRequest(`/map/available-lots/${neighborhoodId}`, { method: 'GET' });
+  },
+
+  updateTopology(payload) {
+    return apiRequest('/map/topology-update', {
+      method: 'POST',
+      body: payload
+    });
+  },
+
+  undoTopology(payload) {
+    return apiRequest('/map/topology-update', {
+      method: 'POST',
+      body: payload
+    });
+  },
+
+  /**
+   * Actualiza el código/nombre de una manzana (bloque).
+   * @param {string} databaseBlockId - UUID real de la manzana en la tabla `blocks`
+   * @param {object} payload - { code: 'Nuevo nombre' }
+   */
+  updateBlockInfo(databaseBlockId, payload) {
+    return apiRequest(`/map/blocks/${databaseBlockId}`, {
+      method: 'PATCH',
+      body: payload,
+    });
   }
 };

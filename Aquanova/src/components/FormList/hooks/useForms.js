@@ -16,17 +16,17 @@ export function useForms() {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('Todas');
+  const [activeFilter, setActiveFilter] = useState('Activas');
 
   // Ref para acceder siempre al activeFilter más reciente dentro de callbacks async
-  const activeFilterRef = useRef('Todas');
+  const activeFilterRef = useRef('Activas');
   activeFilterRef.current = activeFilter;
 
   /** Aplica el filtro de estado sobre un array de formularios */
   const applyFilter = useCallback((list, filter) => {
     if (!filter || filter === 'Todas') return list;
-    if (filter === 'Activas') return list.filter((f) => Boolean(f.is_active));
-    if (filter === 'Inactivas') return list.filter((f) => !Boolean(f.is_active));
+    if (filter === 'Activas') return list.filter((f) => f.is_active);
+    if (filter === 'Inactivas') return list.filter((f) => !f.is_active);
     return list;
   }, []);
 

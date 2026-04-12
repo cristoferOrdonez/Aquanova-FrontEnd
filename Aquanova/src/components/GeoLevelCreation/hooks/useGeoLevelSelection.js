@@ -215,7 +215,7 @@ export function useGeoLevelSelection() {
                 payload.parent_id = parent_id;
             }
 
-            console.log('[updateGeoLevel] id:', id, 'payload:', JSON.stringify(payload), 'imageFile:', imageFile);
+
 
             const res = await neighborhoodService.update(id, payload, imageFile);
 

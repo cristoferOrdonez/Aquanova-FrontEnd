@@ -26,21 +26,37 @@ export async function apiRequest(path, { method = 'GET', headers = {}, body } = 
     ? { ...headers }
     : { 'Content-Type': 'application/json', ...headers };
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: finalHeaders,
-    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
-  });
+  try {
+    const res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers: finalHeaders,
+      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+    });
 
-  const data = await res.json().catch(() => null);
+    const data = await res.json().catch(() => null);
 
-  if (!res.ok) {
-    const msg = data?.message || `HTTP ${res.status}`;
-    const err = new Error(msg);
-    err.status = res.status;
-    err.data = data;
+    if (!res.ok) {
+      const msg = data?.message || `HTTP ${res.status}: ${res.statusText || 'Error desconocido'}`;
+      const err = new Error(msg);
+      err.status = res.status;
+      err.data = data;
+      err.isApiError = true;
+      throw err;
+    }
+
+    return data;
+  } catch (err) {
+    // Si ya es un error de API estructurado, lo relanzamos
+    if (err.isApiError) throw err;
+
+    // Manejo específico para errores de red (offline)
+    if (err.name === 'TypeError' || err.message.includes('NetworkError')) {
+      const networkErr = new Error('Error de conexión: No se pudo contactar con el servidor.');
+      networkErr.isNetworkError = true;
+      throw networkErr;
+    }
+
     throw err;
   }
-
-  return data;
 }
+

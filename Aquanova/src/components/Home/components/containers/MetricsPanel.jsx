@@ -79,14 +79,30 @@ function MetricsPanel({ mapData, loading }) {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Gráfico de Dona - Distribución */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Gráfico de Dona - Distribución Catastral */}
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
-            Distribución por Estado
+            Distribución Catastral
           </h3>
-          <div className="h-48">
+          <div className="h-56">
             <StatusPieChart data={metrics.distribucionEstado} />
+          </div>
+        </div>
+
+        {/* Gráfico de Dona - Estado Físico */}
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
+            Estado Físico (Predios)
+          </h3>
+          <div className="h-56 relative">
+            {metrics.distribucionFisica.length > 0 ? (
+              <StatusPieChart data={metrics.distribucionFisica} />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xs text-gray-400">Sin datos registrados</span>
+              </div>
+            )}
           </div>
         </div>
 
