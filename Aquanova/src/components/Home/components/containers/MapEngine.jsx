@@ -34,7 +34,7 @@ const MapEngine = ({ data, onSelectLot, selectedLotId }) => {
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             {/* Controles de Zoom Flotantes */}
-            <div className="absolute top-4 right-4 z-10 flex flex-col gap-1 bg-white p-1.5 rounded-lg shadow-md border border-gray-200">
+            <div className="absolute top-4 right-4 z-10 hidden sm:flex flex-col gap-1 bg-white p-1.5 rounded-lg shadow-md border border-gray-200">
               <button
                 onClick={() => zoomIn()}
                 className="w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-gray-200 rounded text-gray-700 text-xl font-medium transition-colors"

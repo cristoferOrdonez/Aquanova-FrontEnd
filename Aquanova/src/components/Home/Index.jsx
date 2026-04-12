@@ -90,15 +90,15 @@ function Index() {
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
 
       {/* BARRA SUPERIOR */}
-      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center shrink-0">
-        <div>
+      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full overflow-hidden">
+        <div className="w-full">
           <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
           <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
         </div>
         
-        <div className="flex items-center gap-3" ref={searchRef}>
-          <label className="text-sm font-semibold text-gray-700">Sector:</label>
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full" ref={searchRef}>
+          <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Sector:</label>
+          <div className="relative w-full sm:max-w-md">
             <input
               type="text"
               value={searchText}
@@ -106,7 +106,7 @@ function Index() {
               onFocus={() => setShowSuggestions(true)}
               placeholder={neighborhoods.length === 0 ? 'Cargando sectores...' : 'Buscar sector...'}
               disabled={neighborhoods.length === 0}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:bg-gray-200 text-sm"
+              className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:bg-gray-200 text-sm"
             />
             {showSuggestions && filteredNeighborhoods.length > 0 && (
               <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
@@ -133,8 +133,8 @@ function Index() {
       </div>
 
       {/* ÁREA PRINCIPAL: MAPA + PANEL */}
-      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px]">
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col">
+      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px] h-full md:h-auto">
+        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col min-h-[350px] md:min-h-0">
           {!selectedNeighborhoodId || loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">Cargando sector...</div>
           ) : error ? (
@@ -153,7 +153,7 @@ function Index() {
           )}
         </div>
 
-        <div className="w-full md:w-100 h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden shrink-0">
+        <div className="w-full md:w-96 min-h-[300px] md:min-h-0 md:h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden shrink-0">
           <LotSidePanel
             lot={selectedLot}
             onSave={handleSaveLotChanges}
