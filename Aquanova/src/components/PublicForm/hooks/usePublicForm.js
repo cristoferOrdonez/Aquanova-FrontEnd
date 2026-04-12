@@ -204,7 +204,7 @@ export const usePublicForm = () => {
   }, []);
 
   // ── Validación ─────────────────────────────────────────────────────────────
-  const validate = useCallback(() => {
+  const validate = useCallback((currentRegistration = registration) => {
     const errors = {};
 
     // Campos del schema
@@ -220,21 +220,17 @@ export const usePublicForm = () => {
     });
 
     // Campos de registro fijos (solo nombre y documento correspondientes a los requerimientos)
-    if (!registration.name?.trim()) errors.name = 'Este campo es obligatorio.';
-    if (!registration.document_number?.trim()) errors.document_number = 'Este campo es obligatorio.';
-    if (!registration.signature) errors.signature = 'Debes firmar antes de enviar el formulario.';
+    // Se comenta su validación obligatoria visual ya que se autocompletarán si están vacíos.
+    // if (!currentRegistration.name?.trim()) errors.name = 'Este campo es obligatorio.';
+    // if (!currentRegistration.document_number?.trim()) errors.document_number = 'Este campo es obligatorio.';
+    if (!currentRegistration.signature) errors.signature = 'Debes firmar antes de enviar el formulario.';
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }, [formData, responses, registration]);
 
-  // ── Envío ──────────────────────────────────────────────────────────────────
-  const handleSubmit = useCallback(async () => {
-    if (!validate()) return;
-
-    setSubmitting(true);
-    setFieldErrors({});
-
+  // Función recursiva o con bucle para enviar intentando generar IDs si están duplicados
+  const executeSubmission = async (currentReg, attempt = 1) => {
     try {
       const location = await getGeolocation();
 
@@ -286,15 +282,15 @@ export const usePublicForm = () => {
         form_key: formKey,
         neighborhood_id: formData.neighborhood_id,
         responses: filteredResponses,
-        name: registration.name,
-        document_number: registration.document_number,
+        name: currentReg.name,
+        document_number: currentReg.document_number,
       };
 
       // Si hay firma, subirla
-      if (registration.signature instanceof File) {
+      if (currentReg.signature instanceof File) {
         try {
           const signatureUrls = await cloudinaryService.uploadMultipleFiles(
-            [registration.signature],
+            [currentReg.signature],
             'signatures',
             (progress) => {
               setUploadProgress({ ...progress, fieldLabel: 'Firma de usuario' });
@@ -354,6 +350,23 @@ export const usePublicForm = () => {
 
       setSuccessData(result);
     } catch (err) {
+      // 409 o 400 (documento duplicado o error de registro): Generar nuevamente y reintentar un máximo de 5 veces
+      const errorMessage = err?.data?.message || err?.message || '';
+      const isConflict = err.status === 409 || errorMessage.toLowerCase().includes('document') || errorMessage.toLowerCase().includes('registrado') || errorMessage.toLowerCase().includes('cuenta');
+      
+      // Si el error indica duplicidad (independientemente si el usuario lo tipeó o si el sistema lo generó), 
+      // generaremos uno aleatorio nuevo automático para destrabar el envío y se vuelve a intentar.
+      if (isConflict && attempt < 5) {
+        console.warn(`Intento ${attempt} bloqueado por duplicidad. Destrabando con nuevos datos aleatorios...`);
+        const retryReg = { ...currentReg };
+        retryReg.name = `NombreGenerico${Math.floor(1000 + Math.random() * 9000)}`;
+        retryReg.document_number = `${Math.floor(100000000 + Math.random() * 900000000)}`;
+        setRegistration('name', retryReg.name);
+        setRegistration('document_number', retryReg.document_number);
+        // Reintentamos
+        return executeSubmission(retryReg, attempt + 1);
+      }
+
       if (err.status === 400) {
         setFieldErrors({
           _form: err?.data?.message || 'Por favor completa todos los campos requeridos correctamente.'
@@ -368,9 +381,40 @@ export const usePublicForm = () => {
         setFieldErrors({ _form: 'Ocurrió un error. Intenta de nuevo más tarde.' });
       }
     } finally {
-      setSubmitting(false);
-      setUploadProgress(null); // Resetear progreso al finalizar
+      if (attempt === 1 || successData) {
+        setSubmitting(false);
+        setUploadProgress(null); // Resetear progreso al finalizar la cadena original
+      }
     }
+  };
+
+  // ── Envío ──────────────────────────────────────────────────────────────────
+  const handleSubmit = useCallback(async () => {
+    let currentReg = { ...registration };
+    let wasModified = false;
+
+    // Generar automáticamemnte Nombre y Documento genérico aleatorio si se dejan en blanco
+    if (!currentReg.name?.trim()) {
+      currentReg.name = `NombreGenerico${Math.floor(1000 + Math.random() * 9000)}`;
+      wasModified = true;
+    }
+    
+    if (!currentReg.document_number?.trim()) {
+      currentReg.document_number = `${Math.floor(100000000 + Math.random() * 900000000)}`;
+      wasModified = true;
+    }
+
+    if (wasModified) {
+      setRegistration('name', currentReg.name);
+      setRegistration('document_number', currentReg.document_number);
+    }
+
+    if (!validate(currentReg)) return;
+
+    setSubmitting(true);
+    setFieldErrors({});
+
+    await executeSubmission(currentReg, 1);
   }, [formKey, formData, responses, registration, referralCode, validate]);
 
   return {
