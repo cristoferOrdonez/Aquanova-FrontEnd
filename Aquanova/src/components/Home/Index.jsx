@@ -11,15 +11,20 @@ import { useMapData } from './hooks/useMapData';
 // Importación del servicio (asegúrate de que la cantidad de '../' sea correcta según tu proyecto)
 import { prediosService } from '../../services/prediosService'; 
 
+import { mergeLots, areLotsContiguous, generateMergedId, splitLot, generateSplitIds } from '../../utils/geoUtils';
+
 function Index() {
   const [neighborhoods, setNeighborhoods] = useState([]);
   const [selectedNeighborhoodId, setSelectedNeighborhoodId] = useState('');
+  const [selectedLots, setSelectedLots] = useState([]);
   const [selectedLot, setSelectedLot] = useState(null);
   const [searchText, setSearchText] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const searchRef = useRef(null);
 
   const { mapData, setMapData, loading, error } = useMapData(selectedNeighborhoodId);
+  const isColindante = React.useMemo(() => areLotsContiguous(selectedLots), [selectedLots]);
 
   useEffect(() => {
     const fetchNeighborhoods = async () => {
@@ -48,7 +53,225 @@ function Index() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLotSelect = (lot) => setSelectedLot(lot);
+  const handleLotSelect = (lot) => {
+    setSelectedLots(prev => {
+      const exists = prev.find(l => l.id === lot.id);
+      if (exists) {
+        return prev.filter(l => l.id !== lot.id);
+      } else {
+        // Regla: Bloquear selección de predios de diferentes manzanas
+        if (prev.length > 0 && prev[0].block_id !== lot.block_id) {
+          alert("Solo puedes seleccionar predios de la misma manzana.");
+          return prev;
+        }
+        return [...prev, lot];
+      }
+    });
+    setSelectedLot(lot);
+  };
+
+  const handleMergeLots = async () => {
+    if (selectedLots.length < 2 || isProcessing) return;
+
+    let mergeResult = null;
+    try {
+      mergeResult = mergeLots(selectedLots);
+    } catch (err) {
+      if (err.message === 'NON_CONTIGUOUS') {
+        alert("Solo puedes unificar predios que estén tocándose directamente (colindantes).");
+        return;
+      }
+      console.error(err);
+      alert("Error interno en la librería geometría.");
+      return;
+    }
+    
+    if (!mergeResult || !mergeResult.svg_path) {
+      alert("Error al fusionar matemáticamente los polígonos. Revisa la consola del navegador para más detalles.");
+      return;
+    }
+
+    const newDisplayId = generateMergedId(selectedLots);
+    const firstLot = selectedLots[0];
+    const mapDeletedLotsPayload = selectedLots.map(l => ({ id: l.id, version: l.version || 1 }));
+    const selectedLotIds = selectedLots.map(l => l.id);
+
+    // Identificar block_id localizando la manzana que contiene el lote
+    let targetBlockId = null;
+    if (mapData && mapData.blocks) {
+      for (const block of mapData.blocks) {
+         if (block.lots.some(l => l.id === firstLot.id)) {
+             targetBlockId = block.id;
+             break;
+         }
+      }
+    }
+
+    const svgPath = mergeResult.svg_path;
+    const newLot = {
+      ...firstLot,
+      id: `temp_merged_${Date.now()}`,
+      block_id: targetBlockId,
+      // Enviamos ambas propiedades para garantizar compatibilidad en backend y MapEngine
+      svg_path: svgPath,
+      path: svgPath,
+      centroid: mergeResult.centroid,
+      display_id: newDisplayId,
+      number: newDisplayId.startsWith('Lote-') ? newDisplayId : `Lote-${newDisplayId}`,
+      area_m2: selectedLots.reduce((acc, l) => acc + (l.area_m2 || 0), 0),
+      version: 1,
+      status: 'sin_informacion'
+    };
+
+    setIsProcessing(true);
+    try {
+      const payload = {
+        action: 'MERGE',
+        deletedLots: mapDeletedLotsPayload,
+        newLots: [newLot]
+      };
+      
+      const response = await prediosService.updateTopology(payload);
+      
+      // El servidor devuelve { ok, newData: [...] } directamente en la raíz
+      // (apiClient.js ya devülve el body parseado, por tanto response === body)
+      const serverLots = response?.newData;
+
+      // Construir el array final de lotes reales. Si el servidor devuelve datos,
+      // los usamos. Si no (fallback de red), usamos el objeto local.
+      const actualNewLots = (serverLots && serverLots.length > 0)
+        ? serverLots.map(l => ({
+            ...l,
+            // Asegurar siempre que 'path' existe para que MapEngine pueda renderizar
+            path: l.path || l.svg_path,
+            svg_path: l.svg_path || l.path,
+            // Si el servidor no devuelve display_id, lo calculamos nosotros
+            display_id: l.display_id || l.number?.replace('Lote-', '') || newDisplayId
+          }))
+        : [{ ...newLot }];
+
+      setMapData(prevData => {
+        if (!prevData || !prevData.blocks) return prevData;
+        const newData = { ...prevData };
+        newData.blocks = newData.blocks.map(block => {
+          // Buscamos si alguno de los predios eliminados pertenecía a este bloque
+          const containsSelected = block.lots.some(l => selectedLotIds.includes(l.id));
+          if (containsSelected) {
+            const remainingLots = block.lots.filter(l => !selectedLotIds.includes(l.id));
+            return {
+              ...block,
+              lots: [...remainingLots, ...actualNewLots]
+            };
+          }
+          return block;
+        });
+        return newData;
+      });
+
+      setSelectedLots([]);
+      setSelectedLot(null);
+    } catch (err) {
+      if (err.message === 'NON_CONTIGUOUS') {
+        alert("Error: Los predios seleccionados no están tocándose. Solo puedes unificar predios colindantes.");
+      } else if (err.status === 409) {
+        alert("Este plano ha sido modificado por otro usuario recientemente. Por favor, recargue la página para ver la versión más reciente.");
+      } else {
+        alert("Error en la transacción en el servidor: " + err.message);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSplitLot = async () => {
+    if (selectedLots.length !== 1 || isProcessing) return;
+    const partsStr = window.prompt("¿En cuántas partes desea dividir el predio? (Ingrese un número entero mayor a 1)");
+    if (!partsStr) return;
+    
+    const parts = parseInt(partsStr, 10);
+    if (isNaN(parts) || parts < 2) {
+      alert("Debe ingresar un número entero mayor a 1.");
+      return;
+    }
+
+    const targetLot = selectedLots[0];
+    
+    // Find context lots and block_id
+    let blockContext = [];
+    let targetBlockId = null;
+    if (mapData && mapData.blocks) {
+      for (const block of mapData.blocks) {
+         if (block.lots.some(l => l.id === targetLot.id)) {
+             blockContext = block.lots;
+             targetBlockId = block.id;
+             break;
+         }
+      }
+    }
+
+    const splitResults = splitLot(targetLot, parts, blockContext);
+    if (!splitResults || splitResults.length === 0) {
+      alert("No se pudo calcular la división del polígono matemáticamente.");
+      return;
+    }
+
+    const newIds = generateSplitIds(targetLot.display_id, splitResults.length);
+
+    const newLots = splitResults.map((res, idx) => ({
+      ...targetLot,
+      id: `temp_split_${Date.now()}_${idx}`,
+      block_id: targetBlockId,
+      path: res.svg_path,
+      centroid: res.centroid,
+      display_id: newIds[idx],
+      number: newIds[idx].startsWith('Lote-') ? newIds[idx] : `Lote-${newIds[idx]}`,
+      area_m2: (targetLot.area_m2 || 0) / splitResults.length,
+      version: 1,
+      status: 'sin_informacion'
+    }));
+
+    setIsProcessing(true);
+    try {
+      const payload = {
+        action: 'SPLIT',
+        deletedLots: [{ id: targetLot.id, version: targetLot.version || 1 }],
+        newLots: newLots
+      };
+      
+      const response = await prediosService.updateTopology(payload);
+
+      // Sincronizar con los IDs reales generados por la base de datos
+      const actualNewLots = (response.newData && response.newData.length > 0)
+        ? response.newData.map(l => ({ ...l, path: l.path || l.svg_path }))
+        : newLots.map(l => ({ ...l, path: l.path || l.svg_path }));
+
+      setMapData(prevData => {
+        const newData = { ...prevData };
+        newData.blocks = newData.blocks.map(block => {
+          if (block.lots.some(l => l.id === targetLot.id)) {
+            const remainingLots = block.lots.filter(l => l.id !== targetLot.id);
+            return {
+              ...block,
+              lots: [...remainingLots, ...actualNewLots]
+            };
+          }
+          return block;
+        });
+        return newData;
+      });
+
+      setSelectedLots([]);
+      setSelectedLot(null);
+    } catch (err) {
+      if (err.status === 409) {
+        alert("Este plano ha sido modificado por otro usuario recientemente. Por favor, recargue la página para ver la versión más reciente.");
+      } else {
+        alert("Error en la transacción en el servidor: " + err.message);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleSearchChange = (e) => {
     setSearchText(e.target.value);
@@ -59,7 +282,9 @@ function Index() {
   const handleSelectNeighborhood = (hood) => {
     setSelectedNeighborhoodId(hood.id);
     setSearchText(`${hood.name} (${hood.code})`);
+    setSearchText(`${hood.name} (${hood.code})`);
     setShowSuggestions(false);
+    setSelectedLots([]);
     setSelectedLot(null);
   };
 
@@ -91,9 +316,35 @@ function Index() {
 
       {/* BARRA SUPERIOR */}
       <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full overflow-hidden">
-        <div className="w-full">
-          <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
-          <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
+        <div className="w-full flex justify-between items-center">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
+            <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
+          </div>
+          <div className="flex gap-2">
+            {selectedLots.length === 1 && (
+              <button
+                disabled={isProcessing}
+                onClick={handleSplitLot}
+                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors"
+              >
+                {isProcessing ? 'Procesando...' : 'Dividir Predio'}
+              </button>
+            )}
+            {selectedLots.length >= 2 && (
+              <button
+                disabled={isProcessing || !isColindante}
+                onClick={handleMergeLots}
+                className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-colors ${
+                  !isColindante 
+                    ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+                    : 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                }`}
+              >
+                {isProcessing ? 'Uniendo...' : !isColindante ? 'No colindantes' : `Unificar Predios (${selectedLots.length})`}
+              </button>
+            )}
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full" ref={searchRef}>
@@ -144,7 +395,7 @@ function Index() {
               <MapEngine 
                 data={mapData} 
                 onSelectLot={handleLotSelect} 
-                selectedLotId={selectedLot?.id}
+                selectedLots={selectedLots}
               />
               <div className="absolute bottom-4 left-4 pointer-events-none">
                  <MapLegend />

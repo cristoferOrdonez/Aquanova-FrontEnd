@@ -42,5 +42,16 @@ export const prediosService = {
    */
   getAvailableLots(neighborhoodId) {
     return apiRequest(`/map/available-lots/${neighborhoodId}`, { method: 'GET' });
+  },
+
+  /**
+   * Actualiza la topología del mapa luego de un Merge o Split
+   * @param {object} payload - { action, deletedLotIds, newLots }
+   */
+  updateTopology(payload) {
+    return apiRequest('/map/topology-update', {
+      method: 'POST',
+      body: payload
+    });
   }
 };

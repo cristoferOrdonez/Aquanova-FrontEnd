@@ -13,7 +13,49 @@ function getColor(status) {
   return STATUS_COLORS[status] ?? STATUS_COLORS.sin_informacion;
 }
 
-const MapEngine = ({ data, onSelectLot, selectedLotId }) => {
+const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
+  // Soportar tanto 'path' (propiedad local del frontend) como 'svg_path' (del backend)
+  const svgPath = lot.path || lot.svg_path;
+
+  // Si no hay path válido, no renderizar este lote (evita huecos o errores SVG)
+  if (!svgPath) return null;
+
+  return (
+    <>
+      <path
+        d={svgPath}
+        fill={getColor(lot.status)}
+        stroke={isSelected ? 'yellow' : '#ffffff'}
+        strokeWidth={isSelected ? 2 : 0.3}
+        opacity={isSelected ? 0.75 : 1}
+        style={{ cursor: 'pointer', transition: 'all 0.15s' }}
+        onClick={() => onClick(lot)}
+      />
+      {lot.centroid && typeof lot.centroid.x === 'number' && typeof lot.centroid.y === 'number' && (
+        <text
+          x={lot.centroid.x}
+          y={lot.centroid.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="4px"
+          fill="#ffffff"
+          style={{ pointerEvents: 'none', userSelect: 'none', fontWeight: 'bold' }}
+        >
+          {lot.display_id || lot.number?.replace('Lote-', '')}
+        </text>
+      )}
+    </>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.isSelected === nextProps.isSelected &&
+    (prevProps.lot.path || prevProps.lot.svg_path) === (nextProps.lot.path || nextProps.lot.svg_path) &&
+    prevProps.lot.status === nextProps.lot.status &&
+    prevProps.lot.display_id === nextProps.lot.display_id
+  );
+});
+
+const MapEngine = ({ data, onSelectLot, selectedLots = [] }) => {
   if (!data || !data.blocks || data.blocks.length === 0) {
     return <div className="p-4 text-gray-500">Esperando datos del mapa...</div>;
   }
@@ -63,40 +105,17 @@ const MapEngine = ({ data, onSelectLot, selectedLotId }) => {
               >
                 {data.blocks.map((block) => (
                   <g key={block.id}>
-                    {/* Predios del bloque */}
                     {block.lots.map((lot) => {
-                      const isSelected = selectedLotId === lot.id;
+                      const isSelected = selectedLots.some(l => l.id === lot.id);
                       return (
-                        <path
+                        <LotPolygon
                           key={lot.id}
-                          d={lot.path}
-                          fill={getColor(lot.status)}
-                          stroke={isSelected ? '#1565C0' : '#ffffff'}
-                          strokeWidth={isSelected ? 0.8 : 0.3}
-                          opacity={isSelected ? 0.75 : 1}
-                          style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
-                          onClick={() => onSelectLot(lot)}
+                          lot={lot}
+                          isSelected={isSelected}
+                          onClick={onSelectLot}
                         />
                       );
                     })}
-
-                    {/* Número del lote en el centroide — fontSize en unidades SVG */}
-                    {block.lots.map((lot) =>
-                      lot.centroid ? (
-                        <text
-                          key={`label-${lot.id}`}
-                          x={lot.centroid.x}
-                          y={lot.centroid.y}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          fontSize="1.5"
-                          fill="#ffffff"
-                          style={{ pointerEvents: 'none', userSelect: 'none' }}
-                        >
-                          {lot.number.replace('Lote-', '')}
-                        </text>
-                      ) : null
-                    )}
                   </g>
                 ))}
               </svg>
