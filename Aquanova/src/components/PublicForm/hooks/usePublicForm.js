@@ -372,5 +372,37 @@ export const usePublicForm = () => {
     setResponse,
     setRegistration,
     handleSubmit,
+    clearCache: useCallback(() => {
+      if (CACHE_KEY) {
+        localStorage.removeItem(CACHE_KEY);
+      }
+      
+      // Reset responses to default values
+      const initial = {};
+      (formData?.schema || []).forEach((field) => {
+        if (field.type === 'info') return;
+        if (field.type === 'checkbox') {
+          initial[field.key] = [];
+        } else if (field.type === 'file') {
+          initial[field.key] = field.multiple !== false ? [] : null;
+        } else if (field.type === 'range') {
+          initial[field.key] = field.min ?? 0;
+        } else if (field.type === 'lot_selector') {
+          initial[field.key] = null;
+        } else {
+          initial[field.key] = '';
+        }
+      });
+      setResponses(initial);
+      
+      // Reset registration to default values
+      setRegistrations({
+        name: '',
+        document_number: '',
+        signature: null,
+      });
+      
+      setFieldErrors({});
+    }, [CACHE_KEY, formData]),
   };
 };

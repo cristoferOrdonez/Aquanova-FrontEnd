@@ -49,6 +49,7 @@ function PublicFormContent() {
     handleSubmit,
     registration,
     setRegistration,
+    clearCache,
   } = usePublicFormContext();
 
   if (loading) return <LoadingState />;
@@ -82,8 +83,16 @@ function PublicFormContent() {
         <div className="flex flex-col gap-6 p-6">
 
           {/* Encabezado */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <h1 className="font-work text-2xl font-bold text-gray-900">{formData.title}</h1>
+            <button
+              type="button"
+              onClick={clearCache}
+              className="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors shrink-0"
+              title="Borrar progreso guardado en este dispositivo"
+            >
+              Reiniciar formulario
+            </button>
           </div>
 
           {/* Banner de sorteo */}
