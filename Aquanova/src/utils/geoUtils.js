@@ -286,78 +286,128 @@ const pointToLineDistanceCartesian = (p, lineCoords) => {
   return minDist;
 };
 
-export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON) => {
+/**
+ * Detecta las aristas libres (no compartidas con otros lotes) de un polígono.
+ * Devuelve un array de { segment: [p1, p2], len } filtrados y clasificados.
+ * 
+ * @param {Feature<Polygon>} targetLotGeoJSON - Polígono del lote objetivo (en pixel-space)
+ * @param {Feature<Polygon>[]} allLotsGeoJSON - Todos los demás lotes de la manzana
+ * @param {number} shareTolerance - Distancia máxima para considerar un borde como "compartido"
+ * @returns {{ segment, len }[]} - Bordes libres ordenados por longitud desc
+ */
+const findFreeEdges = (targetLotGeoJSON, allLotsGeoJSON, shareTolerance = 2.0) => {
   const otherLines = allLotsGeoJSON.map(p => turf.polygonToLine(p));
-  
   const coords = targetLotGeoJSON.geometry.coordinates[0];
-  let maxLen = -1;
-  let frontageSegment = null;
+  const freeEdges = [];
 
   for (let i = 0; i < coords.length - 1; i++) {
     const p1 = coords[i];
     const p2 = coords[i + 1];
-    
     const dx = p2[0] - p1[0];
     const dy = p2[1] - p1[1];
     const len = Math.sqrt(dx * dx + dy * dy);
 
-    // Muestreo de puntos en la línea para verificar compartición
-    const testPoints = [
-      [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2],
-      [p1[0] + dx * 0.25, p1[1] + dy * 0.25],
-      [p1[0] + dx * 0.75, p1[1] + dy * 0.75]
-    ];
+    // Muestrear 5 puntos a lo largo del segmento para un chequeo más robusto
+    const testPoints = [0.1, 0.3, 0.5, 0.7, 0.9].map(t => [
+      p1[0] + dx * t, p1[1] + dy * t
+    ]);
 
     let isShared = false;
     for (const line of otherLines) {
-       for (const pt of testPoints) {
-         const lineCoords = line.geometry.type === 'LineString' ? line.geometry.coordinates : line.geometry.coordinates[0];
-         const dist = pointToLineDistanceCartesian(pt, lineCoords);
-         if (dist < 0.1) {
-            isShared = true;
-            break;
-         }
-       }
-       if (isShared) break;
-    }
+      const lineCoords = line.geometry.type === 'LineString'
+        ? line.geometry.coordinates
+        : line.geometry.coordinates[0];
 
-    if (!isShared) {
-      if (len > maxLen) {
-        maxLen = len;
-        frontageSegment = [p1, p2];
+      // Un borde se considera "compartido" si la MAYORÍA de sus puntos de muestreo
+      // están muy cerca de otro lote (tolerancia aumentada a 2.0 para absorber micro-gaps SVG)
+      let sharedCount = 0;
+      for (const pt of testPoints) {
+        if (pointToLineDistanceCartesian(pt, lineCoords) < shareTolerance) {
+          sharedCount++;
+        }
+      }
+      if (sharedCount >= 3) { // al menos 3/5 muestras tocando = borde compartido
+        isShared = true;
+        break;
       }
     }
-  }
 
-  // Fallback si es el único lote en la manzana u ocurrió un overlap
-  if (!frontageSegment) {
-    for (let i = 0; i < coords.length - 1; i++) {
-       const dx = coords[i+1][0] - coords[i][0];
-       const dy = coords[i+1][1] - coords[i][1];
-       const len = Math.sqrt(dx*dx + dy*dy);
-       if (len > maxLen) {
-         maxLen = len;
-         frontageSegment = [coords[i], coords[i+1]];
-       }
+    if (!isShared && len > 1) {
+      freeEdges.push({ segment: [p1, p2], len });
     }
   }
 
-  return frontageSegment;
+  // Ordenar de mayor a menor longitud
+  return freeEdges.sort((a, b) => b.len - a.len);
 };
 
-export const splitLot = (targetLot, parts, allLotsInBlock) => {
-  // --- FASE 1: Detectar fachada en espacio de píxeles (findFrontageLine trabaja en pixel-space) ---
+/**
+ * Detecta la línea de fachada "principal" de un lote.
+ * Por defecto, devuelve el borde libre MÁS LARGO (tipicamente la fachada de calle).
+ * 
+ * @param {Feature<Polygon>} targetLotGeoJSON 
+ * @param {Feature<Polygon>[]} allLotsGeoJSON 
+ * @param {'depth'|'width'} [orientation='depth'] - 'depth' = corte perpendicular a la calle (default, divide el ancho); 'width' = corte paralelo a la calle (divide la profundidad)
+ * @returns {[number,number][]} - Par de puntos [p1, p2]
+ */
+export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON, orientation = 'depth') => {
+  const coords = targetLotGeoJSON.geometry.coordinates[0];
+  const freeEdges = findFreeEdges(targetLotGeoJSON, allLotsGeoJSON);
+
+  if (freeEdges.length === 0) {
+    // Fallback: si está completamente rodeado, usar el borde más largo del polígono
+    let maxLen = -1;
+    let fallback = null;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const dx = coords[i+1][0] - coords[i][0];
+      const dy = coords[i+1][1] - coords[i][1];
+      const len = Math.sqrt(dx*dx + dy*dy);
+      if (len > maxLen) { maxLen = len; fallback = [coords[i], coords[i+1]]; }
+    }
+    return fallback;
+  }
+
+  // 'depth' = dividir por el ancho del lote → la línea de corte es PARALELA al borde libre más largo
+  //   → para esto usamos el borde libre MÁS LARGO como guía de dirección de corte
+  // 'width' = dividir por la profundidad → línea de corte PERPENDICULAR al frente
+  //   → para esto usamos el borde libre más CORTO disponible
+  if (orientation === 'depth') {
+    // Corte estándar catastral: se parte a lo ancho → línea de corte va perp. a la calle
+    // → necesitamos el frente más largo
+    return freeEdges[0].segment;
+  } else {
+    // 'width': se parte a lo largo → línea de corte va paralela a la calle
+    // → necesitamos el borde perpendicular al frente, que es el más corto de los libres
+    const sorted = [...freeEdges].sort((a, b) => a.len - b.len);
+    return sorted[0].segment;
+  }
+};
+
+/**
+ * Divide un lote en N partes utilizando el algoritmo de intersección de semiplanos.
+ * Este enfoque garantiza CERO GAP entre las piezas resultantes porque cada pieza
+ * se calcula como la intersección del polígono original con un semiplano distinto.
+ * 
+ * @param {Object} targetLot - Lote a dividir (con .path o .svg_path)
+ * @param {number} parts - Número de partes
+ * @param {Object[]} allLotsInBlock - Todos los lotes de la manzana para detectar fachada
+ * @param {'depth'|'width'} [splitDirection='depth'] - Dirección del corte
+ * @returns {{ svg_path: string, centroid: { x, y } }[] | null}
+ */
+export const splitLot = (targetLot, parts, allLotsInBlock, splitDirection = 'depth') => {
+  // --- FASE 1: Detectar fachada en espacio de píxeles ---
   const targetPoly = svgPathToGeoJSON(targetLot.path || targetLot.svg_path);
+  if (!targetPoly) return null;
+
   const otherPolys = allLotsInBlock
     .filter(l => l.id !== targetLot.id)
     .map(l => svgPathToGeoJSON(l.path || l.svg_path))
     .filter(Boolean);
 
-  const facade = findFrontageLine(targetPoly, otherPolys);
+  const facade = findFrontageLine(targetPoly, otherPolys, splitDirection);
   if (!facade) return null;
 
-  // --- FASE 2: Generar polígonos de corte en espacio normalizado ---
-  // Escalar la fachada al espacio seguro de Turf (dividir por TURF_COORD_SCALE)
+  // --- FASE 2: Calcular puntos de corte sobre la fachada en espacio normalizado ---
   const [p1raw, p2raw] = facade;
   const p1 = [p1raw[0] / TURF_COORD_SCALE, p1raw[1] / TURF_COORD_SCALE];
   const p2 = [p2raw[0] / TURF_COORD_SCALE, p2raw[1] / TURF_COORD_SCALE];
@@ -365,52 +415,72 @@ export const splitLot = (targetLot, parts, allLotsInBlock) => {
   const dx = p2[0] - p1[0];
   const dy = p2[1] - p1[1];
   const len = Math.sqrt(dx * dx + dy * dy);
+  if (len === 0) return null;
+
+  // Vector normal a la fachada (perpendicular al corte)
   const nx = -dy / len;
   const ny = dx / len;
 
+  // Puntos de división equidistante sobre la fachada
   const cutPoints = [];
   for (let i = 1; i < parts; i++) {
     const fraction = i / parts;
     cutPoints.push([p1[0] + dx * fraction, p1[1] + dy * fraction]);
   }
 
-  // MAX_EXTENT = extensión perpendicular del corte en espacio normalizado
-  // (equivale a 30,000,000px en espacio original, más que cualquier mapa SVG posible)
+  // MAX_EXTENT: extensión del semiplano (equivale a ~30 000 000 px en espacio original)
   const MAX_EXTENT = 30000;
-  const THICKNESS = 0.005; // Grosor del corte en espacio normalizado
 
-  const cutBufferPolys = [];
-  for (const cp of cutPoints) {
-    const pA = [cp[0] + nx * MAX_EXTENT, cp[1] + ny * MAX_EXTENT];
-    const pB = [cp[0] - nx * MAX_EXTENT, cp[1] - ny * MAX_EXTENT];
-    const tx = (dx / len) * THICKNESS;
-    const ty = (dy / len) * THICKNESS;
-    const c1 = [pA[0] + tx, pA[1] + ty];
-    const c2 = [pB[0] + tx, pB[1] + ty];
-    const c3 = [pB[0] - tx, pB[1] - ty];
-    const c4 = [pA[0] - tx, pA[1] - ty];
-    cutBufferPolys.push(turf.polygon([[c1, c2, c3, c4, c1]]));
+  // --- FASE 3: Algoritmo de Intersección de Semiplanos (ZERO GAP) ---
+  // En vez de restar una "línea gruesa", calculamos cada pieza como la INTERSECCIÓN
+  // del polígono original con un semiplano definido exactamente en la línea de corte.
+  // Esto garantiza que los bordes de piezas adyacentes sean idénticos → 0 gap.
+  const scaledTarget = _downscaleGeoJSON(targetPoly);
+  const resultPolys = [];
+
+  // Las líneas de corte dividen el polígono en (parts) regiones.
+  // Para cada región k, la intersectamos con:
+  //   - Semiplano "derecho" del corte k-1 (si existe)
+  //   - Semiplano "izquierdo" del corte k (si existe)
+  const buildHalfPlane = (cp, side) => {
+    // side = 1 → semiplano a la "derecha" de la normal (nx,ny)
+    // side = -1 → semiplano a la "izquierda"
+    const s = side;
+    // Cuatro esquinas de un rectángulo enorme en un lado de la línea
+    const pA = [cp[0] + dx * MAX_EXTENT, cp[1] + dy * MAX_EXTENT];
+    const pB = [cp[0] - dx * MAX_EXTENT, cp[1] - dy * MAX_EXTENT];
+    const pC = [pB[0] + s * nx * MAX_EXTENT, pB[1] + s * ny * MAX_EXTENT];
+    const pD = [pA[0] + s * nx * MAX_EXTENT, pA[1] + s * ny * MAX_EXTENT];
+    return turf.polygon([[pA, pB, pC, pD, pA]]);
+  };
+
+  for (let k = 0; k < parts; k++) {
+    try {
+      let piece = scaledTarget;
+
+      // Intersectar con semiplano izquierdo del corte k (si k < parts-1)
+      if (k < parts - 1) {
+        const hp = buildHalfPlane(cutPoints[k], -1);
+        const inter = turf.intersect(turf.featureCollection([piece, hp]));
+        if (!inter) continue;
+        piece = inter;
+      }
+
+      // Intersectar con semiplano derecho del corte k-1 (si k > 0)
+      if (k > 0) {
+        const hp = buildHalfPlane(cutPoints[k - 1], 1);
+        const inter = turf.intersect(turf.featureCollection([piece, hp]));
+        if (!inter) continue;
+        piece = inter;
+      }
+
+      resultPolys.push(piece);
+    } catch (e) {
+      console.warn(`[splitLot] Error al calcular pieza ${k}:`, e.message);
+    }
   }
 
-  // --- FASE 3: Operación booleana de diferencia en espacio normalizado ---
-  const scaledTargetPoly = _downscaleGeoJSON(targetPoly);
-  let diffResultGeoJSON = scaledTargetPoly;
-  for (const cutPoly of cutBufferPolys) {
-    diffResultGeoJSON = turf.difference(turf.featureCollection([diffResultGeoJSON, cutPoly]));
-  }
-
-  if (!diffResultGeoJSON) return null;
-
-  let finalPolys = [];
-  if (diffResultGeoJSON.geometry.type === 'Polygon') {
-    finalPolys.push(diffResultGeoJSON);
-  } else if (diffResultGeoJSON.geometry.type === 'MultiPolygon') {
-    diffResultGeoJSON.geometry.coordinates.forEach(coords => {
-      finalPolys.push(turf.polygon(coords));
-    });
-  }
-
-  // --- FASE 4: Filtrar artefactos y generar resultado en coordenadas originales ---
+  // --- FASE 4: Filtrar artefactos, reescalar y generar SVG paths ---
   const cartesianArea = (coords) => {
     let area = 0;
     const pts = coords[0];
@@ -420,21 +490,76 @@ export const splitLot = (targetLot, parts, allLotsInBlock) => {
     return Math.abs(area / 2);
   };
 
-  // origArea y piezas están en el mismo espacio normalizado: la comparación es directa
-  const origArea = cartesianArea(scaledTargetPoly.geometry.coordinates);
-  const validPolygons = finalPolys.filter(p => cartesianArea(p.geometry.coordinates) > (origArea * 0.02));
+  const origArea = cartesianArea(scaledTarget.geometry.coordinates);
+  const minArea = origArea * 0.02; // descartar artefactos < 2% del área original
 
-  return validPolygons.map(p => {
-    const center = turf.centerOfMass(p);
-    const upscaled = _upscaleGeoJSON(p);
-    return {
-      svg_path: geoJSONToSvgPath(upscaled),
-      centroid: {
-        x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
-        y: center.geometry.coordinates[1] * TURF_COORD_SCALE
-      }
-    };
-  });
+  const validResults = [];
+  for (const piece of resultPolys) {
+    // Manejar tanto Polygon como MultiPolygon resultante
+    const geomType = piece.geometry.type;
+    const subPolys = geomType === 'MultiPolygon'
+      ? piece.geometry.coordinates.map(c => turf.polygon(c))
+      : [piece];
+
+    for (const sp of subPolys) {
+      if (cartesianArea(sp.geometry.coordinates) < minArea) continue;
+      const center = turf.centerOfMass(sp);
+      const upscaled = _upscaleGeoJSON(sp);
+      validResults.push({
+        svg_path: geoJSONToSvgPath(upscaled),
+        centroid: {
+          x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
+          y: center.geometry.coordinates[1] * TURF_COORD_SCALE
+        }
+      });
+    }
+  }
+
+  // Si el algoritmo de semiplanos no produjo resultados (geometría muy irregular),
+  // caer de vuelta al método antiguo de sustracción con grosor mínimo
+  if (validResults.length < 2) {
+    console.warn('[splitLot] Semiplanos fallaron, usando método de sustracción de respaldo.');
+    const THICKNESS = 0.0001;
+    let diffResult = scaledTarget;
+    for (const cp of cutPoints) {
+      const pA = [cp[0] + nx * MAX_EXTENT, cp[1] + ny * MAX_EXTENT];
+      const pB = [cp[0] - nx * MAX_EXTENT, cp[1] - ny * MAX_EXTENT];
+      const tx = (dx / len) * THICKNESS;
+      const ty = (dy / len) * THICKNESS;
+      const cutPoly = turf.polygon([[
+        [pA[0] + tx, pA[1] + ty],
+        [pB[0] + tx, pB[1] + ty],
+        [pB[0] - tx, pB[1] - ty],
+        [pA[0] - tx, pA[1] - ty],
+        [pA[0] + tx, pA[1] + ty]
+      ]]);
+      try {
+        const d = turf.difference(turf.featureCollection([diffResult, cutPoly]));
+        if (d) diffResult = d;
+      } catch(e) { /* ignorar */ }
+    }
+
+    let fallbackPolys = [];
+    if (diffResult.geometry.type === 'Polygon') fallbackPolys.push(diffResult);
+    else if (diffResult.geometry.type === 'MultiPolygon') {
+      diffResult.geometry.coordinates.forEach(c => fallbackPolys.push(turf.polygon(c)));
+    }
+    fallbackPolys = fallbackPolys.filter(p => cartesianArea(p.geometry.coordinates) > minArea);
+
+    return fallbackPolys.map(p => {
+      const center = turf.centerOfMass(p);
+      const upscaled = _upscaleGeoJSON(p);
+      return {
+        svg_path: geoJSONToSvgPath(upscaled),
+        centroid: {
+          x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
+          y: center.geometry.coordinates[1] * TURF_COORD_SCALE
+        }
+      };
+    });
+  }
+
+  return validResults;
 };
 
 export const generateSplitIds = (baseId, parts) => {

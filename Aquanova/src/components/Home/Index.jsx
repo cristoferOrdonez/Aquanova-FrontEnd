@@ -104,12 +104,15 @@ function Index() {
     const mapDeletedLotsPayload = selectedLots.map(l => ({ id: l.id, version: l.version || 1 }));
     const selectedLotIds = selectedLots.map(l => l.id);
 
-    // Identificar block_id localizando la manzana que contiene el lote
-    let targetBlockId = null;
-    if (mapData && mapData.blocks) {
+    // Identificar IDs de manzana (el UUID real para la DB y el ID sintético para el estado local)
+    let targetDatabaseBlockId = firstLot.database_block_id;
+    let targetGeometricBlockId = firstLot.block_id; // e.g. "MZ01"
+
+    if (!targetDatabaseBlockId && mapData?.blocks) {
       for (const block of mapData.blocks) {
          if (block.lots.some(l => l.id === firstLot.id)) {
-             targetBlockId = block.id;
+             targetDatabaseBlockId = block.database_block_id;
+             targetGeometricBlockId = block.id;
              break;
          }
       }
@@ -119,7 +122,8 @@ function Index() {
     const newLot = {
       ...firstLot,
       id: `temp_merged_${Date.now()}`,
-      block_id: targetBlockId,
+      block_id: targetDatabaseBlockId, // Importante: UUID real para la base de datos
+      _geometric_block_id: targetGeometricBlockId, // Para uso interno frontend
       // Enviamos ambas propiedades para garantizar compatibilidad en backend y MapEngine
       svg_path: svgPath,
       path: svgPath,
@@ -162,9 +166,8 @@ function Index() {
         if (!prevData || !prevData.blocks) return prevData;
         const newData = { ...prevData };
         newData.blocks = newData.blocks.map(block => {
-          // Buscamos si alguno de los predios eliminados pertenecía a este bloque
-          const containsSelected = block.lots.some(l => selectedLotIds.includes(l.id));
-          if (containsSelected) {
+          // Usamos el ID geométrico sintético (MZ01) para encontrar el bloque en el estado local
+          if (block.id === targetGeometricBlockId) {
             const remainingLots = block.lots.filter(l => !selectedLotIds.includes(l.id));
             return {
               ...block,
@@ -193,6 +196,17 @@ function Index() {
 
   const handleSplitLot = async () => {
     if (selectedLots.length !== 1 || isProcessing) return;
+
+    // Paso 1: elegir dirección del corte
+    const dirChoice = window.confirm(
+      "¿Cómo desea dividir el predio?\n\n" +
+      "✅ Aceptar → Por el ANCHO (cada parte mantiene frente a la calle)\n" +
+      "❌ Cancelar → Por la PROFUNDIDAD (cada parte tiene distinta calle/fondo)"
+    );
+    // confirm retorna true = 'depth' (ancho); false = 'width' (profundidad)
+    const splitDirection = dirChoice ? 'depth' : 'width';
+
+    // Paso 2: elegir número de partes
     const partsStr = window.prompt("¿En cuántas partes desea dividir el predio? (Ingrese un número entero mayor a 1)");
     if (!partsStr) return;
     
@@ -206,18 +220,21 @@ function Index() {
     
     // Find context lots and block_id
     let blockContext = [];
-    let targetBlockId = null;
-    if (mapData && mapData.blocks) {
+    let targetDatabaseBlockId = targetLot.database_block_id;
+    let targetGeometricBlockId = targetLot.block_id;
+
+    if (mapData?.blocks) {
       for (const block of mapData.blocks) {
          if (block.lots.some(l => l.id === targetLot.id)) {
              blockContext = block.lots;
-             targetBlockId = block.id;
+             if (!targetDatabaseBlockId) targetDatabaseBlockId = block.database_block_id;
+             if (!targetGeometricBlockId) targetGeometricBlockId = block.id;
              break;
          }
       }
     }
 
-    const splitResults = splitLot(targetLot, parts, blockContext);
+    const splitResults = splitLot(targetLot, parts, blockContext, splitDirection);
     if (!splitResults || splitResults.length === 0) {
       alert("No se pudo calcular la división del polígono matemáticamente.");
       return;
@@ -228,7 +245,8 @@ function Index() {
     const newLots = splitResults.map((res, idx) => ({
       ...targetLot,
       id: `temp_split_${Date.now()}_${idx}`,
-      block_id: targetBlockId,
+      block_id: targetDatabaseBlockId, // UUID real para el backend
+      _geometric_block_id: targetGeometricBlockId,
       path: res.svg_path,
       centroid: res.centroid,
       display_id: newIds[idx],
@@ -256,7 +274,7 @@ function Index() {
       setMapData(prevData => {
         const newData = { ...prevData };
         newData.blocks = newData.blocks.map(block => {
-          if (block.lots.some(l => l.id === targetLot.id)) {
+          if (block.id === targetGeometricBlockId) {
             const remainingLots = block.lots.filter(l => l.id !== targetLot.id);
             return {
               ...block,
