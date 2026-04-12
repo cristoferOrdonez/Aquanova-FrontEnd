@@ -143,20 +143,30 @@ function PublicFileFieldRenderer({ field, value, setResponse, error }) {
   return (
     <div className="flex flex-col gap-2 w-full mt-1">
       {filesArray.length === 0 ? (
-        <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-gray-400'} rounded-xl cursor-pointer transition-all`}>
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+        <div className={`flex flex-col sm:flex-row gap-2 w-full h-auto sm:h-32 border-2 border-dashed ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50'} rounded-xl overflow-hidden`}>
+          <label className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer hover:bg-gray-100 transition-all border-b-2 sm:border-b-0 sm:border-r-2 border-dashed border-gray-300">
             <svg aria-hidden="true" className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-            <p className="mb-2 text-gray-500 text-center text-sm"><span className="font-semibold">Haz clic para subir archivos</span></p>
-            <p className="text-gray-400 text-center px-4 text-xs">Puedes seleccionar uno o varios archivos a la vez. <br />PNG, JPG, MP4, MOV (Imágenes: 10MB, Videos: 50MB)</p>
-          </div>
-          <input
-            type="file"
-            accept="image/*,video/*"
-            multiple={field.multiple !== false}
-            className="hidden"
-            onChange={handleFileChange}
-          />
-        </label>
+            <p className="mb-1 text-gray-500 text-center text-sm"><span className="font-semibold">Subir archivo(s)</span></p>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              multiple={field.multiple !== false}
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </label>
+          <label className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer hover:bg-gray-100 transition-all">
+            <svg aria-hidden="true" className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <p className="mb-1 text-gray-500 text-center text-sm"><span className="font-semibold">Tomar foto</span></p>
+            <input
+              type="file"
+              accept="image/*"
+              capture="camera"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </label>
+        </div>
       ) : (
         <div className="w-full">
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
@@ -210,19 +220,33 @@ function PublicFileFieldRenderer({ field, value, setResponse, error }) {
             })}
 
             {field.multiple !== false && (
-              <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all flex flex-col items-center justify-center text-center shadow-sm">
-                <svg aria-hidden="true" className="w-6 h-6 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                <span className="text-gray-500 font-medium text-xs">Añadir más</span>
-                <input
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
+              <>
+                <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all flex flex-col items-center justify-center text-center shadow-sm">
+                  <svg aria-hidden="true" className="w-6 h-6 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                  <span className="text-gray-500 font-medium text-[9px] md:text-xs">Añadir archivos</span>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+                <label className="relative aspect-square border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-gray-400 transition-all flex flex-col items-center justify-center text-center shadow-sm">
+                  <svg aria-hidden="true" className="w-6 h-6 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  <span className="text-gray-500 font-medium text-[9px] md:text-xs">Cámara</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="camera"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </>
             )}
           </div>
+          <p className="mt-2 text-gray-400 text-xs">Puedes seguir añadiendo, ya sea de tu galería o cámara. Pulsa un archivo para ver opciones.</p>
         </div>
       )}
     </div>

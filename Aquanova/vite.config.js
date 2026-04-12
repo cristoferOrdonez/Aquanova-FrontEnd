@@ -12,6 +12,7 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    host:true
   },
   build: {
     rollupOptions: {
@@ -25,3 +26,4 @@ export default defineConfig({
     }
   }
 })
+ 
