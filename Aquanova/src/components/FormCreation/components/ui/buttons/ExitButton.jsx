@@ -4,7 +4,7 @@ function ExitButton({ onClick, disabled = false }) {
             onClick={disabled ? undefined : onClick}
             disabled={disabled}
             className={`
-                w-fit pr-4 pl-2.5 py-1 rounded-[30px] border-[1.5px]
+                w-fit pr-4 pl-2.5 py-1.5 rounded-[30px] border-[1.5px]
                 flex flex-row items-center gap-2 transition-all duration-200
                 ${disabled
                     ? 'bg-red-50/40 border-red-900/30 text-red-900/40 cursor-not-allowed'

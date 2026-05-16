@@ -21,7 +21,7 @@ const CommonSelector = ({
                 className={`
                     w-full
                     flex items-center justify-between
-                    px-4 py-2.5
+                    px-4 py-3 min-h-[44px]
                     rounded-lg
                     bg-gray-800/50 
                     border border-gray-700
@@ -73,7 +73,7 @@ const CommonSelector = ({
                                     setIsGeoLevelParentSelectorOpen(false);
                                 }}
                                 className="
-                                    px-4 py-2
+                                    px-4 py-3 min-h-[44px]
                                     text-sm text-gray-300
                                     cursor-pointer 
                                     transition-colors duration-150

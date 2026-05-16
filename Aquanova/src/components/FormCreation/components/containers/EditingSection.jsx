@@ -55,6 +55,7 @@ function EditingSection({ id }) {
     const {
         addQuestion,
         updateQuestion,
+        setJustUpdatedQuestionId,
     } = useQuestionListContext();
 
     const editingSection = useEditingSectionContext();
@@ -87,7 +88,7 @@ function EditingSection({ id }) {
             setTimeout(() => {
                 const element = document.getElementById(`question-card-${currentId}`);
                 if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
+            }, 100);
         } else {
             const newQuestion = { id: Date.now(), key: generateKey(editingSection.questionLabel), ...questionData };
             addQuestion(newQuestion);
@@ -100,6 +101,28 @@ function EditingSection({ id }) {
         typeSelector.setSelectedTypeQuestionOption("Sólo texto (sin respuestas)");
         editingSection.setIsMandatoryOn(false);
         editingSection.setIsEditingSectionOpen(false);
+    };
+
+    const handleCancel = () => {
+        const currentId = editingSection.editingQuestionId;
+        
+        editingSection.setIsEditingSectionOpen(false);
+        editingSection.setEditingQuestionId(null);
+        creationControls.setRotation(prev => prev - 360);
+        creationControls.setIsCreationOn(false);
+
+        // Si estábamos editando una pregunta existente (no creando una nueva)
+        if (currentId !== null && currentId !== -1) {
+            // Resaltar temporalmente con borde azul
+            setJustUpdatedQuestionId(currentId);
+            setTimeout(() => setJustUpdatedQuestionId(null), 2500);
+
+            // Scroll suave hacia la tarjeta
+            setTimeout(() => {
+                const element = document.getElementById(`question-card-${currentId}`);
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
     };
 
     
@@ -137,7 +160,7 @@ function EditingSection({ id }) {
                             }}
                             className="
                                 w-full resize-none overflow-hidden
-                                p-2 tablet:text-sm text-[13px] text-[var(--text)]
+                                p-2 tablet:text-sm text-[16px] text-[var(--text)]
                                 border-[1.5px] border-[var(--card-stroke)]
                                 rounded-[8px] outline-none
                                 placeholder:text-gray-300
@@ -159,12 +182,7 @@ function EditingSection({ id }) {
             <div className="flex flex-row justify-between gap-4">
               <SaveCancelControl
                 onSave={handleSaveQuestion}
-                onCancel={() => {
-                  editingSection.setIsEditingSectionOpen(false);
-                  editingSection.setEditingQuestionId(null);
-                  creationControls.setRotation(prev => prev - 360);
-                  creationControls.setIsCreationOn(false);
-                }}
+                onCancel={handleCancel}
               />
 
               <MandatoryToggle

@@ -461,13 +461,13 @@ function Index() {
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
 
       {/* BARRA SUPERIOR */}
-      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full overflow-hidden">
-        <div className="w-full flex justify-between items-center">
+      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full">
+        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
             <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
           </div>
-          <div className="flex gap-2 min-h-[44px] items-center">
+          <div className="flex flex-wrap gap-2 min-h-[44px] items-center w-full md:w-auto">
             {historyStack.length > 0 && (
               <button
                 disabled={isProcessing}
@@ -513,7 +513,7 @@ function Index() {
         {/* Banner de Auditoría Topológica (Oculto dinámicamente sin saltos bruscos) */}
         <div
           className={`w-full flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 text-sm transition-all duration-300 overflow-hidden ${
-            topologyMismatches.length > 0 ? 'py-3 opacity-100 max-h-[200px]' : 'py-0 opacity-0 max-h-0 border-0 !p-0 m-0'
+            topologyMismatches.length > 0 ? 'py-3 opacity-100 max-h-[500px]' : 'py-0 opacity-0 max-h-0 border-0 !p-0 m-0'
           }`}
         >
           <span className="text-orange-500 text-lg leading-none mt-0.5">⚠</span>
@@ -538,8 +538,20 @@ function Index() {
               onFocus={() => setShowSuggestions(true)}
               placeholder={neighborhoods.length === 0 ? 'Cargando sectores...' : 'Buscar sector...'}
               disabled={neighborhoods.length === 0}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:bg-gray-200 text-sm"
+              className="border border-gray-300 rounded-lg px-4 pr-10 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:bg-gray-200 text-sm"
             />
+            {searchText && (
+              <button
+                type="button"
+                onClick={() => setSearchText('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                title="Limpiar búsqueda"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
             {showSuggestions && filteredNeighborhoods.length > 0 && (
               <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
                 {filteredNeighborhoods.map((hood) => (
@@ -566,7 +578,7 @@ function Index() {
 
       {/* ÁREA PRINCIPAL: MAPA + PANEL */}
       <div className="flex flex-col md:flex-row gap-6 h-auto md:h-[calc(100vh-280px)] md:min-h-[500px] shrink-0">
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col min-h-[400px] md:min-h-0 h-full">
+        <div className="w-full md:flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col h-[450px] md:h-full md:min-h-0">
           {!selectedNeighborhoodId || loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">Cargando sector...</div>
           ) : error ? (

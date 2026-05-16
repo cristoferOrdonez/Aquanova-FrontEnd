@@ -2,11 +2,15 @@ import FORM_CREATION_CONFIG from './../../../config/formCreationConfig';
 
 export default function QuestionControl({
   q,
+  index,
+  totalQuestions,
   isEditingThis,
   handleStartEditing,
   handleDeleteQuestion,
   handleDragStart,
-  handleDragEnd
+  handleDragEnd,
+  handleMoveUp,
+  handleMoveDown
 }) {
   const isCompact = q.type === FORM_CREATION_CONFIG.defaultType;
 
@@ -16,15 +20,16 @@ export default function QuestionControl({
       aria-label={`Acciones para pregunta: ${q.label || q.title || "sin título"}`}
       className={`
         flex-shrink-0 flex
-        flex-row pl-2 gap-2 mb-3
+        flex-row pl-2 gap-2 mb-3 mt-3
         tablet:absolute tablet:left-[calc(100%+12px)] tablet:top-1/2 tablet:-translate-y-1/2
-        tablet:flex-row tablet:pl-0 tablet:mb-0 tablet:gap-2
+        tablet:flex-row tablet:pl-0 tablet:mb-0 tablet:mt-0 tablet:gap-2
         ${isCompact ? '' : 'xl:flex-col'}
         transition-all duration-300
         ${isEditingThis ? 'opacity-0 pointer-events-none' : 'opacity-100'}
       `}
     >
 
+      {/* Botón Mover (Drag & Drop) - Solo visible en Escritorio */}
       <button
         draggable
         onDragStart={(e) => handleDragStart(e, q.id)}
@@ -32,7 +37,8 @@ export default function QuestionControl({
         aria-label="Mover pregunta"
         tabIndex={0}
         className="
-          w-fit group flex h-10 items-center justify-center
+          hidden tablet:flex
+          w-fit group h-10 items-center justify-center
           rounded-full border border-gray-400 bg-gray-50 p-2
           cursor-grab active:cursor-grabbing
           transition-all duration-300 ease-in-out
@@ -49,6 +55,60 @@ export default function QuestionControl({
           transition-all duration-300 ease-out
           group-hover:ml-2 group-hover:max-w-[100px] group-hover:opacity-100
         ">Mover</span>
+      </button>
+
+      {/* Botón Subir - Solo visible en Móvil */}
+      <button
+        onClick={() => handleMoveUp(index)}
+        disabled={index === 0}
+        aria-label="Mover pregunta hacia arriba"
+        tabIndex={0}
+        className={`
+          flex tablet:hidden
+          w-fit group h-10 items-center justify-center
+          rounded-full border border-gray-400 bg-gray-50 p-2
+          transition-all duration-300 ease-in-out
+          hover:bg-gray-100 hover:pr-4 cursor-pointer
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2138C4]
+          ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-500 flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+        </svg>
+        <span className="
+          max-w-0 overflow-hidden whitespace-nowrap
+          tablet:text-sm text-[13px] font-medium text-gray-500 opacity-0
+          transition-all duration-300 ease-out
+          group-hover:ml-2 group-hover:max-w-[100px] group-hover:opacity-100
+        ">Subir</span>
+      </button>
+
+      {/* Botón Bajar - Solo visible en Móvil */}
+      <button
+        onClick={() => handleMoveDown(index)}
+        disabled={index === totalQuestions - 1}
+        aria-label="Mover pregunta hacia abajo"
+        tabIndex={0}
+        className={`
+          flex tablet:hidden
+          w-fit group h-10 items-center justify-center
+          rounded-full border border-gray-400 bg-gray-50 p-2
+          transition-all duration-300 ease-in-out
+          hover:bg-gray-100 hover:pr-4 cursor-pointer
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2138C4]
+          ${index === totalQuestions - 1 ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-500 flex-shrink-0">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+        </svg>
+        <span className="
+          max-w-0 overflow-hidden whitespace-nowrap
+          tablet:text-sm text-[13px] font-medium text-gray-500 opacity-0
+          transition-all duration-300 ease-out
+          group-hover:ml-2 group-hover:max-w-[100px] group-hover:opacity-100
+        ">Bajar</span>
       </button>
 
       <button

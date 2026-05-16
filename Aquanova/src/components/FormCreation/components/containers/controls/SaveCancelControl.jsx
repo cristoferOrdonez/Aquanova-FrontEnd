@@ -3,11 +3,11 @@ export default function SaveCancelControl({
   onCancel
 }) {
   return (
-    <div className="gap-2 flex flex-row [@media(pointer:coarse)]:flex-col items-center justify-center">
+    <div className="gap-3 flex flex-row [@media(pointer:coarse)]:flex-col items-center justify-center">
       <button
         onClick={onSave}
         className="
-          group flex h-8 items-center justify-center rounded-full border border-emerald-500 bg-emerald-50 p-1.5 transition-all duration-300 ease-in-out hover:bg-emerald-100 hover:pr-3 cursor-pointer
+          group flex h-10 min-w-[40px] items-center justify-center rounded-full border border-emerald-500 bg-emerald-50 px-2.5 py-1.5 transition-all duration-300 ease-in-out hover:bg-emerald-100 hover:pr-4 cursor-pointer
         "
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -19,7 +19,7 @@ export default function SaveCancelControl({
       <button
         onClick={onCancel}
         className="
-          group flex h-8 items-center justify-center rounded-full border border-red-800/30 bg-red-50 p-1.5 transition-all duration-300 ease-in-out hover:bg-red-100 hover:pr-3 cursor-pointer
+          group flex h-10 min-w-[40px] items-center justify-center rounded-full border border-red-800/30 bg-red-50 px-2.5 py-1.5 transition-all duration-300 ease-in-out hover:bg-red-100 hover:pr-4 cursor-pointer
         "
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-900 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
