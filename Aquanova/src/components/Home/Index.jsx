@@ -12,6 +12,7 @@ import { useMapData } from './hooks/useMapData';
 import { prediosService } from '../../services/prediosService'; 
 
 import { mergeLots, areLotsContiguous, generateMergedId, splitLot, generateSplitIds } from '../../utils/geoUtils';
+import Chatbot from '../Chatbot/Index';
 
 function Index() {
   const [neighborhoods, setNeighborhoods] = useState([]);
@@ -595,6 +596,9 @@ function Index() {
       <div className="w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-4 shrink-0">
         <MapLegend />
       </div>
+
+      {/* CHATBOT */}
+      <Chatbot />
 
       {/* PANEL DE MÉTRICAS */}
       <MetricsPanel mapData={mapData} loading={loading} />
