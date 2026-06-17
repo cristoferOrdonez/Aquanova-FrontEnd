@@ -81,3 +81,15 @@ export const groupLotsIntoBlocks = (lots, epsilon = 0.5) => {
     ids.map(id => lotMap.get(id)).filter(Boolean)
   );
 };
+
+export const areLotsContiguous = (lotsArray) => {
+  if (!lotsArray || lotsArray.length < 2) return true;
+  try {
+    // Epsilon de 1.0 para absorber gaps de dibujo
+    const blocks = groupLotsIntoBlocks(lotsArray, 1.0);
+    return blocks.length === 1;
+  } catch (e) {
+    console.error("Error en validación de contigüedad:", e);
+    return false;
+  }
+};

@@ -29,15 +29,17 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
   return (
     <>
       <path
+        id={`lot-${lot.id}`}
         d={svgPath}
         fill={getColor(lot.status)}
         stroke={strokeColor}
         strokeWidth={strokeW}
         strokeDasharray={strokeDash}
-        opacity={isSelected ? 0.75 : 1}
-        style={{ cursor: 'pointer', transition: 'all 0.15s' }}
+        className={`transition-all duration-200 ease-in-out cursor-pointer hover:brightness-110 drop-shadow-sm ${isSelected ? 'opacity-80' : 'opacity-100 hover:opacity-90'}`}
         onClick={() => onClick(lot)}
-      />
+      >
+        <title>{lot.display_id || lot.number || `Predio ID: ${lot.id}`}</title>
+      </path>
       {lot.centroid && typeof lot.centroid.x === 'number' && typeof lot.centroid.y === 'number' && (
         <text
           x={lot.centroid.x}
@@ -63,7 +65,7 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
   );
 });
 
-const MapEngine = ({ data, onSelectLot, selectedLots = [] }) => {
+const MapEngine = ({ data, onSelectLot, selectedLots = [], transformRef }) => {
   if (!data || !data.blocks || data.blocks.length === 0) {
     return <div className="p-4 text-gray-500">Esperando datos del mapa...</div>;
   }
@@ -74,6 +76,7 @@ const MapEngine = ({ data, onSelectLot, selectedLots = [] }) => {
   return (
     <div className="w-full h-full bg-slate-50 relative overflow-hidden">
       <TransformWrapper
+        ref={transformRef}
         initialScale={1}
         minScale={0.5}
         maxScale={8}

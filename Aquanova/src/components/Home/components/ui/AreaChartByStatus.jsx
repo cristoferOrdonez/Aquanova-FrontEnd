@@ -1,6 +1,23 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0];
+    return (
+      <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
+        <p className="text-sm font-medium" style={{ color: item.payload.color }}>
+          {item.payload.name}
+        </p>
+        <p className="text-lg font-bold text-gray-800">
+          {item.value.toLocaleString('es-CO')} m²
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 function AreaChartByStatus({ data }) {
   if (!data || data.length === 0 || data.every(d => d.value === 0)) {
     return (
@@ -17,23 +34,6 @@ function AreaChartByStatus({ data }) {
       return `${(value / 1000).toFixed(1)}K`;
     }
     return value.toFixed(0);
-  };
-
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0];
-      return (
-        <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
-          <p className="text-sm font-medium" style={{ color: item.payload.color }}>
-            {item.payload.name}
-          </p>
-          <p className="text-lg font-bold text-gray-800">
-            {item.value.toLocaleString('es-CO')} m²
-          </p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (

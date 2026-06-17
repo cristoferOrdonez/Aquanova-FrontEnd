@@ -1,6 +1,5 @@
 import * as turf from '@turf/turf';
 import { distPointToSegment, polygonsAreAdjacent } from './GeometricCore';
-import { groupLotsIntoBlocks } from './TopologyEngine';
 
 /**
  * Factor de escala para normalizar coordenadas SVG al espacio válido de Turf.js.
@@ -215,19 +214,6 @@ export const mergeLots = (lotsArray) => {
  * @param {Array} lotsArray 
  * @returns {boolean}
  */
-export const areLotsContiguous = (lotsArray) => {
-  if (!lotsArray || lotsArray.length < 2) return true;
-  try {
-    // Usamos el motor de topología para ver si forman un solo componente conexo
-    // Epsilon de 1.0 para absorber gaps de dibujo
-    const blocks = groupLotsIntoBlocks(lotsArray, 1.0);
-    return blocks.length === 1;
-  } catch (e) {
-    console.error("Error en validación de contigüidad:", e);
-    return false;
-  }
-};
-
 /**
  * Genera el identificador visual de la unión de lotes.
  * Ej: MZ01ID01 y MZ01ID02 -> MZ01ID01-02
@@ -586,3 +572,4 @@ export const generateSplitIds = (baseId, parts) => {
   }
   return ids;
 };
+

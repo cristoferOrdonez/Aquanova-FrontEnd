@@ -11,7 +11,8 @@ import { useMapData } from './hooks/useMapData';
 
 import { prediosService } from '../../services/prediosService';
 
-import { mergeLots, areLotsContiguous, generateMergedId, splitLot, generateSplitIds } from '../../utils/geoUtils';
+import { mergeLots, generateMergedId, splitLot, generateSplitIds } from '../../utils/geoUtils';
+import { areLotsContiguous } from '../../utils/TopologyEngine';
 
 function Index() {
   const [neighborhoods, setNeighborhoods] = useState([]);
@@ -22,6 +23,7 @@ function Index() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const searchRef = useRef(null);
+  const mapTransformRef = useRef(null);
 
   // --- Modo Unificación ---
   const [isMergeMode, setIsMergeMode] = useState(false);
@@ -52,9 +54,14 @@ function Index() {
     const fetchNeighborhoods = async () => {
       try {
         const response = await prediosService.getNeighborhoods();
-        if (response.data && response.data.length > 0) {
-          setNeighborhoods(response.data);
-          const defaultHood = response.data.find(h => h.code === 'SMCN-001') ?? response.data[0];
+        let hoods = [];
+        if (Array.isArray(response)) hoods = response;
+        else if (response && Array.isArray(response.data)) hoods = response.data;
+        else if (response && Array.isArray(response.neighborhoods)) hoods = response.neighborhoods;
+
+        if (hoods.length > 0) {
+          setNeighborhoods(hoods);
+          const defaultHood = hoods.find(h => h.code === 'SMCN-001') ?? hoods[0];
           setSelectedNeighborhoodId(defaultHood.id);
           setSearchText(`${defaultHood.name} (${defaultHood.code})`);
         }
@@ -534,8 +541,8 @@ function Index() {
       </div>
 
       {/* ÁREA PRINCIPAL: MAPA + PANEL */}
-      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px] h-full md:h-auto">
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col min-h-[350px] md:min-h-0">
+      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px] h-[75vh] md:h-auto relative overflow-hidden">
+        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col h-full">
           {!selectedNeighborhoodId || loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">Cargando sector...</div>
           ) : error ? (
@@ -546,20 +553,46 @@ function Index() {
                 data={mapData} 
                 onSelectLot={handleLotSelect} 
                 selectedLots={selectedLots}
+                transformRef={mapTransformRef}
               />
-              <div className="absolute bottom-4 left-4 pointer-events-none">
+              <div className="absolute bottom-4 left-4 pointer-events-none z-10">
                  <MapLegend />
               </div>
             </div>
           )}
         </div>
 
-        <div className="w-full md:w-96 min-h-[300px] md:min-h-0 md:h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden shrink-0">
-          <LotSidePanel
-            lot={selectedLot}
-            onSave={handleSaveLotChanges}
-            onDeselect={() => setSelectedLot(null)}
+        {/* Panel lateral: Fixed overlay en móvil, columna en desktop */}
+        <div 
+          className={`
+            fixed inset-0 z-50 md:static md:w-[380px] md:z-auto transition-opacity duration-300 md:transition-none
+            ${selectedLot && !isMergeMode ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto'}
+          `}
+        >
+          {/* Overlay oscuro solo en móvil */}
+          <div 
+            className="absolute inset-0 bg-black/50 md:hidden" 
+            onClick={() => setSelectedLot(null)} 
           />
+          
+          <div className={`
+             absolute right-0 top-0 h-full w-[90%] max-w-sm bg-white shadow-2xl md:shadow-sm 
+             md:static md:w-full md:border md:border-gray-200 md:rounded-2xl
+             transform transition-transform duration-300 ease-in-out md:transform-none md:h-full overflow-hidden flex flex-col
+             ${selectedLot && !isMergeMode ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+          `}>
+            <LotSidePanel
+              lot={selectedLot}
+              onSave={handleSaveLotChanges}
+              onDeselect={() => setSelectedLot(null)}
+              onCenterMap={(lotId) => {
+                if (mapTransformRef.current) {
+                  // zoomToElement(node/id, scale, animationTime)
+                  mapTransformRef.current.zoomToElement(`lot-${lotId}`, 3, 500);
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
 
