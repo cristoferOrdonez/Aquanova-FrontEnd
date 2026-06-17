@@ -16,6 +16,25 @@
   --blue-navbar: #1361C5;
   --gray-subtitles: #64748B;
   --green-buttons: #10B981;
+  --navbar-gradient: linear-gradient(to right, #2674b5, #154170);
+}
+
+/* Clases de gradiente del navbar — background-color como fallback
+   sólido para cuando Chrome descarta la capa de composición GPU
+   al cambiar de tab (flash negro/blanco). background-image se
+   renderiza encima del color sólido cuando el GPU está listo. */
+.navbar-gradient {
+  background-color: #1d5d9b;            /* color de emergencia (punto medio) */
+  background-image: linear-gradient(to right, #2674b5, #154170);
+}
+.navbar-gradient-vertical {
+  background-color: #1d5d9b;
+  background-image: linear-gradient(to bottom, #2674b5, #154170);
+}
+
+/* Estabilidad del contenedor raíz de la app */
+.App {
+  isolation: isolate;                   /* contexto de apilamiento propio */
 }
 
 
@@ -23,6 +42,9 @@ html, body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  background-color: #154170; /* mismo tono oscuro del gradiente del navbar —
+                                evita el flash negro/blanco si el GPU
+                                descarta la capa de composición */
 }
 
 @theme {
