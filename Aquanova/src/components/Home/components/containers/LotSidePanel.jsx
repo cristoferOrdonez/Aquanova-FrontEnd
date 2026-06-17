@@ -18,7 +18,7 @@ function LotSidePanel({ lot, onSave, onDeselect, onCenterMap }) {
       <div className="p-4 border-b border-gray-200 bg-slate-50 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-gray-800">Predio {lot.display_id}</h3>
-          <p className="text-xs text-gray-500">ID Físico: {lot.id.substring(0, 8)}...</p>
+          <p className="text-xs text-gray-500 break-all">ID Físico: {lot.id}</p>
         </div>
         <button 
           onClick={onDeselect}
