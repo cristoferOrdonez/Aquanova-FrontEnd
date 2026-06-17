@@ -15,29 +15,31 @@ function LotSidePanel({ lot, onSave, onDeselect, onCenterMap }) {
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Cabecera del Panel */}
-      <div className="p-4 border-b border-gray-200 bg-slate-50 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-gray-800">Predio {lot.display_id}</h3>
-          <p className="text-xs text-gray-500">ID Físico: {lot.id.substring(0, 8)}...</p>
+      <div className="p-4 border-b border-gray-200 bg-slate-50 flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-bold text-gray-800 truncate">Predio {lot.display_id}</h3>
+          <p className="text-xs text-gray-500 truncate">ID Físico: {lot.id.substring(0, 8)}...</p>
         </div>
-        <button 
-          onClick={onDeselect}
-          className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
-        >
-          ✕
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onCenterMap(lot.id)}
+            className="py-1.5 px-3 bg-[#154170] text-white text-xs font-semibold rounded-lg hover:bg-[#2674b5] transition-colors flex items-center justify-center gap-1 shadow-sm"
+          >
+            🔍 Centrar
+          </button>
+          <button 
+            onClick={onDeselect}
+            className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
       </div>
 
       {/* Contenido con scroll */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         
-        {/* Acciones Rápidas */}
-        <button
-          onClick={() => onCenterMap(lot.id)}
-          className="w-full py-2 px-3 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
-        >
-          🔍 Centrar en el Mapa
-        </button>
+
 
         {/* Información Técnica */}
         <div className="bg-slate-50 p-3 rounded-lg border border-gray-100 space-y-2">
@@ -65,7 +67,7 @@ function LotSidePanel({ lot, onSave, onDeselect, onCenterMap }) {
         {/* Datos de Campo del Censo (Si existen) */}
         {censusData ? (
           <div className="space-y-4">
-            <div className="border-l-4 border-blue-500 pl-3">
+            <div>
               <h4 className="text-sm font-bold text-gray-800">Información del Censo</h4>
               <p className="text-xs text-gray-500">Censado el {censusData.fechaCreacion}</p>
             </div>

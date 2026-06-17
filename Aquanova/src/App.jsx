@@ -22,9 +22,7 @@ function App() {
   // Cualquier ruta que no esté aquí (incluidas las que no existen) ocultará el Navbar.
   const showNavbar = ['/home', '/forms', '/neighborhoods', '/user-management'].includes(location.pathname);
 
-  const noMargin =
-    !showNavbar || // Generalmente, las vistas sin navbar tienen su propio control de márgenes.
-    location.pathname === '/home';
+
 
   const isHome = location.pathname === '/home'
   const isFormCreation =
@@ -32,12 +30,12 @@ function App() {
     location.pathname.startsWith('/form_creation/')
 
   return (
-    <div className='App flex flex-col h-dvh overflow-hidden'>
+    <div className="App navbar-gradient flex flex-col h-dvh overflow-hidden">
       {showNavbar && <Navbar />}
       <div className={
-        isHome          ? 'flex-1 overflow-hidden' :
+        isHome          ? 'flex-1 overflow-hidden bg-(--bg-color-main) rounded-t-3xl' :
         isFormCreation  ? 'flex-1 overflow-y-auto bg-[var(--form-creation-bg)]' :
-        !noMargin       ? 'flex-1 overflow-y-auto py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
+        showNavbar      ? 'flex-1 overflow-y-auto bg-(--bg-color-main) rounded-t-3xl py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
                           'flex-1 overflow-y-auto'
       }>
         <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Cargando…</div>}>

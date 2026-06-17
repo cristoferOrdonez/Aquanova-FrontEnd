@@ -62,7 +62,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className='flex flex-row items-center w-full bg-(--blue-navbar) p-2 pr-4 tablet:pr-10 relative z-40'>
+      <nav className='navbar-gradient flex flex-row items-center w-full px-4 pt-2 pb-0 tablet:px-10 relative z-40'>
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -71,8 +71,8 @@ function Navbar() {
         >
           <img
             src={logo}
-            width={87}
-            height={87}
+            width={36}
+            height={36}
             className='shrink-0'
             alt='Logo'
             onClick={() => navigate('/')}
@@ -81,14 +81,14 @@ function Navbar() {
         </motion.div>
 
         {/* Links centrados — solo en pantallas grandes */}
-        <div className='hidden tablet:flex flex-1 justify-center gap-10'>
+        <div className='hidden tablet:flex flex-1 justify-center gap-8 self-stretch items-end'>
           {navLinks.map((link, i) => {            if (link.path === '/user-management' && user?.role?.toLowerCase() !== 'administrador' && user?.role?.toLowerCase() !== 'admin') return null;            const active = isActive(link.path)
             return (
               <motion.button
                 key={link.path}
                 type='button'
                 onClick={() => navigate(link.path)}
-                className='relative text-xl font-bold text-white group'
+                className='relative text-sm font-semibold text-white group pb-4'
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.1 }}
@@ -97,13 +97,13 @@ function Navbar() {
               >
                 {link.name}
                 <motion.span
-                  className='absolute -bottom-1 left-0 h-[2px] bg-white rounded-full'
+                  className='absolute bottom-0 left-0 h-[2px] bg-white rounded-full'
                   initial={false}
                   animate={{ width: active ? '100%' : '0%' }}
                   transition={{ duration: 0.25 }}
                 />
                 {!active && (
-                  <span className='absolute -bottom-1 left-0 h-[2px] w-0 bg-white/50 rounded-full transition-all duration-300 group-hover:w-full' />
+                  <span className='absolute bottom-0 left-0 h-[2px] w-0 bg-white/50 rounded-full transition-all duration-300 group-hover:w-full' />
                 )}
               </motion.button>
             )
@@ -118,11 +118,11 @@ function Navbar() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           {user && (
-            <span className='text-white text-sm font-medium leading-tight text-right'>
+            <span className='text-white text-xs font-medium leading-tight text-right'>
               <span className='text-white/70'>Bienvenido,</span>{' '}
               <span className='font-semibold'>{user.name}</span>
               {user.role && (
-                <span className='block text-xs text-white/60'>{user.role}</span>
+                <span className='block text-[10px] text-white/60'>{user.role}</span>
               )}
             </span>
           )}
@@ -139,7 +139,7 @@ function Navbar() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <UserCircleIcon className='shrink-0 h-10 w-10 text-white' />
+            <UserCircleIcon className='shrink-0 h-8 w-8 text-white' />
           </motion.button>
 
           <AnimatePresence>
@@ -173,8 +173,8 @@ function Navbar() {
             whileTap={{ scale: 0.9 }}
           >
             {mobileOpen
-              ? <XMarkIcon className='h-7 w-7' />
-              : <Bars3Icon className='h-7 w-7' />
+              ? <XMarkIcon className='h-5 w-5' />
+              : <Bars3Icon className='h-5 w-5' />
             }
           </motion.button>
         </div>
@@ -195,7 +195,7 @@ function Navbar() {
 
             {/* Drawer */}
             <motion.div
-              className='fixed top-0 right-0 h-full w-72 bg-[var(--blue-navbar)] shadow-2xl z-40 tablet:hidden flex flex-col'
+              className='navbar-gradient-vertical fixed top-0 right-0 h-full w-72 shadow-2xl z-40 tablet:hidden flex flex-col'
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}

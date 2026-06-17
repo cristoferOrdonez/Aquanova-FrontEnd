@@ -405,7 +405,7 @@ function Index() {
   };
 
   return (
-    <div className="w-full h-full bg-slate-100 overflow-y-auto">
+    <div className="w-full h-full bg-(--bg-color-main) overflow-y-auto">
       {/* Modales y notificaciones globales */}
       <SplitModal
         isOpen={splitModalOpen}
@@ -415,157 +415,171 @@ function Index() {
       />
       <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />
 
-      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
 
-      {/* BARRA SUPERIOR */}
-      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full overflow-hidden">
-        <div className="w-full flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
-            <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
-          </div>
-          <div className="flex items-center gap-2">
+      {/* ÁREA PRINCIPAL: CABECERA + MAPA + PANEL */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[400px] h-[calc(100vh-120px)] relative">
+        
+        {/* COLUMNA IZQUIERDA: CABECERA + MAPA */}
+        <div className="md:col-span-3 flex flex-col gap-4 h-full relative min-h-0">
+          
+          {/* BARRA SUPERIOR (ahora transparente y parte de la columna del mapa) */}
+          <div className="flex flex-col items-start gap-4 shrink-0 w-full px-4">
+            <div className="w-full flex justify-between items-center">
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
+                <p className="text-sm text-gray-500">Gestión de Gemelos Digitales</p>
+              </div>
+              <div className="flex items-center gap-4">
+                
+                {/* Selector de Sector */}
+                <div className="flex items-center gap-2" ref={searchRef}>
+                  <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Sector:</label>
+                  <div className="relative w-48 sm:w-64">
+                    <input
+                      type="text"
+                      value={searchText}
+                      onChange={handleSearchChange}
+                      onFocus={() => setShowSuggestions(true)}
+                      placeholder={neighborhoods.length === 0 ? 'Cargando sectores...' : 'Buscar sector...'}
+                      disabled={neighborhoods.length === 0}
+                      className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm disabled:bg-gray-200 text-sm"
+                    />
+                    {showSuggestions && filteredNeighborhoods.length > 0 && (
+                      <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                        {filteredNeighborhoods.map((hood) => (
+                          <li
+                            key={hood.id}
+                            onMouseDown={() => handleSelectNeighborhood(hood)}
+                            className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${
+                              hood.id === selectedNeighborhoodId ? 'bg-blue-100 font-semibold text-blue-700' : 'text-gray-700'
+                            }`}
+                          >
+                            {hood.name} <span className="text-gray-400">({hood.code})</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {showSuggestions && filteredNeighborhoods.length === 0 && searchText !== '' && (
+                      <div className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-2 text-sm text-gray-400">
+                        Sin resultados
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
 
-            {/* Botón: Dividir (solo 1 lote seleccionado, fuera del modo unificación) */}
-            {!isMergeMode && selectedLots.length === 1 && (
-              <button
-                disabled={isProcessing}
-                onClick={handleSplitLot}
-                className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm"
-              >
-                {isProcessing ? 'Procesando...' : '✂ Dividir Predio'}
-              </button>
-            )}
+                {/* Botón: Dividir (solo 1 lote seleccionado, fuera del modo unificación) */}
+                {!isMergeMode && selectedLots.length === 1 && (
+                  <button
+                    disabled={isProcessing}
+                    onClick={handleSplitLot}
+                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm"
+                  >
+                    {isProcessing ? 'Procesando...' : '✂ Dividir Predio'}
+                  </button>
+                )}
 
-            {/* Botón: Iniciar / Cancelar Modo Unificación */}
-            <button
-              onClick={handleToggleMergeMode}
-              disabled={isProcessing}
-              className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-all text-sm border-2 ${
-                isMergeMode
-                  ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              {isMergeMode
-                ? `⬡ Modo Unir activo (${selectedLots.length} selec.) — Cancelar`
-                : '⬡ Iniciar Unificación'}
-            </button>
+                {/* Botón: Iniciar / Cancelar Modo Unificación */}
+                <button
+                  onClick={handleToggleMergeMode}
+                  disabled={isProcessing}
+                  className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-all text-sm border-2 ${
+                    isMergeMode
+                      ? 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {isMergeMode
+                    ? `⬡ Modo Unir activo (${selectedLots.length} selec.) — Cancelar`
+                    : '⬡ Iniciar Unificación'}
+                </button>
 
-            {/* Botón: Confirmar unificación (solo en modo unificación con ≥2 lotes) */}
-            {isMergeMode && selectedLots.length >= 2 && (
-              <button
-                disabled={isProcessing || !isColindante}
-                onClick={handleMergeLots}
-                className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm ${
-                  !isColindante
-                    ? 'bg-gray-300 cursor-not-allowed text-gray-400'
-                    : 'bg-amber-500 hover:bg-amber-600 text-white'
-                }`}
-              >
-                {isProcessing
-                  ? 'Uniendo...'
-                  : !isColindante
-                  ? 'No colindantes'
-                  : `Unificar ${selectedLots.length} predios`}
-              </button>
-            )}
-
-          </div>
-        </div>
-
-        {/* Banner de Modo Unificación */}
-        {isMergeMode && (
-          <div className="w-full flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm">
-            <span className="text-amber-500 text-lg leading-none shrink-0">⬡</span>
-            <div className="flex-1">
-              <p className="font-semibold text-amber-800">Modo Unificación activo</p>
-              <p className="text-amber-700 mt-0.5">
-                Haz clic en los predios que deseas unir (<strong>{selectedLots.length}</strong> seleccionados).
-                Cuando hayas elegido todos, presiona <strong>"Unificar"</strong>. Para cancelar, vuelve a presionar el botón <strong>"⬡ Modo Unir activo"</strong>.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Banner de Auditoría Topológica */}
-
-        {topologyMismatches.length > 0 && (
-          <div className="w-full flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm">
-            <span className="text-orange-500 text-lg leading-none mt-0.5">⚠</span>
-            <div className="flex-1">
-              <p className="font-semibold text-orange-700">
-                {topologyMismatches.length} {topologyMismatches.length === 1 ? 'predio detectado' : 'predios detectados'} con asignación de manzana inconsistente
-              </p>
-              <p className="text-orange-600 mt-0.5">
-                El motor topológico encontró predios cuya posición geométrica no coincide con su manzana en la base de datos.
-                Están marcados con <strong>⚠</strong> y borde naranja en el mapa. Revísalos y corrígelos manualmente.
-              </p>
-            </div>
-          </div>
-        )}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full" ref={searchRef}>
-          <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">Sector:</label>
-          <div className="relative w-full sm:max-w-md">
-            <input
-              type="text"
-              value={searchText}
-              onChange={handleSearchChange}
-              onFocus={() => setShowSuggestions(true)}
-              placeholder={neighborhoods.length === 0 ? 'Cargando sectores...' : 'Buscar sector...'}
-              disabled={neighborhoods.length === 0}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 disabled:bg-gray-200 text-sm"
-            />
-            {showSuggestions && filteredNeighborhoods.length > 0 && (
-              <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
-                {filteredNeighborhoods.map((hood) => (
-                  <li
-                    key={hood.id}
-                    onMouseDown={() => handleSelectNeighborhood(hood)}
-                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${
-                      hood.id === selectedNeighborhoodId ? 'bg-blue-100 font-semibold text-blue-700' : 'text-gray-700'
+                {/* Botón: Confirmar unificación (solo en modo unificación con ≥2 lotes) */}
+                {isMergeMode && selectedLots.length >= 2 && (
+                  <button
+                    disabled={isProcessing || !isColindante}
+                    onClick={handleMergeLots}
+                    className={`font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm ${
+                      !isColindante
+                        ? 'bg-gray-300 cursor-not-allowed text-gray-400'
+                        : 'bg-amber-500 hover:bg-amber-600 text-white'
                     }`}
                   >
-                    {hood.name} <span className="text-gray-400">({hood.code})</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {showSuggestions && filteredNeighborhoods.length === 0 && searchText !== '' && (
-              <div className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-2 text-sm text-gray-400">
-                Sin resultados
+                    {isProcessing
+                      ? 'Uniendo...'
+                      : !isColindante
+                      ? 'No colindantes'
+                      : `Unificar ${selectedLots.length} predios`}
+                  </button>
+                )}
+
+                </div>
+              </div>
+            </div>
+
+            {/* Banner de Modo Unificación */}
+            {isMergeMode && (
+              <div className="w-full flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm">
+                <span className="text-amber-500 text-lg leading-none shrink-0">⬡</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-800">Modo Unificación activo</p>
+                  <p className="text-amber-700 mt-0.5">
+                    Haz clic en los predios que deseas unir (<strong>{selectedLots.length}</strong> seleccionados).
+                    Cuando hayas elegido todos, presiona <strong>"Unificar"</strong>. Para cancelar, vuelve a presionar el botón <strong>"⬡ Modo Unir activo"</strong>.
+                  </p>
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* ÁREA PRINCIPAL: MAPA + PANEL */}
-      <div className="flex flex-col md:flex-row gap-6 min-h-[400px] md:min-h-[500px] h-[75vh] md:h-auto relative overflow-hidden">
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col h-full">
+            {/* Banner de Auditoría Topológica */}
+            {topologyMismatches.length > 0 && (
+              <div className="w-full flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm">
+                <span className="text-orange-500 text-lg leading-none mt-0.5">⚠</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-orange-700">
+                    {topologyMismatches.length} {topologyMismatches.length === 1 ? 'predio detectado' : 'predios detectados'} con asignación de manzana inconsistente
+                  </p>
+                  <p className="text-orange-600 mt-0.5">
+                    El motor topológico encontró predios cuya posición geométrica no coincide con su manzana en la base de datos.
+                    Están marcados con <strong>⚠</strong> y borde naranja en el mapa. Revísalos y corrígelos manualmente.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+
+          </div>
+
+          {/* CONTENEDOR DEL MAPA */}
+          <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 relative overflow-hidden flex flex-col min-h-0">
           {!selectedNeighborhoodId || loading ? (
             <div className="flex-1 flex items-center justify-center text-gray-500">Cargando sector...</div>
           ) : error ? (
             <div className="flex-1 flex items-center justify-center text-red-500">{error}</div>
           ) : (
-            <div className="flex-1 relative">
-              <MapEngine 
-                data={mapData} 
-                onSelectLot={handleLotSelect} 
-                selectedLots={selectedLots}
-                transformRef={mapTransformRef}
-              />
-              <div className="absolute bottom-4 left-4 pointer-events-none z-10">
-                 <MapLegend />
+            <div className="flex-1 relative p-4 flex flex-col min-h-0">
+              <div className="flex-1 relative rounded-2xl border border-gray-200 overflow-hidden shadow-inner min-h-0">
+                <MapEngine 
+                  data={mapData} 
+                  onSelectLot={handleLotSelect} 
+                  selectedLots={selectedLots}
+                  transformRef={mapTransformRef}
+                />
+                <div className="absolute bottom-4 left-4 pointer-events-none z-10">
+                   <MapLegend />
+                </div>
               </div>
             </div>
           )}
+          </div>
         </div>
 
         {/* Panel lateral: Fixed overlay en móvil, columna en desktop */}
         <div 
           className={`
-            fixed inset-0 z-50 md:static md:w-[380px] md:z-auto transition-opacity duration-300 md:transition-none
+            fixed inset-0 z-50 md:static md:col-span-1 md:z-auto transition-opacity duration-300 md:transition-none min-h-0
             ${selectedLot && !isMergeMode ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none md:opacity-100 md:pointer-events-auto'}
           `}
         >
