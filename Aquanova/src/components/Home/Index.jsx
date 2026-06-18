@@ -462,7 +462,7 @@ function Index() {
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-4 font-sans">
 
       {/* BARRA SUPERIOR */}
-      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full overflow-hidden">
+      <div className="bg-white px-6 py-4 rounded-xl shadow-sm border border-gray-200 flex flex-col items-start gap-4 shrink-0 w-full z-10 relative">
         <div className="w-full flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Panel de Control Acueducto</h1>
