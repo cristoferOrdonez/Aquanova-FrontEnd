@@ -246,7 +246,8 @@ export const usePublicForm = () => {
         const field = formData?.schema?.find((f) => f.key === key);
         if (!field || field.type === 'info') continue;
 
-        const qLabel = field.label || field.title || field.key || key;
+        const fieldKey = field.key || key;
+        const fieldLabel = field.label || field.title || fieldKey;
 
         // Si es un archivo o array de archivos, subirlo(s) a Cloudinary
         if (field.type === 'file') {
@@ -262,22 +263,22 @@ export const usePublicForm = () => {
                 (progress) => {
                   setUploadProgress({
                     ...progress,
-                    fieldLabel: qLabel,
+                    fieldLabel,
                   });
                 }
               );
 
-              filteredResponses[qLabel] = urls;
+              filteredResponses[fieldKey] = urls;
 
 
             } catch (uploadError) {
-              console.error(`Error al subir archivo(s) de "${qLabel}":`, uploadError);
-              throw new Error(`No se pudo subir el(los) archivo(s) de "${qLabel}". ${uploadError.message}`);
+              console.error(`Error al subir archivo(s) de "${fieldLabel}":`, uploadError);
+              throw new Error(`No se pudo subir el(los) archivo(s) de "${fieldLabel}". ${uploadError.message}`);
             }
           }
         } else {
           // Respuesta normal (texto, número, etc.)
-          filteredResponses[qLabel] = value;
+          filteredResponses[fieldKey] = value;
         }
       }
 
@@ -301,7 +302,7 @@ export const usePublicForm = () => {
             }
           );
           if (signatureUrls && signatureUrls.length > 0) {
-            payload.responses['Firma Digital'] = signatureUrls[0];
+            payload.responses['firma_digital'] = signatureUrls[0];
           }
         } catch (uploadError) {
           throw new Error('No se pudo subir la firma. ' + uploadError.message);

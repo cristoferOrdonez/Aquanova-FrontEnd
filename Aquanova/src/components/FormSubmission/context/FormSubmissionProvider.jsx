@@ -121,7 +121,7 @@ export default function FormSubmissionProvider({ children }) {
 
     for (const q of parsedFields) {
       const idx = parsedFields.indexOf(q);
-      const responseKey = q.label || q.title || q.key || String(q.id ?? `field_${idx}`);
+      const responseKey = q.key || String(q.id ?? `field_${idx}`);
       const idKey = q.id || q._id || q.key || q.label || `field_${idx}`;
       const raw = currentAnswers[idKey];
 
@@ -265,7 +265,7 @@ export default function FormSubmissionProvider({ children }) {
       // 7. Procesar firma
       const signatureUrl = await processSignature(signature, setUploadProgress);
       if (signatureUrl) {
-        responses['Firma Digital'] = signatureUrl;
+        responses['firma_digital'] = signatureUrl;
       }
 
       // 8. Construir payload

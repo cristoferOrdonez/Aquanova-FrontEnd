@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
-import { prediosService } from '../../../services/prediosService'; 
+import { prediosService } from '../../../services/prediosService';
 
-// Importamos el archivo local con las respuestas
-import { CENSOS_MOCK_DATA } from './censosMockData';
-
-/**
- * Utilidad para extraer el primer número que aparezca en cualquier texto o valor.
- */
 const extractFirstNumber = (val) => {
   if (val === undefined || val === null) return null;
   const match = String(val).match(/\d+/);
@@ -14,143 +8,105 @@ const extractFirstNumber = (val) => {
 };
 
 /**
- * Extrae numéricamente la Manzana y el Lote desde un registro de censo.
+ * Construye dos índices para el cruce predio ↔ censo:
+ *   - censoIndex:    lot_id (ya resuelto por el backend)  → record
+ *   - censoByLegacy: predio_id_legado (UUID del sistema anterior) → record
+ *
+ * El backend devuelve los registros ordenados por fecha DESC, por lo que
+ * el primero que aparece para cada key es el más reciente.
  */
-const getCensoManzanaLote = (censo) => {
-  const recolectado = censo["Recolectado Por"] || "";
-  const match = recolectado.match(/MZ\s*(\d+)\s*ID\s*(\d+)/i);
-  if (match) {
-    return {
-      manzana: parseInt(match[1], 10),
-      lote: parseInt(match[2], 10)
-    };
-  }
+const buildCensoIndexes = (censoRows = []) => {
+  const censoIndex    = new Map();
+  const censoByLegacy = new Map();
 
-  // Fallback: usar las columnas directas
-  const censoManzana = extractFirstNumber(censo["Manzana"]);
-  let censoLote = null;
-  
-  if (censoManzana !== null) {
-    const idUsuarioStr = String(censo["ID Usuario"] || "").trim();
-    const mzStr = String(censoManzana);
-    if (idUsuarioStr.startsWith(mzStr) && idUsuarioStr.length > mzStr.length) {
-      censoLote = parseInt(idUsuarioStr.substring(mzStr.length), 10);
-    } else {
-      censoLote = extractFirstNumber(idUsuarioStr);
+  for (const record of censoRows) {
+    if (record.lot_id && !censoIndex.has(record.lot_id)) {
+      censoIndex.set(record.lot_id, record);
+    }
+    if (record.predio_id_legado && !censoByLegacy.has(record.predio_id_legado)) {
+      censoByLegacy.set(record.predio_id_legado, record);
     }
   }
-  return { manzana: censoManzana, lote: censoLote };
+
+  return { censoIndex, censoByLegacy };
 };
 
 /**
- * Extrae numéricamente la Manzana y el Lote originales de la base de datos del predio.
+ * Calcula el status visual del predio con doble fallback:
+ *   1. Cruce por lot.id (FK directa resuelta por el backend)
+ *   2. Cruce por lot.external_id (UUID del sistema anterior)
+ *   3. lot.status de la BD, o 'sin_informacion' si no hay nada
  */
-const getDbLotOriginalManzanaLote = (lot, blockLabel) => {
-  const dbManzana = extractFirstNumber(blockLabel);
-  const dbLote = extractFirstNumber(lot.number);
-  return { manzana: dbManzana, lote: dbLote };
+const computeLotStatus = (lot, censoIndex, censoByLegacy) => {
+  const censo = censoIndex.get(lot.id)
+             || (lot.external_id ? censoByLegacy.get(lot.external_id) : undefined);
+
+  if (!censo) return lot.status || 'sin_informacion';
+  if (censo.registro && censo.registro.trim() !== '') return 'registrado';
+  return 'censado';
 };
 
 /**
- * Mapea y alinea las manzanas de la Base de Datos con los datos del Censo.
- * Esta versión respeta la estructura de manzanas de la base de datos para evitar que colapsen en una sola.
+ * Mapea un registro de censo (snake_case del API) a la estructura censusData
+ * (camelCase) que espera LotSidePanel.
  */
-const applyTopologyDiscovery = (data, submissions = []) => {
+const mapCensoToCensusData = (censo) => ({
+  idRespuesta:   censo.id_respuesta,
+  fechaCreacion: censo.fecha_creacion,
+  tipoPunto:     censo.tipo_punto,
+  claseUso:      censo.clase_uso,
+  estadoPredio:  censo.estado_predio,
+  habitantes:    censo.numero_habitantes,
+  familias:      censo.numero_familias,
+  tieneAgua:     censo.tiene_agua,
+  horasAgua:     censo.horas_agua,
+  observaciones: censo.observaciones,
+  atendioNombre: censo.atendio_nombre,
+  atendioRol:    censo.atendio_rol,
+  fotoFachada:   censo.foto_fachada,
+  firma:         censo.firma_digital,
+  inspector:     censo.inspector_nombre,
+});
+
+/**
+ * Cruza la estructura geográfica del gemelo digital con los índices del censo.
+ */
+const applyTopologyDiscovery = (data, censoIndex, censoByLegacy) => {
   if (!data?.blocks?.length) return data;
 
-  // Creamos un mapa rápido para acelerar la asociación de los censos
-  const submissionsByMap = new Map();
-  submissions.forEach(sub => {
-    const cGeom = getCensoManzanaLote(sub);
-    if (cGeom.manzana !== null && cGeom.lote !== null) {
-      const key = `${cGeom.manzana}-${cGeom.lote}`;
-      submissionsByMap.set(key, sub);
-    }
-  });
-
-  // Iteramos sobre las manzanas estructuradas por la base de datos
   const processedBlocks = data.blocks.map((block) => {
-    // block.code tiene el nombre real de la manzana (ej: "M-01", "M-02", "M-03", "M-04")
     const blockLabel = block.code || `MZ-${block.id}`;
-    const blockNum = extractFirstNumber(blockLabel);
 
-    const sortedLots = (block.lots || []).map((lot) => {
+    const processedLots = (block.lots || []).map((lot) => {
       const lotNum = extractFirstNumber(lot.number || lot.id);
+      const idNum  = lotNum !== null ? String(lotNum).padStart(2, '0') : lot.id.substring(0, 2);
 
-      // El ID de pantalla se genera con el código de su manzana original (ej: "M-01-26")
-      const idNum = lotNum !== null ? String(lotNum).padStart(2, '0') : lot.id.substring(0, 2);
-      const displayId = `${blockLabel}-${idNum}`;
+      const censo = censoIndex.get(lot.id)
+                 || (lot.external_id ? censoByLegacy.get(lot.external_id) : undefined);
 
-      // --- ASOCIACIÓN DEL CENSO ---
-      // 1. Intentamos por ID estricto (UUID) — SIN tocar el ID del lote
-      let censo = submissions.find(sub => sub["Selecciona el predio"] === lot.id);
-
-      // 2. Fallback por coordenadas de Manzana y Lote
-      if (!censo && blockNum !== null && lotNum !== null) {
-        const key = `${blockNum}-${lotNum}`;
-        censo = submissionsByMap.get(key);
-      }
-
-      const enrichedLot = {
-        ...lot, // <--- No tocamos el ID único (lot.id) ni sus propiedades de dibujo
-        display_id: displayId,
-        block_code: blockLabel,
-        block_id: blockLabel, // Para agrupar lógicamente en el estado
+      return {
+        ...lot,
+        display_id:        `${blockLabel}-${idNum}`,
+        block_code:        blockLabel,
+        block_id:          blockLabel,
         database_block_id: block.id,
-        topology_mismatch: false, // Al respetar la DB, no hay inconsistencias
+        status:            computeLotStatus(lot, censoIndex, censoByLegacy),
+        water_meter_code:  censo?.registro   || null,
+        direccion_fisica:  censo?.direccion  || null,
+        censusData:        censo ? mapCensoToCensusData(censo) : null,
       };
-
-      if (censo) {
-        enrichedLot.water_meter_code = censo["Registro"] || null;
-        enrichedLot.cadastral_id = censo["Plano"] || null;
-        enrichedLot.direccion_fisica = censo["Dirección 1"] || null;
-
-        // Si tiene medidor registrado -> verde ('registrado'), si no -> azul ('censado')
-        const hasMeter = !!enrichedLot.water_meter_code;
-        enrichedLot.status = hasMeter ? "registrado" : "censado";
-
-        enrichedLot.censusData = {
-          idRespuesta: censo["ID Respuesta"],
-          fechaCreacion: censo["Fecha Creación"],
-          tipoPunto: censo["Tipo de Punto"],
-          claseUso: censo["Clase de Uso"],
-          estadoPredio: censo["Estado del Predio"],
-          habitantes: censo["Número de Habitantes"],
-          familias: censo["Número de Familias"],
-          tieneAgua: censo["¿Tiene agua?"],
-          horasAgua: censo["¿Cuántas horas del día le llega agua?"],
-          observaciones: censo["Observaciones"],
-          atendioNombre: censo["Atendió Visita - Nombre"],
-          atendioRol: censo["Atendió Visita - Rol"],
-          fotoFachada: censo["Foto de la fachada del predio"],
-          firma: censo["Firma Digital"],
-          inspector: censo["Nombre del inspector o funcionario que censó"]
-        };
-      } else {
-        enrichedLot.status = "sin_informacion";
-        enrichedLot.censusData = null;
-      }
-
-      return enrichedLot;
     });
 
-    // Ordenamos numéricamente los lotes dentro de cada manzana para consistencia visual
-    const sortedLotsByNumber = [...sortedLots].sort((a, b) => {
+    const sortedLots = [...processedLots].sort((a, b) => {
       const aNum = extractFirstNumber(a.display_id) || 0;
       const bNum = extractFirstNumber(b.display_id) || 0;
       return aNum - bNum;
     });
 
-    return {
-      ...block,
-      lots: sortedLotsByNumber
-    };
+    return { ...block, lots: sortedLots };
   });
 
-  return {
-    ...data,
-    blocks: processedBlocks
-  };
+  return { ...data, blocks: processedBlocks };
 };
 
 export const useMapData = (neighborhoodId) => {
@@ -162,15 +118,19 @@ export const useMapData = (neighborhoodId) => {
     const fetchMap = async () => {
       try {
         setLoading(true);
-        const response = await prediosService.getDigitalTwinData(neighborhoodId);
-        
-        if (response && response.data) {
-          // Procesamos el mapa inyectando y alineando con los datos locales
-          const processedData = applyTopologyDiscovery(response.data, CENSOS_MOCK_DATA);
-          setMapData(processedData);
-        } else {
+
+        const twinResponse = await prediosService.getDigitalTwinData(neighborhoodId);
+
+        if (!twinResponse?.data) {
           setError('El formato de datos de topología recibido no es válido.');
+          return;
         }
+
+        const censusResponse = await prediosService.getCensusData(neighborhoodId).catch(() => null);
+        const censoRows = censusResponse?.data || [];
+        const { censoIndex, censoByLegacy } = buildCensoIndexes(censoRows);
+        const processedData = applyTopologyDiscovery(twinResponse.data, censoIndex, censoByLegacy);
+        setMapData(processedData);
       } catch (err) {
         setError(err.message || 'No se pudo cargar la información del plano digital.');
       } finally {

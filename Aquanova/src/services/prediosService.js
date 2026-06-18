@@ -41,5 +41,9 @@ export const prediosService = {
       method: 'PATCH',
       body: payload,
     });
+  },
+
+  getCensusData(neighborhoodId) {
+    return apiRequest(`/map/census/${neighborhoodId}`, { method: 'GET' });
   }
 };
