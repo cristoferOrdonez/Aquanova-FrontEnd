@@ -5,8 +5,8 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 // Colores oficiales según la guía de integración frontend
 const STATUS_COLORS = {
   sin_informacion: '#9E9E9E',
-  censado:         '#2196F3',
-  registrado:      '#4CAF50',
+  censado:         '#4CAF50',
+  registrado:      '#2196F3',
 };
 
 function getColor(status) {

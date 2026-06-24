@@ -3,8 +3,8 @@ import React from 'react';
 
 // Colores oficiales según la guía de integración frontend
 const items = [
-  { label: 'Registrado',      hex: '#4CAF50' },
-  { label: 'Censado',         hex: '#2196F3' },
+  { label: 'Registrado',      hex: '#2196F3' },
+  { label: 'Censado',         hex: '#4CAF50' },
   { label: 'Sin Información', hex: '#9E9E9E' },
 ];
 

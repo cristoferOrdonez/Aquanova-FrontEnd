@@ -8,6 +8,7 @@ export default function PasswordField({
   disabled = false,
   showPassword = false,
   onToggleVisibility,
+  labelClass = '',
 }) {
   const id = useId()
 
@@ -15,12 +16,13 @@ export default function PasswordField({
     <div className="flex flex-col group">
       <label
         htmlFor={id}
-        className="
+        className={`
           text-sm font-semibold
           transition-all duration-300 ease-in-out
           group-hover:scale-[1.07]
           group-hover-:translate-y-1
-        "
+        ${labelClass}
+        `}
       >
         {label}
       </label>
@@ -46,8 +48,8 @@ export default function PasswordField({
           type={showPassword ? 'text' : 'password'}
           placeholder="Digite su contraseña"
           className="
-            flex-1 bg-transparent text-center p-2 outline-none
-            text-gray-700 placeholder-gray-500
+            flex-1 bg-transparent text-left p-3 outline-none
+            text-gray-900 placeholder-gray-500
           "
           value={value}
           onChange={onChange}

@@ -6,10 +6,11 @@ import { authService } from '../../services/authService'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navLinks = [
-  { name: 'Inicio', path: '/home' },
-  { name: 'Campañas', path: '/forms' },
-  { name: 'Barrios', path: '/neighborhoods' },
-  { name: 'Usuarios', path: '/user-management' },
+  { name: 'Inicio',     path: '/home' },
+  { name: 'Campañas',   path: '/forms' },
+  { name: 'Barrios',    path: '/neighborhoods' },
+  { name: 'Referidos',  path: '/referidos', roles: ['administrador', 'admin', 'operador'] },
+  { name: 'Usuarios',   path: '/user-management', roles: ['administrador', 'admin'] },
 ]
 
 function Navbar() {
@@ -48,6 +49,12 @@ function Navbar() {
     navigate('/my-account')
   }
 
+  const handleMyReferrals = () => {
+    setMenuOpen(false)
+    setMobileOpen(false)
+    navigate('/referidos/perfil')
+  }
+
   const handleLogout = () => {
     setMenuOpen(false)
     setMobileOpen(false)
@@ -82,7 +89,9 @@ function Navbar() {
 
         {/* Links centrados — solo en pantallas grandes */}
         <div className='hidden tablet:flex flex-1 justify-center gap-8 self-stretch items-end'>
-          {navLinks.map((link, i) => {            if (link.path === '/user-management' && user?.role?.toLowerCase() !== 'administrador' && user?.role?.toLowerCase() !== 'admin') return null;            const active = isActive(link.path)
+          {navLinks.map((link, i) => {
+            if (link.roles && !link.roles.includes(user?.role?.toLowerCase())) return null
+            const active = isActive(link.path)
             return (
               <motion.button
                 key={link.path}
@@ -97,13 +106,13 @@ function Navbar() {
               >
                 {link.name}
                 <motion.span
-                  className='absolute bottom-0 left-0 h-[2px] bg-white rounded-full'
+                  className='absolute bottom-0 left-0 h-0.5 bg-white rounded-full'
                   initial={false}
                   animate={{ width: active ? '100%' : '0%' }}
                   transition={{ duration: 0.25 }}
                 />
                 {!active && (
-                  <span className='absolute bottom-0 left-0 h-[2px] w-0 bg-white/50 rounded-full transition-all duration-300 group-hover:w-full' />
+                  <span className='absolute bottom-0 left-0 h-0.5 w-0 bg-white/50 rounded-full transition-all duration-300 group-hover:w-full' />
                 )}
               </motion.button>
             )
@@ -154,6 +163,9 @@ function Navbar() {
               >
                 <button type='button' onClick={handleMyAccount} className='w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' role='menuitem'>
                   Mi cuenta
+                </button>
+                <button type='button' onClick={handleMyReferrals} className='w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100' role='menuitem'>
+                  Mis referidos
                 </button>
                 <button type='button' onClick={handleLogout} className='w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100' role='menuitem'>
                   Cerrar sesión
@@ -224,7 +236,7 @@ function Navbar() {
               {/* Links de navegación */}
               <div className='flex flex-col py-4 flex-1'>
                 {navLinks.map((link, i) => {
-                  if (link.path === '/user-management' && user?.role?.toLowerCase() !== 'administrador' && user?.role?.toLowerCase() !== 'admin') return null;
+                  if (link.roles && !link.roles.includes(user?.role?.toLowerCase())) return null
                   const active = isActive(link.path)
                   return (
                     <motion.button
@@ -246,6 +258,9 @@ function Navbar() {
               <div className='border-t border-white/20 py-3'>
                 <button type='button' onClick={handleMyAccount} className='w-full text-left px-6 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors'>
                   Mi cuenta
+                </button>
+                <button type='button' onClick={handleMyReferrals} className='w-full text-left px-6 py-3 text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors'>
+                  Mis referidos
                 </button>
                 <button type='button' onClick={handleLogout} className='w-full text-left px-6 py-3 text-sm text-red-300 hover:text-red-200 hover:bg-white/10 transition-colors'>
                   Cerrar sesión

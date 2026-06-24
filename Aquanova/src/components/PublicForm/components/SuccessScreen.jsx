@@ -7,12 +7,24 @@ import { CheckCircleIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon } fr
  *
  * @param {{ result: import('../context/PublicFormContext').OnboardingResult, giveaway: {points_per_referral: number, is_active: boolean} }} props
  */
+// Construye el share link usando el origen real del navegador + la ruta del
+// formulario actual, para que coincida con el dominio donde está desplegado.
+// Fallback: share_link del backend (puede ser incorrecto si FRONTEND_URL
+// no está configurada en el servidor).
+function buildShareLink(result) {
+  if (!result.referral_code) return result.share_link ?? null;
+  const origin   = import.meta.env.VITE_FRONTEND_URL ?? window.location.origin;
+  const formPath = window.location.pathname; // /formulario/:formKey — ya estamos aquí
+  return `${origin}${formPath}?ref=${result.referral_code}`;
+}
+
 function SuccessScreen({ result, giveaway }) {
   const [copied, setCopied] = useState(false);
+  const shareLink = buildShareLink(result);
 
   const handleCopy = () => {
-    if (!result.share_link) return;
-    navigator.clipboard.writeText(result.share_link).then(() => {
+    if (!shareLink) return;
+    navigator.clipboard.writeText(shareLink).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
@@ -45,12 +57,13 @@ function SuccessScreen({ result, giveaway }) {
       )}
 
       {/* Recuadro del enlace para compartir */}
+      {shareLink && (
       <div className="w-full rounded-2xl border border-gray-200 bg-gray-50 p-5 flex flex-col gap-3">
         <p className="text-sm font-semibold text-gray-700">Tu enlace para compartir</p>
 
         <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5">
           <span className="flex-1 truncate text-left text-xs text-gray-500">
-            {result.share_link}
+            {shareLink}
           </span>
           <button
             type="button"
@@ -75,6 +88,7 @@ function SuccessScreen({ result, giveaway }) {
           </p>
         )}
       </div>
+      )}
 
       {/* Incentivo de puntos */}
       {giveaway?.is_active && (

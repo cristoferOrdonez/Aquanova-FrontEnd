@@ -32,10 +32,28 @@ const TYPE_MAP = {
  *
  * @returns {import('../context/PublicFormContext').PublicFormContextType}
  */
+const REF_STORAGE_KEY = 'referral_code';
+const REF_FORMAT      = /^[A-Z0-9]{5,12}$/;
+
+function resolveReferralCode(searchParams) {
+  // 1. sessionStorage — sobrevive recargas de página
+  const stored = sessionStorage.getItem(REF_STORAGE_KEY);
+  if (stored && REF_FORMAT.test(stored)) return stored;
+
+  // 2. URL param — primer acceso desde el QR/link
+  const fromUrl = (searchParams.get('ref') ?? '').toUpperCase();
+  if (fromUrl && REF_FORMAT.test(fromUrl)) {
+    sessionStorage.setItem(REF_STORAGE_KEY, fromUrl);
+    return fromUrl;
+  }
+
+  return null;
+}
+
 export const usePublicForm = () => {
   const { formKey } = useParams();
   const [searchParams] = useSearchParams();
-  const referralCode = searchParams.get('ref') || null;
+  const referralCode = resolveReferralCode(searchParams);
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -328,8 +346,9 @@ export const usePublicForm = () => {
       if (result.token) localStorage.setItem('token', result.token);
       if (result.user) localStorage.setItem('user', JSON.stringify(result.user));
 
-      // Eliminar borrador tras envío exitoso
+      // Eliminar borrador y código de referido tras envío exitoso
       if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(REF_STORAGE_KEY);
 
       setSuccessData(result);
     } catch (err) {
@@ -361,6 +380,7 @@ export const usePublicForm = () => {
     registration,
     fieldErrors,
     uploadProgress,
+    referralCode,
     setResponse,
     setRegistration,
     handleSubmit,

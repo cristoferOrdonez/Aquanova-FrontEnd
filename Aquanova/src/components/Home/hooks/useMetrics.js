@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 
 export const STATUS_COLORS = {
   sin_informacion: '#9E9E9E',
-  censado: '#2196F3',
-  registrado: '#4CAF50',
+  censado: '#4CAF50',
+  registrado: '#2196F3',
 };
 
 export const STATUS_LABELS = {
