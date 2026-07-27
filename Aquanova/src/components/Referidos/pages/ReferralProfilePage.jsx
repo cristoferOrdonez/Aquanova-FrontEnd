@@ -1,27 +1,33 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { referralService } from '../../../services/referralService'
+import { authService } from '../../../services/authService'
+
+/**
+ * Perfil del referente — un link y un QR por campaña.
+ * Spec: CU-04, CU-05, SSD-02, contratos CO-05 / CO-06 / CO-07.
+ *
+ * DA-5 opción (a): se listan todas las campañas activas, haya invitado o no,
+ * para que el referente pueda arrancar en una campaña nueva.
+ */
 
 // ── QR Modal ───────────────────────────────────────────────────────────────
 
-function QRModal({ onClose }) {
-  const [qrData, setQrData]   = useState(null)
+function QRModal({ campaign, referralCode, onClose }) {
+  const [qr, setQr] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
+  const [error, setError] = useState(null)
   const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
-    referralService.getReferralQR()
-      .then(res => {
-        if (res.ok) setQrData(res.data)
-        else setError(res.message ?? 'No se pudo cargar el QR')
-      })
-      .catch(() => setError('Error de conexión'))
-      .finally(() => setLoading(false))
-  }, [])
+    let cancelled = false
+    referralService.getCampaignQR(campaign.form_key, referralCode)
+      .then(data => { if (!cancelled) setQr(data) })
+      .catch(err => { if (!cancelled) setError(err.message ?? 'No se pudo generar el QR') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [campaign.form_key, referralCode])
 
-  // Close on Escape
   useEffect(() => {
     const fn = (e) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', fn)
@@ -29,21 +35,13 @@ function QRModal({ onClose }) {
   }, [onClose])
 
   const handleDownload = async () => {
-    if (!qrData) return
     setDownloading(true)
-    try { await referralService.downloadQRPng(qrData.referral_code) }
-    catch { /* silencio — el navegador ya muestra el error */ }
-    finally { setDownloading(false) }
-  }
-
-  const handleShare = () => {
-    if (!qrData) return
-    if (navigator.share) {
-      navigator.share({
-        title: 'Únete al censo — Aquanova',
-        text: '¡Escanea este QR o abre el link para completar el censo!',
-        url: qrData.referral_url,
-      })
+    try {
+      await referralService.downloadCampaignQR(campaign.form_key, referralCode, campaign.form_title)
+    } catch (err) {
+      setError(err.message ?? 'No se pudo descargar el QR')
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -66,11 +64,12 @@ function QRModal({ onClose }) {
           aria-label="Cerrar"
         >
           <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
           </svg>
         </button>
 
-        <h2 className="text-lg font-bold text-gray-900 mb-4">Tu QR de referido</h2>
+        <h2 className="text-lg font-bold text-gray-900">QR de referido</h2>
+        <p className="text-xs text-gray-400 mt-0.5 mb-4 pr-6">{campaign.form_title}</p>
 
         {loading && (
           <div className="flex flex-col items-center gap-3 py-8">
@@ -81,19 +80,16 @@ function QRModal({ onClose }) {
 
         {error && (
           <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-center text-sm text-red-700">
-            {error === 'FRONTEND_URL no está configurada en el servidor.'
-              ? 'El QR no está disponible. Contacta al administrador.'
-              : error}
+            {error}
           </div>
         )}
 
-        {qrData && (
+        {qr && (
           <div className="flex flex-col items-center gap-4">
-            {/* QR image */}
             <div className="p-3 border border-gray-200 rounded-2xl bg-white">
               <img
-                src={qrData.qr_data_url}
-                alt={`QR de referido ${qrData.referral_code}`}
+                src={qr.qr_data_url}
+                alt={`QR de referido para ${campaign.form_title}`}
                 width={220}
                 height={220}
                 className="block"
@@ -102,19 +98,23 @@ function QRModal({ onClose }) {
 
             <div className="text-center">
               <span className="font-mono text-sm font-bold text-[#0D448A] bg-blue-50 px-3 py-1 rounded-lg">
-                {qrData.referral_code}
+                {referralCode}
               </span>
-              <p className="text-xs text-gray-400 mt-2 break-all">{qrData.referral_url}</p>
+              <p className="text-xs text-gray-400 mt-2 break-all">{qr.referral_url}</p>
             </div>
 
             <p className="text-xs text-gray-400 text-center">
-              Escanea con la cámara del celular para abrir el formulario directamente.
+              Al escanearlo se abre esta campaña con tu código ya aplicado.
             </p>
 
             <div className="flex gap-2 w-full">
-              {navigator.share && (
+              {typeof navigator !== 'undefined' && navigator.share && (
                 <button
-                  onClick={handleShare}
+                  onClick={() => navigator.share({
+                    title: campaign.form_title,
+                    text: '¡Ayuda a tu comunidad completando esta campaña!',
+                    url: qr.referral_url,
+                  })}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1361C5] hover:brightness-110 transition-all"
                 >
                   Compartir
@@ -135,28 +135,32 @@ function QRModal({ onClose }) {
   )
 }
 
-// ── Profile Card ───────────────────────────────────────────────────────────
+// ── Tarjeta de campaña ─────────────────────────────────────────────────────
 
-function ReferralProfileCard({ profile }) {
+function CampaignRow({ campaign, referralCode, selected, onSelect }) {
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
 
+  const url = campaign.referral_url
+
   const copyLink = async () => {
+    if (!url) return
     try {
-      await navigator.clipboard.writeText(profile.referral_url)
+      await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      /* clipboard blocked in insecure context */
+      /* portapapeles bloqueado en contexto inseguro */
     }
   }
 
   const shareLink = () => {
+    if (!url) return
     if (navigator.share) {
       navigator.share({
-        title: 'Únete al censo de Aquanova',
-        text: '¡Ayuda a tu comunidad completando el censo! Usa mi link:',
-        url: profile.referral_url,
+        title: campaign.form_title,
+        text: '¡Ayuda a tu comunidad completando esta campaña!',
+        url,
       })
     } else {
       copyLink()
@@ -165,109 +169,154 @@ function ReferralProfileCard({ profile }) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="font-semibold text-gray-900">Tu link de referido</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Comparte e invita a tu comunidad al censo</p>
+      <div
+        className={`rounded-2xl border transition-all ${
+          selected ? 'border-[#0D448A] bg-blue-50/40 shadow-sm' : 'border-gray-200 bg-white'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => onSelect(selected ? null : campaign.form_id)}
+          className="w-full text-left px-5 py-4 flex items-center gap-4"
+          aria-expanded={selected}
+        >
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 text-sm truncate">{campaign.form_title}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {campaign.referrals_in_campaign} referido{campaign.referrals_in_campaign === 1 ? '' : 's'}
+              {campaign.position ? ` · puesto #${campaign.position}` : ''}
+            </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-[#0D448A]">{profile.total_accumulated_points}</p>
-            <p className="text-xs text-gray-400">puntos acumulados</p>
+          <div className="text-right shrink-0">
+            <p className="text-xl font-bold text-[#0D448A]">{campaign.points_in_campaign}</p>
+            <p className="text-[10px] text-gray-400">puntos aquí</p>
           </div>
-        </div>
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className={`w-5 h-5 text-gray-300 shrink-0 transition-transform ${selected ? 'rotate-180' : ''}`}
+          >
+            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
+          </svg>
+        </button>
 
-        <div className="p-6 flex flex-col gap-5">
-          {/* Código */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500 shrink-0">Tu código</span>
-            <span className="font-mono font-bold text-[#0D448A] bg-blue-50 px-3 py-1 rounded-lg text-sm tracking-widest">
-              {profile.referral_code}
-            </span>
+        {selected && (
+          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+            {/* RN-04 / D-2 — sin slug publicado no hay link posible */}
+            {!url ? (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                Esta campaña no tiene un identificador público publicado, así que todavía
+                no se puede generar su link de invitación.
+              </div>
+            ) : (
+              <>
+                <label className="text-xs text-gray-400 mb-1 block">Link de invitación</label>
+                <div
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 font-mono cursor-pointer hover:border-[#1361C5] transition-colors break-all"
+                  onClick={copyLink}
+                  title="Clic para copiar"
+                >
+                  {url}
+                </div>
+
+                <div className="flex gap-2 flex-wrap mt-4">
+                  <button
+                    onClick={copyLink}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700"
+                  >
+                    {copied ? (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-green-500">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+                        </svg>
+                        ¡Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                        </svg>
+                        Copiar link
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={shareLink}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1361C5] hover:brightness-110 transition-all"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                    </svg>
+                    Compartir
+                  </button>
+
+                  <button
+                    onClick={() => setShowQR(true)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                      <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm-4 4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm0 4h2v2h-2v-2zm-4-2h2v4h-2v-4z" />
+                    </svg>
+                    Ver QR
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-
-          {/* URL */}
-          <div>
-            <label className="text-xs text-gray-400 mb-1 block">Link de invitación</label>
-            <div
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 font-mono cursor-pointer hover:border-[#1361C5] transition-colors break-all"
-              onClick={copyLink}
-              title="Clic para copiar"
-            >
-              {profile.referral_url}
-            </div>
-          </div>
-
-          {/* Acciones */}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={copyLink}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700"
-            >
-              {copied ? (
-                <>
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-green-500">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                  </svg>
-                  ¡Copiado!
-                </>
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                  </svg>
-                  Copiar link
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={shareLink}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1361C5] hover:brightness-110 transition-all"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
-              </svg>
-              Compartir
-            </button>
-
-            <button
-              onClick={() => setShowQR(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm-4 4h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm0 4h2v2h-2v-2zm-4-2h2v4h-2v-4z"/>
-              </svg>
-              Ver QR
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       <AnimatePresence>
-        {showQR && <QRModal onClose={() => setShowQR(false)} />}
+        {showQR && url && (
+          <QRModal
+            campaign={campaign}
+            referralCode={referralCode}
+            onClose={() => setShowQR(false)}
+          />
+        )}
       </AnimatePresence>
     </>
   )
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
+// ── Página ─────────────────────────────────────────────────────────────────
 
 export default function ReferralProfilePage() {
-  const [profile, setProfile] = useState(null)
+  const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
+  const [error, setError] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
+  const user = useMemo(() => authService.getUser(), [])
+
+  // El estado inicial ya es "cargando"; el reintento lo activa desde su handler.
+  // Así el efecto no llama setState de forma síncrona (react-hooks/set-state-in-effect).
   useEffect(() => {
-    referralService.getReferralProfile()
+    let cancelled = false
+    referralService.getMyCampaigns(user?.id)
       .then(res => {
-        if (res.ok) setProfile(res.data)
-        else setError(res.message ?? 'No se pudo cargar el perfil')
+        if (cancelled) return
+        setResult(res)
+        // Abre la primera campaña para que el link quede a un clic
+        setSelectedId(prev => prev ?? res.data?.[0]?.form_id ?? null)
       })
-      .catch(() => setError('Error de conexión'))
-      .finally(() => setLoading(false))
+      .catch(err => {
+        if (!cancelled) setError(err.message ?? 'No se pudo cargar tu perfil de referido')
+      })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [user?.id, reloadKey])
+
+  const retry = useCallback(() => {
+    setError(null)
+    setLoading(true)
+    setReloadKey(k => k + 1)
   }, [])
+
+  const campaigns = result?.data ?? []
+  const totalPoints = result?.total_accumulated_points
 
   return (
     <motion.div
@@ -279,35 +328,76 @@ export default function ReferralProfilePage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mis referidos</h1>
         <p className="text-sm text-gray-400 mt-1">
-          Comparte tu link o QR e invita a otros a completar el censo.
-          Acumulas puntos cada vez que alguien se registra con tu código.
+          Cada campaña tiene su propio link y su propio puntaje. Comparte el de la
+          campaña en la que quieras sumar.
         </p>
       </div>
 
       {loading && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 flex flex-col items-center gap-3 animate-pulse">
-          <div className="h-6 bg-gray-200 rounded-xl w-48" />
-          <div className="h-4 bg-gray-100 rounded-xl w-64 mt-2" />
-          <div className="h-10 bg-gray-100 rounded-xl w-full mt-4" />
-          <div className="flex gap-2 w-full mt-2">
-            {[1,2,3].map(i => <div key={i} className="h-10 bg-gray-100 rounded-xl flex-1" />)}
+        <div className="space-y-3">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 animate-pulse">
+            <div className="h-5 bg-gray-200 rounded w-40" />
+            <div className="h-4 bg-gray-100 rounded w-56 mt-3" />
           </div>
+          {[0, 1].map(i => (
+            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
+              <div className="h-4 bg-gray-100 rounded w-2/3" />
+              <div className="h-3 bg-gray-100 rounded w-1/3 mt-2" />
+            </div>
+          ))}
         </div>
       )}
 
       {error && !loading && (
         <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
           <p className="text-red-700 font-medium">{error}</p>
-          <button
-            onClick={() => { setError(null); setLoading(true); referralService.getReferralProfile().then(r => r.ok ? setProfile(r.data) : setError(r.message ?? 'Error')).catch(() => setError('Error de conexión')).finally(() => setLoading(false)) }}
-            className="mt-3 text-sm text-[#1361C5] hover:underline"
-          >
+          <button onClick={retry} className="mt-3 text-sm text-[#1361C5] hover:underline">
             Reintentar
           </button>
         </div>
       )}
 
-      {profile && !loading && <ReferralProfileCard profile={profile} />}
+      {result && !loading && (
+        <div className="space-y-4">
+          {/* Cabecera: código + total agregado (RN-05) */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">Tu código</span>
+              <span className="font-mono font-bold text-[#0D448A] bg-blue-50 px-3 py-1 rounded-lg text-sm tracking-widest">
+                {result.referral_code}
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-[#0D448A]">{totalPoints}</p>
+              <p className="text-[11px] text-gray-400">
+                puntos · suma de todas las campañas
+              </p>
+            </div>
+          </div>
+
+          {/* CU-04 ext. 2a — ninguna campaña con sorteo activo */}
+          {!campaigns.length ? (
+            <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center">
+              <p className="font-medium text-gray-700">No hay campañas abiertas</p>
+              <p className="mt-1 text-sm text-gray-400">
+                Cuando se active una campaña con sorteo, aquí aparecerá tu link para invitar.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {campaigns.map(c => (
+                <CampaignRow
+                  key={c.form_id}
+                  campaign={c}
+                  referralCode={result.referral_code}
+                  selected={selectedId === c.form_id}
+                  onSelect={setSelectedId}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </motion.div>
   )
 }

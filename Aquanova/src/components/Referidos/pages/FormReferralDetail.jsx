@@ -17,6 +17,10 @@ function KpiCard({ title, value, highlight }) {
   )
 }
 
+/**
+ * Detalle completo de una campaña. Spec: CU-02, contrato CO-02.
+ * El panel (`/referidos`) cubre el uso frecuente; esta página es el deep link.
+ */
 export default function FormReferralDetail() {
   const { formId } = useParams()
   const navigate   = useNavigate()
@@ -25,9 +29,12 @@ export default function FormReferralDetail() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const backTo = `/referidos?campana=${formId}`
+
   useEffect(() => {
     setLoading(true)
-    referralService.getFormMetrics(formId)
+    setError(null)
+    referralService.getCampaignMetrics(formId)
       .then(res => {
         if (res.ok) setData(res.data)
         else setError(res.message ?? 'Error al cargar')
@@ -52,7 +59,7 @@ export default function FormReferralDetail() {
     return (
       <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
         <p className="text-red-700 font-medium">{error}</p>
-        <button onClick={() => navigate('/referidos')} className="mt-3 text-sm text-[#1361C5] hover:underline">
+        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#1361C5] hover:underline">
           ← Volver al panel
         </button>
       </div>
@@ -68,7 +75,7 @@ export default function FormReferralDetail() {
       {/* Cabecera */}
       <div className="flex items-start gap-3">
         <button
-          onClick={() => navigate('/referidos')}
+          onClick={() => navigate(backTo)}
           className="mt-1 p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
           aria-label="Volver"
         >
@@ -164,7 +171,7 @@ export default function FormReferralDetail() {
                     <span className="text-xs text-gray-400">{row.referrals_count} refs</span>
                     <span className="font-bold text-[#0D448A] text-sm ml-2">{row.total_points} pts</span>
                     <button
-                      onClick={() => navigate(`/referidos/usuario/${row.user_id}`)}
+                      onClick={() => navigate(`/referidos/campana/${formId}/usuario/${row.user_id}`)}
                       className="text-xs text-[#1361C5] hover:underline ml-1 shrink-0"
                     >
                       Ver →

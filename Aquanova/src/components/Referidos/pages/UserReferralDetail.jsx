@@ -8,24 +8,34 @@ function fmt(date) {
   return new Date(date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+/**
+ * Perfil de un referente. Spec: CU-08, SSD-05, contratos CO-11 / CO-12.
+ *
+ * Con `formId` en la ruta se acota a esa campaña (CO-11); sin él, muestra la
+ * vista transversal de todas sus participaciones (CO-12).
+ */
 export default function UserReferralDetail() {
-  const { userId } = useParams()
+  const { userId, formId } = useParams()
   const navigate   = useNavigate()
 
   const [data, setData]       = useState(null)
   const [error, setError]     = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const scoped = Boolean(formId)
+  const backTo = scoped ? `/referidos?campana=${formId}` : '/referidos'
+
   useEffect(() => {
     setLoading(true)
-    referralService.getUserMetrics(userId)
+    setError(null)
+    referralService.getUserMetrics(userId, formId ?? null)
       .then(res => {
         if (res.ok) setData(res.data)
         else setError(res.message ?? 'Error al cargar perfil')
       })
       .catch(() => setError('Error de conexión'))
       .finally(() => setLoading(false))
-  }, [userId])
+  }, [userId, formId])
 
   if (loading) {
     return (
@@ -43,7 +53,7 @@ export default function UserReferralDetail() {
     return (
       <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
         <p className="text-red-700 font-medium">{error}</p>
-        <button onClick={() => navigate('/referidos')} className="mt-3 text-sm text-[#1361C5] hover:underline">
+        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#1361C5] hover:underline">
           ← Volver al panel
         </button>
       </div>
@@ -51,6 +61,8 @@ export default function UserReferralDetail() {
   }
 
   const { profile, by_giveaway, recent_referrals } = data
+  // CO-11: acotado a campaña ⇒ by_giveaway trae solo esa campaña
+  const campaign = scoped ? by_giveaway?.[0] ?? null : null
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -59,7 +71,7 @@ export default function UserReferralDetail() {
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
         <div className="flex items-start gap-4">
           <button
-            onClick={() => navigate('/referidos')}
+            onClick={() => navigate(backTo)}
             className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 mt-0.5 shrink-0"
             aria-label="Volver"
           >
@@ -82,11 +94,32 @@ export default function UserReferralDetail() {
               </div>
             </div>
 
-            {/* Mini KPIs */}
+            {/* Puntos en la campaña — el dato que importa en alcance acotado */}
+            {scoped && (
+              <div className="mt-5 rounded-xl border border-[#0D448A]/20 bg-blue-50/60 p-4">
+                <p className="text-xs font-medium text-[#0D448A] uppercase tracking-wide">
+                  En esta campaña
+                </p>
+                <p className="text-sm text-gray-600 mt-0.5 truncate">
+                  {campaign?.form_title ?? 'Campaña seleccionada'}
+                </p>
+                <div className="flex items-baseline gap-4 mt-2">
+                  <span className="text-2xl font-bold text-[#0D448A]">
+                    {campaign?.points_earned ?? 0}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    pts · {campaign?.referrals_in_giveaway ?? 0} referido
+                    {(campaign?.referrals_in_giveaway ?? 0) === 1 ? '' : 's'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Mini KPIs — RN-05: en alcance de campaña son el acumulado global */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
               {[
-                { label: 'Puntos acumulados', value: profile.total_accumulated_points, cls: 'text-[#0D448A]' },
-                { label: 'Total referidos',   value: profile.total_referrals },
+                { label: scoped ? 'Puntos (todas)' : 'Puntos acumulados', value: profile.total_accumulated_points, cls: 'text-[#0D448A]' },
+                { label: scoped ? 'Referidos (todas)' : 'Total referidos', value: profile.total_referrals },
                 { label: 'Exitosos',          value: profile.successful_referrals, cls: 'text-green-600' },
                 { label: 'Pendientes',        value: profile.pending_referrals,   cls: 'text-yellow-600' },
               ].map(({ label, value, cls }) => (
@@ -96,6 +129,11 @@ export default function UserReferralDetail() {
                 </div>
               ))}
             </div>
+            {scoped && (
+              <p className="text-[11px] text-gray-400 mt-2">
+                Los cuatro indicadores de arriba suman todas las campañas del referente.
+              </p>
+            )}
 
             <p className="text-xs text-gray-400 mt-3">
               Última actividad: {fmt(profile.last_activity)}
@@ -108,8 +146,19 @@ export default function UserReferralDetail() {
 
         {/* Participación por sorteo */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
-            <h2 className="font-semibold text-gray-800">Participación por sorteo</h2>
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-gray-800">
+              {scoped ? 'Participación en esta campaña' : 'Participación por campaña'}
+            </h2>
+            {/* CO-12 — salida a la vista transversal */}
+            {scoped && (
+              <button
+                onClick={() => navigate(`/referidos/usuario/${userId}`)}
+                className="text-xs text-[#1361C5] hover:underline whitespace-nowrap"
+              >
+                Ver todas →
+              </button>
+            )}
           </div>
           {!by_giveaway?.length ? (
             <p className="text-center text-gray-400 text-sm py-10">Sin participación en sorteos</p>
