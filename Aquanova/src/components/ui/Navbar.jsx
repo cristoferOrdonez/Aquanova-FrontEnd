@@ -88,7 +88,7 @@ function Navbar() {
         </motion.div>
 
         {/* Links centrados — solo en pantallas grandes */}
-        <div className='hidden tablet:flex flex-1 justify-center gap-8 self-stretch items-end'>
+        <div className='flex max-tablet:hidden flex-1 justify-center gap-8 self-stretch items-end'>
           {navLinks.map((link, i) => {
             if (link.roles && !link.roles.includes(user?.role?.toLowerCase())) return null
             const active = isActive(link.path)
@@ -121,7 +121,7 @@ function Navbar() {
 
         {/* Bienvenida usuario — solo en pantallas grandes */}
         <motion.div
-          className='hidden tablet:flex items-center gap-3'
+          className='flex max-tablet:hidden items-center gap-3'
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -138,7 +138,7 @@ function Navbar() {
         </motion.div>
 
         {/* Menú usuario (avatar dropdown) — solo en pantallas grandes */}
-        <div className='hidden tablet:block relative ml-3' ref={menuRef}>
+        <div className='block max-tablet:hidden relative ml-3' ref={menuRef}>
           <motion.button
             type='button'
             onClick={() => setMenuOpen(v => !v)}
