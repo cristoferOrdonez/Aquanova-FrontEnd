@@ -7,14 +7,9 @@ export const submissionService = {
    * @param {string} formId 
    */
   getSubmissionsByFormId(formId) {
-    // 1. Obtenemos el token almacenado en el navegador
-    const token = localStorage.getItem('token'); 
-
-    // 2. Lo enviamos en los headers de la petición
     return apiRequest(`/submissions/${formId}`, { 
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`, // Formato Bearer esperado por tu backend
         'Content-Type': 'application/json'
       }
     });

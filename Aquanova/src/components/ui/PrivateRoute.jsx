@@ -7,10 +7,9 @@ import { authService } from '../../services/authService'
  * - Rol 'usuario' (creado por link de referidos) → redirige a /login
  */
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem('token')
   const user = authService.getUser()
 
-  if (!token || !user) {
+  if (!user) {
     return <Navigate to='/login' replace />
   }
 
