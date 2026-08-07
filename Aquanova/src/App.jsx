@@ -10,9 +10,11 @@ const FormPreview = lazy(() => import('./components/FormPreview/Index'))
 const FormSubmission = lazy(() => import('./components/FormSubmission/Index'))
 const Home = lazy(() => import('./components/Home/Index'))
 const PublicForm = lazy(() => import('./components/PublicForm/Index'))
+const PublicFormRedirect = lazy(() => import('./components/PublicForm/PublicFormRedirect'))
 const UserProfile = lazy(() => import('./components/UserProfile/Index'))
 const UserManagement = lazy(() => import('./components/UserManagement/Index'))
 const Referidos = lazy(() => import('./components/Referidos/Index'))
+const MapBuilderPage = lazy(() => import('./components/MapBuilder/MapBuilderPage'))
 import PrivateRoute from './components/ui/PrivateRoute'
 import Error404 from './components/Error404/Index'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
@@ -28,7 +30,10 @@ function App() {
 
   const isPublicRoute =
     location.pathname === '/login' ||
+    location.pathname === '/formulario' ||
     location.pathname.startsWith('/formulario/');
+
+  const isMapBuilder = location.pathname === '/map-builder';
 
   const isHome = location.pathname === '/home'
   const isFormCreation =
@@ -39,6 +44,7 @@ function App() {
     <div className="App navbar-gradient flex flex-col h-dvh overflow-hidden">
       {showNavbar && <Navbar />}
       <div className={
+        isMapBuilder    ? 'flex-1 overflow-hidden' :
         isHome          ? 'flex-1 overflow-hidden bg-(--bg-color-main) rounded-t-3xl' :
         isFormCreation  ? 'flex-1 overflow-y-auto bg-(--form-creation-bg)' :
         showNavbar      ? 'flex-1 overflow-y-auto bg-(--bg-color-main) rounded-t-3xl py-8 sm:px-4 md:px-10 lg:px-24 xl:px-40 2xl:px-60' :
@@ -48,6 +54,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Navigate to='/login' replace />} />
             <Route path='/login' element={<Login />} />
+            <Route path='/formulario' element={<PublicFormRedirect />} />
             <Route path='/formulario/:formKey' element={<PublicForm />} />
 
             <Route path='/home' element={<PrivateRoute><Home /></PrivateRoute>} />
@@ -62,10 +69,11 @@ function App() {
             <Route path='/geolevel_creation' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
             <Route path='/geolevel_creation/:id' element={<PrivateRoute><NeighborhoodCreation /></PrivateRoute>} />
             <Route path='/referidos/*' element={<PrivateRoute><Referidos /></PrivateRoute>} />
+            <Route path='/map-builder' element={<PrivateRoute><MapBuilderPage /></PrivateRoute>} />
           </Routes>
         </Suspense>
       </div>
-      {!isPublicRoute && <AquabotWidget />}
+      {!isPublicRoute && !isMapBuilder && <AquabotWidget />}
     </div>
   )
 }

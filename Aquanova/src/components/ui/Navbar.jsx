@@ -10,6 +10,7 @@ const navLinks = [
   { name: 'Campañas',   path: '/forms' },
   { name: 'Barrios',    path: '/neighborhoods' },
   { name: 'Referidos',  path: '/referidos', roles: ['administrador', 'admin', 'operador'] },
+  { name: 'Map Builder', path: '/map-builder', roles: ['administrador', 'admin'] },
   { name: 'Usuarios',   path: '/user-management', roles: ['administrador', 'admin'] },
 ]
 

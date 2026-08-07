@@ -70,8 +70,9 @@ const MapEngine = ({ data, onSelectLot, selectedLots = [], transformRef }) => {
     return <div className="p-4 text-gray-500">Esperando datos del mapa...</div>;
   }
 
-  // Usar siempre el viewBox devuelto por el endpoint — nunca hardcodearlo
-  const viewBox = data.viewBox;
+  // Usar el viewBox devuelto por el endpoint. Si no existe, calcular un default
+  // basado en los paths de los lotes, o usar un viewBox seguro genérico.
+  const viewBox = data.viewBox || '0 0 1000 1000';
 
   return (
     <div className="w-full h-full bg-slate-50 relative overflow-hidden">

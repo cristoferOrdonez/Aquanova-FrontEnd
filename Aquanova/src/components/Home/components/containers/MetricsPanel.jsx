@@ -85,7 +85,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Distribución por Estado
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <StatusPieChart data={metrics.distribucionEstado} />
           </div>
         </div>
@@ -95,7 +95,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Avance de Cobertura
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <CoverageBarChart
               sinInformacion={metrics.sinInformacion}
               censados={metrics.censados}
@@ -110,7 +110,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Infraestructura
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <InfrastructureChart data={metrics.infraestructura} />
           </div>
         </div>
@@ -120,7 +120,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Área por Estado
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <AreaChartByStatus data={metrics.areaPorEstado} />
           </div>
         </div>
