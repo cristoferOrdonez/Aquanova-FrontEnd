@@ -18,9 +18,18 @@ const initialState = {
   showGrid: true,
   gridSize: MAP_BUILDER_CONFIG.DEFAULT_GRID_SIZE,
   validationResults: [],
+  // IDs borrados en el lienzo pendientes de eliminar en el servidor. El endpoint
+  // de guardado los espera: sin ellos, borrar una manzana no la quitaba de la BD
+  // y seguía apareciendo en el Panel de Control.
+  deletedBlockIds: [],
+  deletedLotIds: [],
   isDirty: false,
   lastSavedAt: null,
 };
+
+/** Une dos listas de IDs sin duplicados. */
+const mergeIds = (existing, added) =>
+  added.length === 0 ? existing : Array.from(new Set([...existing, ...added]));
 
 /**
  * Reducer puro para gestionar el estado del Map Builder.
@@ -109,13 +118,34 @@ function mapBuilderReducer(state, action) {
         isDirty: true,
       };
 
-    case ACTIONS.DELETE_POLYGONS:
+    case ACTIONS.DELETE_POLYGONS: {
+      const targetIds = new Set(payload);
+
+      // Borrar una manzana arrastra sus predios: si se quedaran en el estado
+      // quedarían huérfanos y se descartarían en silencio al guardar.
+      for (const polygon of state.polygons) {
+        if (polygon.type === POLYGON_TYPES.LOT && targetIds.has(polygon.parentId)) {
+          targetIds.add(polygon.id);
+        }
+      }
+
+      const removed = state.polygons.filter((p) => targetIds.has(p.id));
+      // Un polígono desasignado pudo haber sido manzana o predio en la BD; se
+      // registra en ambas listas. Un ID que no exista no afecta filas.
+      const removedIdsOfType = (type) =>
+        removed
+          .filter((p) => p.type === type || p.type === POLYGON_TYPES.UNASSIGNED)
+          .map((p) => p.id);
+
       return {
         ...state,
-        polygons: state.polygons.filter((p) => !payload.includes(p.id)),
-        selectedIds: state.selectedIds.filter((id) => !payload.includes(id)),
+        polygons: state.polygons.filter((p) => !targetIds.has(p.id)),
+        selectedIds: state.selectedIds.filter((id) => !targetIds.has(id)),
+        deletedBlockIds: mergeIds(state.deletedBlockIds, removedIdsOfType(POLYGON_TYPES.BLOCK)),
+        deletedLotIds: mergeIds(state.deletedLotIds, removedIdsOfType(POLYGON_TYPES.LOT)),
         isDirty: true,
       };
+    }
 
     case ACTIONS.SELECT_POLYGON:
       return {
@@ -244,22 +274,45 @@ function mapBuilderReducer(state, action) {
       return { ...state, validationResults: payload };
 
     case ACTIONS.MARK_SAVED:
-      return { ...state, isDirty: false, lastSavedAt: new Date().toISOString() };
+      return {
+        ...state,
+        isDirty: false,
+        lastSavedAt: new Date().toISOString(),
+        deletedBlockIds: [],
+        deletedLotIds: [],
+      };
 
     case ACTIONS.MARK_DIRTY:
       return { ...state, isDirty: true };
 
-    case ACTIONS.LOAD_STATE:
+    case ACTIONS.LOAD_STATE: {
+      // Undo de un borrado: el polígono vuelve al lienzo, así que debe salir de
+      // las listas de eliminación o el siguiente guardado lo borraría igual.
+      const restoredIds = new Set(payload.map((p) => p.id));
       return {
         ...state,
         polygons: payload,
+        deletedBlockIds: state.deletedBlockIds.filter((id) => !restoredIds.has(id)),
+        deletedLotIds: state.deletedLotIds.filter((id) => !restoredIds.has(id)),
         isDirty: true,
       };
+    }
 
     case ACTIONS.LOAD_DRAFT:
+      // Whitelist explícita: el borrador llega envuelto en el registro de la BD
+      // (id, userId, timestamps) y esos campos no son estado del editor.
       return {
         ...state,
-        ...payload,
+        neighborhoodId: payload.neighborhoodId ?? state.neighborhoodId,
+        polygons: payload.polygons || [],
+        viewBox: payload.viewBox || state.viewBox,
+        gridSize: payload.gridSize ?? state.gridSize,
+        showGrid: payload.showGrid ?? state.showGrid,
+        selectedIds: [],
+        drawingPoints: [],
+        validationResults: [],
+        deletedBlockIds: [],
+        deletedLotIds: [],
         isDirty: false,
       };
 
@@ -445,9 +498,19 @@ export const useMapBuilder = () => {
       viewBox: state.viewBox,
       gridSize: state.gridSize,
       showGrid: state.showGrid,
+      deletedBlockIds: state.deletedBlockIds,
+      deletedLotIds: state.deletedLotIds,
       exportedAt: new Date().toISOString(),
     };
-  }, [state.neighborhoodId, state.polygons, state.viewBox, state.gridSize, state.showGrid]);
+  }, [
+    state.neighborhoodId,
+    state.polygons,
+    state.viewBox,
+    state.gridSize,
+    state.showGrid,
+    state.deletedBlockIds,
+    state.deletedLotIds,
+  ]);
 
   /**
    * Carga datos del backend al estado (reemplaza polígonos y metadata).

@@ -9,9 +9,80 @@ const STATUS_COLORS = {
   registrado:      '#2196F3',
 };
 
+// Manzanas sembradas por el proceso legado que no tienen geometría real
+const PLACEHOLDER_BLOCK_PATH = 'M0,0 Z';
+
 function getColor(status) {
   return STATUS_COLORS[status] ?? STATUS_COLORS.sin_informacion;
 }
+
+/** Una manzana solo se dibuja si trae geometría real (no el placeholder del seed). */
+function hasBlockGeometry(block) {
+  const path = block?.geom_path;
+  return Boolean(path) && path.trim() !== PLACEHOLDER_BLOCK_PATH;
+}
+
+function hasLotGeometry(lot) {
+  return Boolean(lot?.path || lot?.svg_path);
+}
+
+/**
+ * Los grosores y tamaños de fuente están en unidades del viewBox, no en píxeles:
+ * un mapa de 3507 de ancho y otro de 1000 necesitan valores muy distintos para
+ * verse igual. Se derivan del ancho del viewBox para que cualquier mapa creado
+ * en el Map Builder se renderice con la misma proporción visual.
+ */
+function getScaleFromViewBox(viewBox) {
+  const width = Number(String(viewBox).trim().split(/[\s,]+/)[2]);
+  const safeWidth = Number.isFinite(width) && width > 0 ? width : 1000;
+
+  return {
+    blockStroke:   safeWidth / 2300,
+    blockFontSize: safeWidth / 250,
+  };
+}
+
+/** Contorno de la manzana. No captura clics: los predios van encima. */
+const BlockOutline = React.memo(({ block, strokeWidth }) => {
+  if (!hasBlockGeometry(block)) return null;
+
+  return (
+    <path
+      id={`block-${block.id}`}
+      d={block.geom_path}
+      fill="none"
+      stroke="#334155"
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+      style={{ pointerEvents: 'none' }}
+    />
+  );
+});
+
+/** Código de la manzana, dibujado encima de los predios para que sea legible. */
+const BlockLabel = React.memo(({ block, fontSize }) => {
+  const position = block?.label_position;
+  const isValid = position && typeof position.x === 'number' && typeof position.y === 'number';
+
+  if (!isValid || !block.code) return null;
+
+  return (
+    <text
+      x={position.x}
+      y={position.y}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize={`${fontSize}px`}
+      fill="#1e293b"
+      stroke="#ffffff"
+      strokeWidth={fontSize / 6}
+      paintOrder="stroke"
+      style={{ pointerEvents: 'none', userSelect: 'none', fontWeight: 'bold' }}
+    >
+      {block.code}
+    </text>
+  );
+});
 
 const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
   // Soportar tanto 'path' (propiedad local del frontend) como 'svg_path' (del backend)
@@ -66,13 +137,27 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
 });
 
 const MapEngine = ({ data, onSelectLot, selectedLots = [], transformRef }) => {
-  if (!data || !data.blocks || data.blocks.length === 0) {
-    return <div className="p-4 text-gray-500">Esperando datos del mapa...</div>;
+  // Home ya gestiona la carga y el error por separado: si llegamos aquí sin
+  // geometría es que el barrio no tiene mapa, no que esté cargando. El mensaje
+  // anterior ("Esperando datos del mapa...") hacía pasar por lentitud lo que en
+  // realidad era un barrio sin manzanas guardadas.
+  const blocks = data?.blocks || [];
+  const hasRenderableGeometry = blocks.some(
+    (block) => hasBlockGeometry(block) || (block.lots || []).some(hasLotGeometry)
+  );
+
+  if (!hasRenderableGeometry) {
+    return (
+      <div className="p-4 text-gray-500">
+        Este barrio todavía no tiene un mapa dibujado. Créalo en el Map Builder y guárdalo.
+      </div>
+    );
   }
 
   // Usar el viewBox devuelto por el endpoint. Si no existe, calcular un default
   // basado en los paths de los lotes, o usar un viewBox seguro genérico.
   const viewBox = data.viewBox || '0 0 1000 1000';
+  const { blockStroke, blockFontSize } = getScaleFromViewBox(viewBox);
 
   return (
     <div className="w-full h-full bg-slate-50 relative overflow-hidden">
@@ -115,21 +200,38 @@ const MapEngine = ({ data, onSelectLot, selectedLots = [], transformRef }) => {
                 className="cursor-grab active:cursor-grabbing"
                 style={{ display: 'block', background: '#f0f0f0' }}
               >
-                {data.blocks.map((block) => (
-                  <g key={block.id}>
-                    {block.lots.map((lot) => {
-                      const isSelected = selectedLots.some(l => l.id === lot.id);
-                      return (
-                        <LotPolygon
-                          key={lot.id}
-                          lot={lot}
-                          isSelected={isSelected}
-                          onClick={onSelectLot}
-                        />
-                      );
-                    })}
-                  </g>
-                ))}
+                {/* Capa 1 — contornos de manzana, debajo de los predios */}
+                <g>
+                  {blocks.map((block) => (
+                    <BlockOutline key={`block-${block.id}`} block={block} strokeWidth={blockStroke} />
+                  ))}
+                </g>
+
+                {/* Capa 2 — predios */}
+                <g>
+                  {blocks.map((block) => (
+                    <g key={block.id}>
+                      {(block.lots || []).map((lot) => {
+                        const isSelected = selectedLots.some(l => l.id === lot.id);
+                        return (
+                          <LotPolygon
+                            key={lot.id}
+                            lot={lot}
+                            isSelected={isSelected}
+                            onClick={onSelectLot}
+                          />
+                        );
+                      })}
+                    </g>
+                  ))}
+                </g>
+
+                {/* Capa 3 — códigos de manzana, encima de todo */}
+                <g>
+                  {blocks.map((block) => (
+                    <BlockLabel key={`label-${block.id}`} block={block} fontSize={blockFontSize} />
+                  ))}
+                </g>
               </svg>
             </TransformComponent>
           </>

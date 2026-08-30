@@ -135,6 +135,7 @@ function BlockGroup({ block, lots, selectedIds, onSelect, onRename, onContextMen
  * @param {Function} props.onSelect - Selecciona un polígono por ID
  * @param {Function} props.onRename - Renombra polígono
  * @param {Function} props.onContextMenu - Abre el menú contextual (e, polygon)
+ * @param {Function} props.onAutoAssign - Asigna los polígonos sueltos por contención
  */
 function HierarchyPanel({
   polygons,
@@ -142,6 +143,7 @@ function HierarchyPanel({
   onSelect,
   onRename,
   onContextMenu,
+  onAutoAssign,
 }) {
   const [blocksExpanded, setBlocksExpanded] = useState(true);
   const [unassignedExpanded, setUnassignedExpanded] = useState(true);
@@ -203,6 +205,21 @@ function HierarchyPanel({
             <span className="font-medium">Sin Asignar</span>
             <span className="text-gray-500 text-xs">({unassigned.length})</span>
           </div>
+
+          {/* Los polígonos sin asignar no se guardan: este atajo los convierte
+              en manzanas y predios según qué polígono contiene a cuál. */}
+          {unassigned.length > 0 && onAutoAssign && (
+            <div className="px-2 pb-1">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onAutoAssign(); }}
+                className="w-full px-2 py-1 text-xs rounded bg-amber-600 hover:bg-amber-500 text-white transition-colors"
+                title="Asigna los polígonos sueltos como manzana o predio según su contención geométrica"
+              >
+                Auto-asignar {unassigned.length} sin asignar
+              </button>
+            </div>
+          )}
 
           {unassignedExpanded && unassigned.map((polygon) => (
             <HierarchyItem
