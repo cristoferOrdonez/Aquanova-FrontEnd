@@ -52,7 +52,7 @@ function InfrastructureChart({ data }) {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 min-h-0">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
           <BarChart
             data={data}
             margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
