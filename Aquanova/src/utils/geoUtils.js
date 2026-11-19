@@ -1,6 +1,5 @@
 import * as turf from '@turf/turf';
 import { distPointToSegment, polygonsAreAdjacent } from './GeometricCore';
-import { groupLotsIntoBlocks } from './TopologyEngine';
 
 /**
  * Factor de escala para normalizar coordenadas SVG al espacio válido de Turf.js.
@@ -44,11 +43,11 @@ const _upscaleGeoJSON = (feature) => {
 export const svgPathToGeoJSON = (pathString) => {
   if (!pathString || typeof pathString !== 'string') return null;
 
+  // Extraer comandos (M, L, Z) y números (coordenadas)
   const tokens = pathString.match(/[a-zA-Z]|[-+]?[0-9]*\.?[0-9]+/g);
   if (!tokens) return null;
 
-  const rings = [];
-  let currentRing = [];
+  const coordinates = [];
   let i = 0;
 
   while (i < tokens.length) {
@@ -56,45 +55,32 @@ export const svgPathToGeoJSON = (pathString) => {
     if (token === 'M' || token === 'L') {
       i++;
     } else if (token === 'Z') {
-      if (currentRing.length > 2) {
-        const first = currentRing[0];
-        const last = currentRing[currentRing.length - 1];
-        if (first[0] !== last[0] || first[1] !== last[1]) {
-          currentRing.push([...first]);
-        }
-        if (currentRing.length >= 4) {
-          rings.push(currentRing);
-        }
-      }
-      currentRing = [];
       i++;
+      break;
     } else {
+      // Es un número, asume un par x, y
       const x = parseFloat(tokens[i]);
       const y = parseFloat(tokens[i + 1]);
       if (!isNaN(x) && !isNaN(y)) {
-        currentRing.push([x, y]);
+        coordinates.push([x, y]);
       }
       i += 2;
     }
   }
 
-  if (currentRing.length > 2) {
-    const first = currentRing[0];
-    const last = currentRing[currentRing.length - 1];
+  // Cerrar el polígono matemáticamente si no está cerrado
+  if (coordinates.length >= 3) {
+    const first = coordinates[0];
+    const last = coordinates[coordinates.length - 1];
     if (first[0] !== last[0] || first[1] !== last[1]) {
-      currentRing.push([...first]);
-    }
-    if (currentRing.length >= 4) {
-      rings.push(currentRing);
+      coordinates.push([...first]);
     }
   }
 
-  if (rings.length === 0) return null;
-  // Si hay un solo anillo, la API de turf.polygon asume arreglo de anillos [anillo_exterior, hueco1...] pero en general en nuestra app sin huecos es un [rings[0]]
-  if (rings.length === 1) return turf.polygon([rings[0]]);
-  
-  // Si hay múltiples anillos (MultiPolygon), los agrupamos como polígonos simples (cada uno con un solo anillo exterior)
-  return turf.multiPolygon(rings.map(r => [r]));
+  // Un polígono lineal en GeoJSON requiere mínimo 4 puntos (3 vértices únicos + 1 de cierre)
+  if (coordinates.length < 4) return null; 
+
+  return turf.polygon([coordinates]);
 };
 
 /**
@@ -140,9 +126,8 @@ export const geoJSONToSvgPath = (geoJson) => {
 export const mergeLots = (lotsArray) => {
   if (!lotsArray || lotsArray.length < 2) return null;
 
-  // Buffer aumentado en espacio normalizado (5 píxeles SVG) para fusionar físicamente los polígonos
-  // y evitar las líneas residuales divisorias entre ellos.
-  const BUFFER_VAL = 0.0001; // 0.1 píxeles lógicos
+  // Buffer mínimo en espacio normalizado para cerrar micro-gaps de dibujo (1.5 px)
+  const BUFFER_VAL = 0.0015;
   let mergedPolygon = null;
 
   for (const lot of lotsArray) {
@@ -179,29 +164,27 @@ export const mergeLots = (lotsArray) => {
 
   if (!mergedPolygon) return null;
 
-  // 3. Limpieza de vértices
+  // 3. Desinflado: revertir micro-buffer
   try {
-    const cleaned = turf.cleanCoords(mergedPolygon);
-    if (cleaned) mergedPolygon = cleaned;
-  } catch (err) {
-    console.warn('[mergeLots] cleanCoords falló:', err.message);
+    const deflated = turf.buffer(mergedPolygon, -BUFFER_VAL, { units: 'degrees' });
+    if (deflated) mergedPolygon = deflated;
+  } catch (deflateErr) {
+    console.warn('[mergeLots] Desinflado falló:', deflateErr.message);
   }
 
-  // Ya no usamos el ciclo desinflado (-BUFFER_VAL) ni simplify porque creaban micro-segmentos curvados.
-  // 0.0001 (BUFFER_VAL) equivale a menos de 0.1 "píxeles" en este MapEngine, siendo inapreciable.
-  
-  // 3.5 Limpiar perímetros residuales de las uniones (vaciar interacciones internas extra en el SVG)
+  // 3.5 Eliminar huecos internos (para que quede solo el contorno exterior de la unión, sin bordes independientes)
   try {
     if (mergedPolygon.geometry.type === 'Polygon') {
-      // Quedarse únicamente con el anillo principal exterior (índice 0)
+      // Un Polygon tiene arreglo de anillos: [anilloExterior, hueco1, hueco2...] -> dejamos solo el exterior
       mergedPolygon.geometry.coordinates = [mergedPolygon.geometry.coordinates[0]];
     } else if (mergedPolygon.geometry.type === 'MultiPolygon') {
-      mergedPolygon.geometry.coordinates = mergedPolygon.geometry.coordinates.map(poly => {
-        return [poly[0]];
+      // Un MultiPolygon tiene una lista de Polygon: [ [exterior, hueco1], [exterior2, hueco2] ]
+      mergedPolygon.geometry.coordinates = mergedPolygon.geometry.coordinates.map(polygonData => {
+        return [polygonData[0]]; // conservar solo el anillo exterior de cada componente
       });
     }
-  } catch (cleanErr) {
-    console.warn('[mergeLots] Limpieza del contorno falló:', cleanErr.message);
+  } catch (stripErr) {
+    console.warn('[mergeLots] Error al eliminar huecos:', stripErr.message);
   }
 
   // 4. Centroide en espacio normalizado → reescalar a píxeles SVG
@@ -231,19 +214,6 @@ export const mergeLots = (lotsArray) => {
  * @param {Array} lotsArray 
  * @returns {boolean}
  */
-export const areLotsContiguous = (lotsArray) => {
-  if (!lotsArray || lotsArray.length < 2) return true;
-  try {
-    // Usamos el motor de topología para ver si forman un solo componente conexo
-    // Aumentamos a un epsilon de 3.0 para absorber los márgenes introducidos durante la división y gaps de dibujo
-    const blocks = groupLotsIntoBlocks(lotsArray, 3.0);
-    return blocks.length === 1;
-  } catch (e) {
-    console.error("Error en validación de contigüidad:", e);
-    return false;
-  }
-};
-
 /**
  * Genera el identificador visual de la unión de lotes.
  * Ej: MZ01ID01 y MZ01ID02 -> MZ01ID01-02
@@ -317,126 +287,128 @@ const pointToLineDistanceCartesian = (p, lineCoords) => {
   return minDist;
 };
 
-export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON) => {
-  const otherLines = [];
-  allLotsGeoJSON.forEach(p => {
-    try {
-      const lineRes = turf.polygonToLine(p);
-      if (lineRes.type === 'FeatureCollection') {
-        lineRes.features.forEach(f => otherLines.push(f));
-      } else {
-        otherLines.push(lineRes);
-      }
-    } catch(e) {}
-  });
-  
-  let targetRings = [];
-  if (targetLotGeoJSON.geometry.type === 'Polygon') {
-    targetRings.push(targetLotGeoJSON.geometry.coordinates[0]);
-  } else if (targetLotGeoJSON.geometry.type === 'MultiPolygon') {
-    targetLotGeoJSON.geometry.coordinates.forEach(polyCoords => {
-      targetRings.push(polyCoords[0]);
-    });
-  }
+/**
+ * Detecta las aristas libres (no compartidas con otros lotes) de un polígono.
+ * Devuelve un array de { segment: [p1, p2], len } filtrados y clasificados.
+ * 
+ * @param {Feature<Polygon>} targetLotGeoJSON - Polígono del lote objetivo (en pixel-space)
+ * @param {Feature<Polygon>[]} allLotsGeoJSON - Todos los demás lotes de la manzana
+ * @param {number} shareTolerance - Distancia máxima para considerar un borde como "compartido"
+ * @returns {{ segment, len }[]} - Bordes libres ordenados por longitud desc
+ */
+const findFreeEdges = (targetLotGeoJSON, allLotsGeoJSON, shareTolerance = 2.0) => {
+  const otherLines = allLotsGeoJSON.map(p => turf.polygonToLine(p));
+  const coords = targetLotGeoJSON.geometry.coordinates[0];
+  const freeEdges = [];
 
-  let maxLen = -1;
-  let frontageSegment = null;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p1 = coords[i];
+    const p2 = coords[i + 1];
+    const dx = p2[0] - p1[0];
+    const dy = p2[1] - p1[1];
+    const len = Math.sqrt(dx * dx + dy * dy);
 
-  for (const coords of targetRings) {
-    for (let i = 0; i < coords.length - 1; i++) {
-      const p1 = coords[i];
-      const p2 = coords[i + 1];
-      
-      const dx = p2[0] - p1[0];
-      const dy = p2[1] - p1[1];
-      const len = Math.sqrt(dx * dx + dy * dy);
+    // Muestrear 5 puntos a lo largo del segmento para un chequeo más robusto
+    const testPoints = [0.1, 0.3, 0.5, 0.7, 0.9].map(t => [
+      p1[0] + dx * t, p1[1] + dy * t
+    ]);
 
-      const testPoints = [
-        [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2],
-        [p1[0] + dx * 0.25, p1[1] + dy * 0.25],
-        [p1[0] + dx * 0.75, p1[1] + dy * 0.75]
-      ];
+    let isShared = false;
+    for (const line of otherLines) {
+      const lineCoords = line.geometry.type === 'LineString'
+        ? line.geometry.coordinates
+        : line.geometry.coordinates[0];
 
-      let isShared = false;
-      for (const line of otherLines) {
-         for (const pt of testPoints) {
-           let lineCoords;
-           if (line.geometry.type === 'LineString') {
-             lineCoords = line.geometry.coordinates;
-           } else if (line.geometry.type === 'MultiLineString') {
-             lineCoords = line.geometry.coordinates[0]; // Simplification for MultiLineString
-           } else if (line.geometry.coordinates && line.geometry.coordinates[0]) {
-             lineCoords = line.geometry.coordinates[0];
-           } else {
-             continue; // Skip unsupported geometry type
-           }
-
-           const dist = pointToLineDistanceCartesian(pt, lineCoords);
-           if (dist < 0.1) {
-              isShared = true;
-              break;
-           }
-         }
-         if (isShared) break;
-      }
-
-      if (!isShared) {
-        if (len > maxLen) {
-          maxLen = len;
-          frontageSegment = [p1, p2];
+      // Un borde se considera "compartido" si la MAYORÍA de sus puntos de muestreo
+      // están muy cerca de otro lote (tolerancia aumentada a 2.0 para absorber micro-gaps SVG)
+      let sharedCount = 0;
+      for (const pt of testPoints) {
+        if (pointToLineDistanceCartesian(pt, lineCoords) < shareTolerance) {
+          sharedCount++;
         }
       }
+      if (sharedCount >= 3) { // al menos 3/5 muestras tocando = borde compartido
+        isShared = true;
+        break;
+      }
+    }
+
+    if (!isShared && len > 1) {
+      freeEdges.push({ segment: [p1, p2], len });
     }
   }
 
-  // Fallback si es el único lote en la manzana u ocurrió un overlap masivo
-  if (!frontageSegment && targetRings.length > 0) {
-    for (const coords of targetRings) {
-      for (let i = 0; i < coords.length - 1; i++) {
-        const p1 = coords[i];
-        const p2 = coords[i + 1];
-        const dx = p2[0] - p1[0];
-        const dy = p2[1] - p1[1];
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len > maxLen) {
-          maxLen = len;
-          frontageSegment = [p1, p2];
-        }
-      }
-    }
-  }
-
-  return frontageSegment;
+  // Ordenar de mayor a menor longitud
+  return freeEdges.sort((a, b) => b.len - a.len);
 };
 
-export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') => {
-  // --- FASE 1: Detectar fachada en espacio de píxeles (findFrontageLine trabaja en pixel-space) ---
+/**
+ * Detecta la línea de fachada "principal" de un lote.
+ * Por defecto, devuelve el borde libre MÁS LARGO (tipicamente la fachada de calle).
+ * 
+ * @param {Feature<Polygon>} targetLotGeoJSON 
+ * @param {Feature<Polygon>[]} allLotsGeoJSON 
+ * @param {'depth'|'width'} [orientation='depth'] - 'depth' = corte perpendicular a la calle (default, divide el ancho); 'width' = corte paralelo a la calle (divide la profundidad)
+ * @returns {[number,number][]} - Par de puntos [p1, p2]
+ */
+export const findFrontageLine = (targetLotGeoJSON, allLotsGeoJSON, orientation = 'depth') => {
+  const coords = targetLotGeoJSON.geometry.coordinates[0];
+  const freeEdges = findFreeEdges(targetLotGeoJSON, allLotsGeoJSON);
+
+  if (freeEdges.length === 0) {
+    // Fallback: si está completamente rodeado, usar el borde más largo del polígono
+    let maxLen = -1;
+    let fallback = null;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const dx = coords[i+1][0] - coords[i][0];
+      const dy = coords[i+1][1] - coords[i][1];
+      const len = Math.sqrt(dx*dx + dy*dy);
+      if (len > maxLen) { maxLen = len; fallback = [coords[i], coords[i+1]]; }
+    }
+    return fallback;
+  }
+
+  // 'depth' = dividir por el ancho del lote → la línea de corte es PARALELA al borde libre más largo
+  //   → para esto usamos el borde libre MÁS LARGO como guía de dirección de corte
+  // 'width' = dividir por la profundidad → línea de corte PERPENDICULAR al frente
+  //   → para esto usamos el borde libre más CORTO disponible
+  if (orientation === 'depth') {
+    // Corte estándar catastral: se parte a lo ancho → línea de corte va perp. a la calle
+    // → necesitamos el frente más largo
+    return freeEdges[0].segment;
+  } else {
+    // 'width': se parte a lo largo → línea de corte va paralela a la calle
+    // → necesitamos el borde perpendicular al frente, que es el más corto de los libres
+    const sorted = [...freeEdges].sort((a, b) => a.len - b.len);
+    return sorted[0].segment;
+  }
+};
+
+/**
+ * Divide un lote en N partes utilizando el algoritmo de intersección de semiplanos.
+ * Este enfoque garantiza CERO GAP entre las piezas resultantes porque cada pieza
+ * se calcula como la intersección del polígono original con un semiplano distinto.
+ * 
+ * @param {Object} targetLot - Lote a dividir (con .path o .svg_path)
+ * @param {number} parts - Número de partes
+ * @param {Object[]} allLotsInBlock - Todos los lotes de la manzana para detectar fachada
+ * @param {'depth'|'width'} [splitDirection='depth'] - Dirección del corte
+ * @returns {{ svg_path: string, centroid: { x, y } }[] | null}
+ */
+export const splitLot = (targetLot, parts, allLotsInBlock, splitDirection = 'depth') => {
+  // --- FASE 1: Detectar fachada en espacio de píxeles ---
   const targetPoly = svgPathToGeoJSON(targetLot.path || targetLot.svg_path);
+  if (!targetPoly) return null;
+
   const otherPolys = allLotsInBlock
     .filter(l => l.id !== targetLot.id)
     .map(l => svgPathToGeoJSON(l.path || l.svg_path))
     .filter(Boolean);
 
-  let facade = null;
-
-  if (direction === 'auto') {
-    facade = findFrontageLine(targetPoly, otherPolys);
-  } else {
-    const bbox = turf.bbox(targetPoly);
-    const [minX, minY, maxX, maxY] = bbox;
-    if (direction === 'vertical') {
-      // Cortes verticales -> distribuimos puntos horizontalmente
-      facade = [[minX, minY], [maxX, minY]];
-    } else if (direction === 'horizontal') {
-      // Cortes horizontales -> distribuimos puntos verticalmente
-      facade = [[minX, minY], [minX, maxY]];
-    }
-  }
-
+  const facade = findFrontageLine(targetPoly, otherPolys, splitDirection);
   if (!facade) return null;
 
-  // --- FASE 2: Generar polígonos de corte en espacio normalizado ---
-  // Escalar la fachada al espacio seguro de Turf (dividir por TURF_COORD_SCALE)
+  // --- FASE 2: Calcular puntos de corte sobre la fachada en espacio normalizado ---
   const [p1raw, p2raw] = facade;
   const p1 = [p1raw[0] / TURF_COORD_SCALE, p1raw[1] / TURF_COORD_SCALE];
   const p2 = [p2raw[0] / TURF_COORD_SCALE, p2raw[1] / TURF_COORD_SCALE];
@@ -444,108 +416,151 @@ export const splitLot = (targetLot, parts, allLotsInBlock, direction = 'auto') =
   const dx = p2[0] - p1[0];
   const dy = p2[1] - p1[1];
   const len = Math.sqrt(dx * dx + dy * dy);
+  if (len === 0) return null;
+
+  // Vector normal a la fachada (perpendicular al corte)
   const nx = -dy / len;
   const ny = dx / len;
 
+  // Puntos de división equidistante sobre la fachada
   const cutPoints = [];
   for (let i = 1; i < parts; i++) {
     const fraction = i / parts;
     cutPoints.push([p1[0] + dx * fraction, p1[1] + dy * fraction]);
   }
 
-  // MAX_EXTENT = extensión perpendicular del corte en espacio normalizado
-  // (equivale a 30,000,000px en espacio original, más que cualquier mapa SVG posible)
+  // MAX_EXTENT: extensión del semiplano (equivale a ~30 000 000 px en espacio original)
   const MAX_EXTENT = 30000;
-    // Utilizamos un grosor minúsculo para que los polígonos resultantes queden matemáticamente
-    // adyacentes y la topología pase `areLotsContiguous` permitiendo una futura reunificación
-    const THICKNESS = 0.0001; // 0.1 píxeles logicos en SVG space.
 
-  const cutBufferPolys = [];
-  for (const cp of cutPoints) {
-    const pA = [cp[0] + nx * MAX_EXTENT, cp[1] + ny * MAX_EXTENT];
-    const pB = [cp[0] - nx * MAX_EXTENT, cp[1] - ny * MAX_EXTENT];
-    const tx = (dx / len) * THICKNESS;
-    const ty = (dy / len) * THICKNESS;
-    const c1 = [pA[0] + tx, pA[1] + ty];
-    const c2 = [pB[0] + tx, pB[1] + ty];
-    const c3 = [pB[0] - tx, pB[1] - ty];
-    const c4 = [pA[0] - tx, pA[1] - ty];
-    cutBufferPolys.push(turf.polygon([[c1, c2, c3, c4, c1]]));
-  }
+  // --- FASE 3: Algoritmo de Intersección de Semiplanos (ZERO GAP) ---
+  // En vez de restar una "línea gruesa", calculamos cada pieza como la INTERSECCIÓN
+  // del polígono original con un semiplano definido exactamente en la línea de corte.
+  // Esto garantiza que los bordes de piezas adyacentes sean idénticos → 0 gap.
+  const scaledTarget = _downscaleGeoJSON(targetPoly);
+  const resultPolys = [];
 
-  // --- FASE 3: Operación booleana de diferencia en espacio normalizado ---
-  const scaledTargetPoly = _downscaleGeoJSON(targetPoly);
-  let diffResultGeoJSON = scaledTargetPoly;
+  // Las líneas de corte dividen el polígono en (parts) regiones.
+  // Para cada región k, la intersectamos con:
+  //   - Semiplano "derecho" del corte k-1 (si existe)
+  //   - Semiplano "izquierdo" del corte k (si existe)
+  const buildHalfPlane = (cp, side) => {
+    // side = 1 → semiplano a la "derecha" de la normal (nx,ny)
+    // side = -1 → semiplano a la "izquierda"
+    const s = side;
+    // Cuatro esquinas de un rectángulo enorme en un lado de la línea
+    const pA = [cp[0] + dx * MAX_EXTENT, cp[1] + dy * MAX_EXTENT];
+    const pB = [cp[0] - dx * MAX_EXTENT, cp[1] - dy * MAX_EXTENT];
+    const pC = [pB[0] + s * nx * MAX_EXTENT, pB[1] + s * ny * MAX_EXTENT];
+    const pD = [pA[0] + s * nx * MAX_EXTENT, pA[1] + s * ny * MAX_EXTENT];
+    return turf.polygon([[pA, pB, pC, pD, pA]]);
+  };
 
-  for (const cutPoly of cutBufferPolys) {
-    if (!diffResultGeoJSON) break;
+  for (let k = 0; k < parts; k++) {
     try {
-      // Limpiar coordenadas repetidas/nulas (sin deformar el borde exterior original)
-      const cleanPoly = turf.cleanCoords(diffResultGeoJSON);
-      const res = turf.difference(turf.featureCollection([cleanPoly, cutPoly]));
-      if (res) diffResultGeoJSON = res;
-    } catch (err) {
-      console.warn("Error en la diferencia topológica de división:", err.message);
-      // Fallback
-      try {
-        const res = turf.difference(turf.featureCollection([diffResultGeoJSON, cutPoly]));
-        if (res) diffResultGeoJSON = res;
-      } catch (err2) {
-        console.error("Fallo crítico dividiendo predio:", err2.message);
+      let piece = scaledTarget;
+
+      // Intersectar con semiplano izquierdo del corte k (si k < parts-1)
+      if (k < parts - 1) {
+        const hp = buildHalfPlane(cutPoints[k], -1);
+        const inter = turf.intersect(turf.featureCollection([piece, hp]));
+        if (!inter) continue;
+        piece = inter;
       }
+
+      // Intersectar con semiplano derecho del corte k-1 (si k > 0)
+      if (k > 0) {
+        const hp = buildHalfPlane(cutPoints[k - 1], 1);
+        const inter = turf.intersect(turf.featureCollection([piece, hp]));
+        if (!inter) continue;
+        piece = inter;
+      }
+
+      resultPolys.push(piece);
+    } catch (e) {
+      console.warn(`[splitLot] Error al calcular pieza ${k}:`, e.message);
     }
   }
 
-  if (!diffResultGeoJSON) return null;
+  // --- FASE 4: Filtrar artefactos, reescalar y generar SVG paths ---
+  const cartesianArea = (coords) => {
+    let area = 0;
+    const pts = coords[0];
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      area += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1]);
+    }
+    return Math.abs(area / 2);
+  };
 
-  let finalPolys = [];
-  if (diffResultGeoJSON.geometry.type === 'Polygon') {
-    finalPolys.push(diffResultGeoJSON);
-  } else if (diffResultGeoJSON.geometry.type === 'MultiPolygon') {
-    diffResultGeoJSON.geometry.coordinates.forEach(coords => {
-      finalPolys.push(turf.polygon(coords));
+  const origArea = cartesianArea(scaledTarget.geometry.coordinates);
+  const minArea = origArea * 0.02; // descartar artefactos < 2% del área original
+
+  const validResults = [];
+  for (const piece of resultPolys) {
+    // Manejar tanto Polygon como MultiPolygon resultante
+    const geomType = piece.geometry.type;
+    const subPolys = geomType === 'MultiPolygon'
+      ? piece.geometry.coordinates.map(c => turf.polygon(c))
+      : [piece];
+
+    for (const sp of subPolys) {
+      if (cartesianArea(sp.geometry.coordinates) < minArea) continue;
+      const center = turf.centerOfMass(sp);
+      const upscaled = _upscaleGeoJSON(sp);
+      validResults.push({
+        svg_path: geoJSONToSvgPath(upscaled),
+        centroid: {
+          x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
+          y: center.geometry.coordinates[1] * TURF_COORD_SCALE
+        }
+      });
+    }
+  }
+
+  // Si el algoritmo de semiplanos no produjo resultados (geometría muy irregular),
+  // caer de vuelta al método antiguo de sustracción con grosor mínimo
+  if (validResults.length < 2) {
+    console.warn('[splitLot] Semiplanos fallaron, usando método de sustracción de respaldo.');
+    const THICKNESS = 0.0001;
+    let diffResult = scaledTarget;
+    for (const cp of cutPoints) {
+      const pA = [cp[0] + nx * MAX_EXTENT, cp[1] + ny * MAX_EXTENT];
+      const pB = [cp[0] - nx * MAX_EXTENT, cp[1] - ny * MAX_EXTENT];
+      const tx = (dx / len) * THICKNESS;
+      const ty = (dy / len) * THICKNESS;
+      const cutPoly = turf.polygon([[
+        [pA[0] + tx, pA[1] + ty],
+        [pB[0] + tx, pB[1] + ty],
+        [pB[0] - tx, pB[1] - ty],
+        [pA[0] - tx, pA[1] - ty],
+        [pA[0] + tx, pA[1] + ty]
+      ]]);
+      try {
+        const d = turf.difference(turf.featureCollection([diffResult, cutPoly]));
+        if (d) diffResult = d;
+      } catch(e) { /* ignorar */ }
+    }
+
+    let fallbackPolys = [];
+    if (diffResult.geometry.type === 'Polygon') fallbackPolys.push(diffResult);
+    else if (diffResult.geometry.type === 'MultiPolygon') {
+      diffResult.geometry.coordinates.forEach(c => fallbackPolys.push(turf.polygon(c)));
+    }
+    fallbackPolys = fallbackPolys.filter(p => cartesianArea(p.geometry.coordinates) > minArea);
+
+    return fallbackPolys.map(p => {
+      const center = turf.centerOfMass(p);
+      const upscaled = _upscaleGeoJSON(p);
+      return {
+        svg_path: geoJSONToSvgPath(upscaled),
+        centroid: {
+          x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
+          y: center.geometry.coordinates[1] * TURF_COORD_SCALE
+        }
+      };
     });
   }
 
-  // --- FASE 4: Filtrar artefactos y generar resultado en coordenadas originales ---
-  const cartesianArea = (geometry) => {
-    let totalArea = 0;
-    
-    const calculateRingArea = (pts) => {
-      let area = 0;
-      for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-        area += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1]);
-      }
-      return Math.abs(area / 2);
-    };
-
-    if (geometry.type === 'Polygon') {
-      totalArea += calculateRingArea(geometry.coordinates[0]);
-    } else if (geometry.type === 'MultiPolygon') {
-      geometry.coordinates.forEach(polyCoords => {
-        totalArea += calculateRingArea(polyCoords[0]);
-      });
-    } else {
-      totalArea = calculateRingArea(geometry.coordinates[0]); // Fallback legacy param coords
-    }
-    return totalArea;
-  };
-
-  // origArea y piezas están en el mismo espacio normalizado: la comparación es directa
-  const origArea = cartesianArea(scaledTargetPoly.geometry);
-  const validPolygons = finalPolys.filter(p => cartesianArea(p.geometry) > (origArea * 0.02));
-
-  return validPolygons.map(p => {
-    const center = turf.centerOfMass(p);
-    const upscaled = _upscaleGeoJSON(p);
-    return {
-      svg_path: geoJSONToSvgPath(upscaled),
-      centroid: {
-        x: center.geometry.coordinates[0] * TURF_COORD_SCALE,
-        y: center.geometry.coordinates[1] * TURF_COORD_SCALE
-      }
-    };
-  });
+  return validResults;
 };
 
 export const generateSplitIds = (baseId, parts) => {
@@ -557,3 +572,4 @@ export const generateSplitIds = (baseId, parts) => {
   }
   return ids;
 };
+

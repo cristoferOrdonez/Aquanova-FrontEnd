@@ -31,13 +31,6 @@ export const prediosService = {
     });
   },
 
-  undoTopology(payload) {
-    return apiRequest('/map/topology-update', {
-      method: 'POST',
-      body: payload
-    });
-  },
-
   /**
    * Actualiza el código/nombre de una manzana (bloque).
    * @param {string} databaseBlockId - UUID real de la manzana en la tabla `blocks`
@@ -48,5 +41,9 @@ export const prediosService = {
       method: 'PATCH',
       body: payload,
     });
+  },
+
+  getCensusData(neighborhoodId) {
+    return apiRequest(`/map/census/${neighborhoodId}`, { method: 'GET' });
   }
 };

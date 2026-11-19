@@ -32,10 +32,28 @@ const TYPE_MAP = {
  *
  * @returns {import('../context/PublicFormContext').PublicFormContextType}
  */
+const REF_STORAGE_KEY = 'referral_code';
+const REF_FORMAT      = /^[A-Z0-9]{5,12}$/;
+
+function resolveReferralCode(searchParams) {
+  // 1. sessionStorage — sobrevive recargas de página
+  const stored = sessionStorage.getItem(REF_STORAGE_KEY);
+  if (stored && REF_FORMAT.test(stored)) return stored;
+
+  // 2. URL param — primer acceso desde el QR/link
+  const fromUrl = (searchParams.get('ref') ?? '').toUpperCase();
+  if (fromUrl && REF_FORMAT.test(fromUrl)) {
+    sessionStorage.setItem(REF_STORAGE_KEY, fromUrl);
+    return fromUrl;
+  }
+
+  return null;
+}
+
 export const usePublicForm = () => {
   const { formKey } = useParams();
   const [searchParams] = useSearchParams();
-  const referralCode = searchParams.get('ref') || null;
+  const referralCode = resolveReferralCode(searchParams);
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -246,12 +264,13 @@ export const usePublicForm = () => {
         const field = formData?.schema?.find((f) => f.key === key);
         if (!field || field.type === 'info') continue;
 
-        const qLabel = field.label || field.title || field.key || key;
+        const fieldKey = field.key || key;
+        const fieldLabel = field.label || field.title || fieldKey;
 
         // Si es un archivo o array de archivos, subirlo(s) a Cloudinary
         if (field.type === 'file') {
           const files = Array.isArray(value) ? value : (value ? [value] : []);
-          const validFiles = files.filter(f => f instanceof File);
+          const validFiles = files.map(f => f instanceof File ? f : f?.file).filter(f => f instanceof File);
 
           if (validFiles.length > 0) {
             try {
@@ -262,22 +281,22 @@ export const usePublicForm = () => {
                 (progress) => {
                   setUploadProgress({
                     ...progress,
-                    fieldLabel: qLabel,
+                    fieldLabel,
                   });
                 }
               );
 
-              filteredResponses[qLabel] = urls;
+              filteredResponses[fieldKey] = urls;
 
 
             } catch (uploadError) {
-              console.error(`Error al subir archivo(s) de "${qLabel}":`, uploadError);
-              throw new Error(`No se pudo subir el(los) archivo(s) de "${qLabel}". ${uploadError.message}`);
+              console.error(`Error al subir archivo(s) de "${fieldLabel}":`, uploadError);
+              throw new Error(`No se pudo subir el(los) archivo(s) de "${fieldLabel}". ${uploadError.message}`);
             }
           }
         } else {
           // Respuesta normal (texto, número, etc.)
-          filteredResponses[qLabel] = value;
+          filteredResponses[fieldKey] = value;
         }
       }
 
@@ -301,7 +320,7 @@ export const usePublicForm = () => {
             }
           );
           if (signatureUrls && signatureUrls.length > 0) {
-            payload.responses['Firma Digital'] = signatureUrls[0];
+            payload.responses['firma_digital'] = signatureUrls[0];
           }
         } catch (uploadError) {
           throw new Error('No se pudo subir la firma. ' + uploadError.message);
@@ -323,21 +342,13 @@ export const usePublicForm = () => {
 
       const result = await publicFormService.onboarding(payload);
 
-        // WORKAROUND FRONTEND (MIENTRAS BACKEND ADAPTA EL README):
-        // Guardar el state en localStorage para que el Dashboard principal se coloree instantáneamente
-        // aunque el backend todavía no esté mandando "property_state" en el JSON
-          const targetStates = [
-            'Predio Demolido', 'Predio Solo (Habitado)', 'Predio Desocupado', 'Predio en Obra',
-            'Predio solo', 'Predio para vincular', 'Predio sin construir (solo)', 
-            'Lote en construcción o en obras', 'Lote con cuenta contrato - vinculado'
-          ];
-        const selectedState = Object.values(responses).find(v => targetStates.includes(v));
-        if (payload.lot_id && selectedState) {
-          const cachedStates = JSON.parse(localStorage.getItem('temp_property_states') || '{}');
-          cachedStates[payload.lot_id] = selectedState;
-          localStorage.setItem('temp_property_states', JSON.stringify(cachedStates));
-        }
+      // Guardar token y usuario en localStorage (login automático)
+      if (result.token) localStorage.setItem('token', result.token);
+      if (result.user) localStorage.setItem('user', JSON.stringify(result.user));
 
+      // Eliminar borrador y código de referido tras envío exitoso
+      if (CACHE_KEY) localStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(REF_STORAGE_KEY);
 
       setSuccessData(result);
     } catch (err) {
@@ -369,40 +380,9 @@ export const usePublicForm = () => {
     registration,
     fieldErrors,
     uploadProgress,
+    referralCode,
     setResponse,
     setRegistration,
     handleSubmit,
-    clearCache: useCallback(() => {
-      if (CACHE_KEY) {
-        localStorage.removeItem(CACHE_KEY);
-      }
-      
-      // Reset responses to default values
-      const initial = {};
-      (formData?.schema || []).forEach((field) => {
-        if (field.type === 'info') return;
-        if (field.type === 'checkbox') {
-          initial[field.key] = [];
-        } else if (field.type === 'file') {
-          initial[field.key] = field.multiple !== false ? [] : null;
-        } else if (field.type === 'range') {
-          initial[field.key] = field.min ?? 0;
-        } else if (field.type === 'lot_selector') {
-          initial[field.key] = null;
-        } else {
-          initial[field.key] = '';
-        }
-      });
-      setResponses(initial);
-      
-      // Reset registration to default values
-      setRegistrations({
-        name: '',
-        document_number: '',
-        signature: null,
-      });
-      
-      setFieldErrors({});
-    }, [CACHE_KEY, formData]),
   };
 };

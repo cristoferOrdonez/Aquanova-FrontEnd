@@ -5,6 +5,7 @@ import FormFieldRenderer from './FormFieldRenderer';
 import RegistrationFields from './RegistrationFields';
 import SignaturePad from './SignaturePad';
 import SuccessScreen from './SuccessScreen';
+import PublicLeaderboard from './PublicLeaderboard';
 import { usePublicFormContext } from '../hooks/usePublicFormContext';
 
 // ── Estados de carga / error ──────────────────────────────────────────────────
@@ -46,10 +47,10 @@ function PublicFormContent() {
     successData,
     fieldErrors,
     uploadProgress,
+    referralCode,
     handleSubmit,
     registration,
     setRegistration,
-    clearCache,
   } = usePublicFormContext();
 
   if (loading) return <LoadingState />;
@@ -83,21 +84,24 @@ function PublicFormContent() {
         <div className="flex flex-col gap-6 p-6">
 
           {/* Encabezado */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex flex-col gap-1.5">
             <h1 className="font-work text-2xl font-bold text-gray-900">{formData.title}</h1>
-            <button
-              type="button"
-              onClick={clearCache}
-              className="text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg transition-colors shrink-0"
-              title="Borrar progreso guardado en este dispositivo"
-            >
-              Reiniciar formulario
-            </button>
           </div>
 
           {/* Banner de sorteo */}
           {formData.giveaway?.is_active && (
             <GiveawayBanner points={formData.giveaway.points_per_referral} />
+          )}
+
+          {/* Banner de invitación — solo aparece si llegaron por un link/QR */}
+          {referralCode && (
+            <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-800">
+              <span className="mt-0.5 text-lg leading-none">🔗</span>
+              <p>
+                Estás llenando este formulario <span className="font-semibold">por invitación</span>.
+                Al registrarte, tu invitador recibirá puntos automáticamente.
+              </p>
+            </div>
           )}
 
           {/* Campos de registro — primero */}
@@ -165,6 +169,10 @@ function PublicFormContent() {
 
         </div>
       </div>
+
+      {formData.giveaway?.is_active && formData.id && (
+        <PublicLeaderboard formId={formData.id} />
+      )}
     </div>
   );
 }

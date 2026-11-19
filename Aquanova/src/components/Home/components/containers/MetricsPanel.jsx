@@ -23,7 +23,7 @@ function MetricsPanel({ mapData, loading }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-48 mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
             ))}
@@ -45,7 +45,7 @@ function MetricsPanel({ mapData, loading }) {
       </h2>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <MetricCard
           title="Total Predios"
           value={metrics.totalLotes}
@@ -79,30 +79,14 @@ function MetricsPanel({ mapData, loading }) {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* Gráfico de Dona - Distribución Catastral */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Gráfico de Dona - Distribución */}
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
-            Distribución Catastral
+            Distribución por Estado
           </h3>
-          <div className="h-56">
+          <div className="h-52">
             <StatusPieChart data={metrics.distribucionEstado} />
-          </div>
-        </div>
-
-        {/* Gráfico de Dona - Estado Físico */}
-        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
-            Estado Físico (Predios)
-          </h3>
-          <div className="h-56 relative">
-            {metrics.distribucionFisica.length > 0 ? (
-              <StatusPieChart data={metrics.distribucionFisica} />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs text-gray-400">Sin datos registrados</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -111,7 +95,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Avance de Cobertura
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <CoverageBarChart
               sinInformacion={metrics.sinInformacion}
               censados={metrics.censados}
@@ -126,7 +110,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Infraestructura
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <InfrastructureChart data={metrics.infraestructura} />
           </div>
         </div>
@@ -136,7 +120,7 @@ function MetricsPanel({ mapData, loading }) {
           <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">
             Área por Estado
           </h3>
-          <div className="h-48">
+          <div className="h-52">
             <AreaChartByStatus data={metrics.areaPorEstado} />
           </div>
         </div>

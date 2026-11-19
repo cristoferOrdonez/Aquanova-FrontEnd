@@ -209,7 +209,7 @@ function HeaderSection() {
                                         }}
                                         className="
                                         w-full resize-none overflow-hidden
-                                        p-1 tablet:text-lg text-[15px] text-[var(--text)]
+                                        p-1 tablet:text-lg text-[16px] text-[var(--text)]
                                         border-[1.5px] border-transparent
                                         rounded-[5px] outline-none
                                         focus:border-[#2138C4]
@@ -224,7 +224,7 @@ function HeaderSection() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="resize-none h-24 p-2 border-[1.5px] border-[var(--stroke-selectors-and-search-bars)] rounded-[14px] 
-                    text-xs
+                    tablet:text-xs text-[16px]
                     focus:outline-none focus:border-[#2138C4] 
                     transition-all duration-500 ease-in-out"
                     />
@@ -236,14 +236,14 @@ function HeaderSection() {
                 bg-transparent 
                 tablet:translate-x-full
                 tablet:pl-[31px]
-                tablet:tablet:mt-0 mt-4
-                flex tablet:flex-col flex-box gap-4
+                tablet:mt-0 mt-4
+                flex tablet:flex-col gap-4
             ">
             <button 
                 onClick={handleSaveAndExit}
                 disabled={isSaving}
                 className={`
-                    w-fit pr-4 pl-2.5 py-1 rounded-[30px] border-[1.5px]
+                    w-fit pr-4 pl-2.5 py-1.5 rounded-[30px] border-[1.5px]
                     flex flex-row items-center gap-2 transition-all duration-200
                     ${isSaving
                         ? 'bg-[#10B981]/5 border-[#10B981]/40 text-[#10B981]/50 cursor-not-allowed scale-95'

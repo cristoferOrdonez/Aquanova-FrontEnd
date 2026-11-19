@@ -6,6 +6,40 @@ const COLORS = {
   sin: '#E0E0E0',
 };
 
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
+        <p className="text-sm font-medium text-gray-800 mb-1">{label}</p>
+        {payload.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2 text-sm">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: item.fill }}
+            />
+            <span className="text-gray-600">{item.name === 'con' ? 'Con' : 'Sin'}:</span>
+            <span className="font-semibold">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+const renderLegend = () => (
+  <div className="flex justify-center gap-4 mt-2">
+    <div className="flex items-center gap-1.5 text-xs">
+      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.con }} />
+      <span className="text-gray-600">Con registro</span>
+    </div>
+    <div className="flex items-center gap-1.5 text-xs">
+      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.sin }} />
+      <span className="text-gray-600">Sin registro</span>
+    </div>
+  </div>
+);
+
 function InfrastructureChart({ data }) {
   if (!data || data.length === 0) {
     return (
@@ -14,40 +48,6 @@ function InfrastructureChart({ data }) {
       </div>
     );
   }
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
-          <p className="text-sm font-medium text-gray-800 mb-1">{label}</p>
-          {payload.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-sm">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: item.fill }}
-              />
-              <span className="text-gray-600">{item.name === 'con' ? 'Con' : 'Sin'}:</span>
-              <span className="font-semibold">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const renderLegend = () => (
-    <div className="flex justify-center gap-4 mt-2">
-      <div className="flex items-center gap-1.5 text-xs">
-        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.con }} />
-        <span className="text-gray-600">Con registro</span>
-      </div>
-      <div className="flex items-center gap-1.5 text-xs">
-        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.sin }} />
-        <span className="text-gray-600">Sin registro</span>
-      </div>
-    </div>
-  );
 
   return (
     <div className="h-full flex flex-col">

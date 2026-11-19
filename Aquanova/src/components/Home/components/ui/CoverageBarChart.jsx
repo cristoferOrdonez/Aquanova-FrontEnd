@@ -2,6 +2,26 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { STATUS_COLORS } from '../../hooks/useMetrics';
 
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
+        {payload.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2 text-sm">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: item.fill }}
+            />
+            <span className="text-gray-600">{item.name}:</span>
+            <span className="font-semibold">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 function CoverageBarChart({ sinInformacion, censados, registrados, cobertura }) {
   const total = sinInformacion + censados + registrados;
 
@@ -21,26 +41,6 @@ function CoverageBarChart({ sinInformacion, censados, registrados, cobertura }) 
       registrados,
     }
   ];
-
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white px-3 py-2 shadow-lg rounded-lg border border-gray-200">
-          {payload.map((item, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-sm">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: item.fill }}
-              />
-              <span className="text-gray-600">{item.name}:</span>
-              <span className="font-semibold">{item.value}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="h-full flex flex-col">

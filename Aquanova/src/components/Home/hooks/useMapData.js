@@ -1,118 +1,112 @@
 import { useState, useEffect } from 'react';
-import { prediosService } from '../../../services/prediosService'; 
-import { groupLotsIntoBlocks } from '../../../utils/TopologyEngine';
+import { prediosService } from '../../../services/prediosService';
 
-/**
- * Calcula el centroide promedio de un grupo de lotes.
- * Usa el campo `centroid` ya calculado por el backend.
- */
-const getClusterCentroid = (lots) => {
-  let sumX = 0, sumY = 0, count = 0;
-  for (const lot of lots) {
-    const c = lot.centroid;
-    if (!c) continue;
-    const x = typeof c === 'object' && !Array.isArray(c) ? (c.x ?? 0) : (c[0] ?? 0);
-    const y = typeof c === 'object' && !Array.isArray(c) ? (c.y ?? 0) : (c[1] ?? 0);
-    sumX += x; sumY += y; count++;
-  }
-  return count > 0 ? { x: sumX / count, y: sumY / count } : { x: 0, y: 0 };
+const extractFirstNumber = (val) => {
+  if (val === undefined || val === null) return null;
+  const match = String(val).match(/\d+/);
+  return match ? parseInt(match[0], 10) : null;
 };
 
 /**
- * Motor de Descubrimiento de Manzanas.
- * Agrupa todos los lotes del sector por colindancia geométrica real y
- * reconstruye el array de bloques de forma determinística.
- * Los lotes donde el block_id de la DB difiere con el clúster geométrico
- * son marcados con `topology_mismatch: true`.
+ * Construye dos índices para el cruce predio ↔ censo:
+ *   - censoIndex:    lot_id (ya resuelto por el backend)  → record
+ *   - censoByLegacy: predio_id_legado (UUID del sistema anterior) → record
  *
- * @param {Object} data - Datos del backend { viewBox, blocks }
- * @returns {Object} - Mismos datos pero con bloques reordenados por geometría
+ * El backend devuelve los registros ordenados por fecha DESC, por lo que
+ * el primero que aparece para cada key es el más reciente.
  */
-const applyTopologyDiscovery = (data) => {
+const buildCensoIndexes = (censoRows = []) => {
+  const censoIndex    = new Map();
+  const censoByLegacy = new Map();
+
+  for (const record of censoRows) {
+    if (record.lot_id && !censoIndex.has(record.lot_id)) {
+      censoIndex.set(record.lot_id, record);
+    }
+    if (record.predio_id_legado && !censoByLegacy.has(record.predio_id_legado)) {
+      censoByLegacy.set(record.predio_id_legado, record);
+    }
+  }
+
+  return { censoIndex, censoByLegacy };
+};
+
+/**
+ * Calcula el status visual del predio con doble fallback:
+ *   1. Cruce por lot.id (FK directa resuelta por el backend)
+ *   2. Cruce por lot.external_id (UUID del sistema anterior)
+ *   3. lot.status de la BD, o 'sin_informacion' si no hay nada
+ */
+const computeLotStatus = (lot, censoIndex, censoByLegacy) => {
+  const censo = censoIndex.get(lot.id)
+             || (lot.external_id ? censoByLegacy.get(lot.external_id) : undefined);
+
+  if (!censo) return lot.status || 'sin_informacion';
+  if (censo.registro && censo.registro.trim() !== '') return 'registrado';
+  return 'censado';
+};
+
+/**
+ * Mapea un registro de censo (snake_case del API) a la estructura censusData
+ * (camelCase) que espera LotSidePanel.
+ */
+const mapCensoToCensusData = (censo) => ({
+  idRespuesta:   censo.id_respuesta,
+  fechaCreacion: censo.fecha_creacion,
+  tipoPunto:     censo.tipo_punto,
+  claseUso:      censo.clase_uso,
+  estadoPredio:  censo.estado_predio,
+  habitantes:    censo.numero_habitantes,
+  familias:      censo.numero_familias,
+  tieneAgua:     censo.tiene_agua,
+  horasAgua:     censo.horas_agua,
+  observaciones: censo.observaciones,
+  atendioNombre: censo.atendio_nombre,
+  atendioRol:    censo.atendio_rol,
+  fotoFachada:   censo.foto_fachada,
+  firma:         censo.firma_digital,
+  inspector:     censo.inspector_nombre,
+});
+
+/**
+ * Cruza la estructura geográfica del gemelo digital con los índices del censo.
+ */
+const applyTopologyDiscovery = (data, censoIndex, censoByLegacy) => {
   if (!data?.blocks?.length) return data;
 
-  // 1. Aplanar todos los lotes y DEDUPLICAR por ID para evitar errores de duplicidad de llaves en React
-  const rawLots = data.blocks.flatMap(block =>
-    (block.lots || []).map(lot => ({
-      ...lot,
-      _db_block_id: lot.block_id || block.id,
-    }))
-  );
+  const processedBlocks = data.blocks.map((block) => {
+    const blockLabel = block.code || `MZ-${block.id}`;
 
-  const lotMap = new Map();
-  rawLots.forEach(lot => {
-    if (lotMap.has(lot.id)) {
-      console.warn(`[TopologyDiscovery] Se detectó un predio duplicado en la DB: ID ${lot.id}. Omitiendo duplicado.`);
-    } else {
-      lotMap.set(lot.id, lot);
-    }
-  });
-  const allLots = Array.from(lotMap.values());
+    const processedLots = (block.lots || []).map((lot) => {
+      const lotNum = extractFirstNumber(lot.number || lot.id);
+      const idNum  = lotNum !== null ? String(lotNum).padStart(2, '0') : lot.id.substring(0, 2);
 
-  if (allLots.length === 0) return data;
+      const censo = censoIndex.get(lot.id)
+                 || (lot.external_id ? censoByLegacy.get(lot.external_id) : undefined);
 
-  // 2. Agrupar por colindancia física (epsilon = 2px para tolerar gaps de dibujo)
-  const geometricClusters = groupLotsIntoBlocks(allLots, 2.0);
-
-  // 3. Ordenar clústeres de Noroeste a Sureste para numeración determinística
-  geometricClusters.sort((clusterA, clusterB) => {
-    const cA = getClusterCentroid(clusterA);
-    const cB = getClusterCentroid(clusterB);
-    // Primero por eje Y (arriba antes que abajo), luego por X (izquierda antes que derecha)
-    if (Math.abs(cA.y - cB.y) > 30) return cA.y - cB.y;
-    return cA.x - cB.x;
-  });
-
-  // Construir mapa de bloques originales para recuperar metadata (geom_path, label_position, etc.)
-  const originalBlocksById = new Map(data.blocks.map(b => [b.id, b]));
-
-  // 4. Reconstruir bloques a partir de clústeres geométricos
-  const geometricBlocks = geometricClusters.map((clusterLots, mzIndex) => {
-    const mzNum = String(mzIndex + 1).padStart(2, '0');
-
-    // Determinar el block_id canónico: el más frecuente en el clúster según la DB
-    const blockIdCounts = {};
-    clusterLots.forEach(lot => {
-      const bid = lot._db_block_id;
-      blockIdCounts[bid] = (blockIdCounts[bid] || 0) + 1;
-    });
-    const canonicalBlockId = Object.keys(blockIdCounts)
-      .sort((a, b) => blockIdCounts[b] - blockIdCounts[a])[0];
-
-    // Recuperar metadatos del bloque original (geom_path, label_position, code)
-    const originalBlock = originalBlocksById.get(canonicalBlockId) || {};
-
-    // Ordenar lotes dentro del clúster para IDs consecutivos consistentes
-    const sortedLots = [...clusterLots].sort((a, b) =>
-      String(a.number || a.id).localeCompare(String(b.number || b.id))
-    );
-
-    // Asignar display_id y marcar discrepancias
-    const uniqueBlockId = `MZ${mzNum}`;
-    const blockLabel = originalBlock.code || uniqueBlockId;
-
-    sortedLots.forEach((lot, lotIndex) => {
-      const idNum = String(lotIndex + 1).padStart(2, '0');
-      // El display_id ahora refleja el nombre real de la manzana (ej: "55-01" en vez de "MZ01ID01")
-      lot.display_id = `${blockLabel}-${idNum}`;
-      lot.block_id = uniqueBlockId; 
-      lot.database_block_id = canonicalBlockId;
-      lot.block_code = blockLabel; 
-      lot.topology_mismatch = lot._db_block_id !== canonicalBlockId;
-      delete lot._db_block_id;
+      return {
+        ...lot,
+        display_id:        `${blockLabel}-${idNum}`,
+        block_code:        blockLabel,
+        block_id:          blockLabel,
+        database_block_id: block.id,
+        status:            computeLotStatus(lot, censoIndex, censoByLegacy),
+        water_meter_code:  censo?.registro   || null,
+        direccion_fisica:  censo?.direccion  || null,
+        censusData:        censo ? mapCensoToCensusData(censo) : null,
+      };
     });
 
-    return {
-      id: uniqueBlockId, // ID único para React Keys (MZ01, MZ02...)
-      database_block_id: canonicalBlockId,
-      code: originalBlock.code || uniqueBlockId,
-      geom_path: originalBlock.geom_path,
-      label_position: originalBlock.label_position,
-      lots: sortedLots,
-    };
+    const sortedLots = [...processedLots].sort((a, b) => {
+      const aNum = extractFirstNumber(a.display_id) || 0;
+      const bNum = extractFirstNumber(b.display_id) || 0;
+      return aNum - bNum;
+    });
+
+    return { ...block, lots: sortedLots };
   });
 
-  return { ...data, blocks: geometricBlocks };
+  return { ...data, blocks: processedBlocks };
 };
 
 export const useMapData = (neighborhoodId) => {
@@ -124,47 +118,21 @@ export const useMapData = (neighborhoodId) => {
     const fetchMap = async () => {
       try {
         setLoading(true);
-        const response = await prediosService.getDigitalTwinData(neighborhoodId);
-        if (response && response.data) {
-          // 0. WORKAROUND FRONTEND: Inyectar colores de Property State cacheados localmente 
-          // hasta que Backend envíe la columna nativamente en el endpoint de getDigitalTwinData
-          try {
-            const cachedStates = JSON.parse(localStorage.getItem('temp_property_states') || '{}');
-            if (Object.keys(cachedStates).length > 0 && response.data.blocks) {
-              response.data.blocks.forEach(block => {
-                if (block.lots) {
-                  block.lots.forEach(lot => {
-                    if (cachedStates[lot.id] && !lot.property_state) {
-                      lot.property_state = cachedStates[lot.id];
-                    }
-                  });
-                }
-              });
-            }
-          } catch(e) {
-            console.error("Error leyendo caché local de states", e);
-          }
 
-          // 1. Aplicar descubrimiento topológico (reagrupación por colindancia)
-          const processedData = applyTopologyDiscovery(response.data);
+        const twinResponse = await prediosService.getDigitalTwinData(neighborhoodId);
 
-          // 2. Contar y loguear discrepancias encontradas (para auditoría)
-          const mismatched = processedData.blocks
-            .flatMap(b => b.lots)
-            .filter(l => l.topology_mismatch);
-          if (mismatched.length > 0) {
-            console.warn(
-              `[TopologyAudit] ${mismatched.length} predios con discrepancia de manzana:`,
-              mismatched.map(l => `${l.display_id} (ID: ${l.id})`)
-            );
-          }
-
-          setMapData(processedData);
-        } else {
-          setError('El formato de datos recibido no es válido.');
+        if (!twinResponse?.data) {
+          setError('El formato de datos de topología recibido no es válido.');
+          return;
         }
+
+        const censusResponse = await prediosService.getCensusData(neighborhoodId).catch(() => null);
+        const censoRows = censusResponse?.data || [];
+        const { censoIndex, censoByLegacy } = buildCensoIndexes(censoRows);
+        const processedData = applyTopologyDiscovery(twinResponse.data, censoIndex, censoByLegacy);
+        setMapData(processedData);
       } catch (err) {
-        setError(err.message || 'No se pudo cargar el plano digital.');
+        setError(err.message || 'No se pudo cargar la información del plano digital.');
       } finally {
         setLoading(false);
       }

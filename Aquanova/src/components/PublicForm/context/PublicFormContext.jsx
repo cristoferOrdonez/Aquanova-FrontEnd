@@ -55,6 +55,8 @@ import { createContext } from 'react';
  * @property {Object.<string, string|number|string[]>} responses
  * @property {Object.<string, string>} registration
  * @property {Object.<string, string>} fieldErrors
+ * @property {{current: number, total: number, percent: number, fileName: string}|null} uploadProgress
+ * @property {string|null} referralCode
  * @property {(key: string, value: string|number|string[]) => void} setResponse
  * @property {(key: string, value: string) => void} setRegistration
  * @property {() => Promise<void>} handleSubmit

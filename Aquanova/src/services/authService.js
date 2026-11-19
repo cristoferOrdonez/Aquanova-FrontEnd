@@ -2,19 +2,27 @@ import { apiRequest } from './apiClient';
 
 export const authService = {
   async login({ document_number, password }) {
-    return apiRequest('/auth/login', {
+    const response = await apiRequest('/auth/login', {
       method: 'POST',
       body: { document_number, password },
     });
+    if (response.ok && response.user) {
+      localStorage.setItem('user', JSON.stringify(response.user));
+    }
+    return response;
   },
 
-  logout() {
+  async logout() {
+    try {
+      await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Logout API error:', error);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
   saveSession({ token, user }) {
-    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
   },
 
@@ -26,4 +34,8 @@ export const authService = {
       return null;
     }
   },
+
+  isAuthenticated() {
+    return localStorage.getItem('user') !== null;
+  }
 };

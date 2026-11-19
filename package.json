@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "dev": "npm --prefix Aquanova run dev",
+    "build": "npm --prefix Aquanova run build",
+    "preview": "npm --prefix Aquanova run preview"
+  },
   "dependencies": {
     "xlsx": "^0.18.5"
   }

@@ -79,11 +79,8 @@ export const cloudinaryService = {
       const endpoint = isVideo ? '/upload/video' : '/upload/image';
       xhr.open('POST', `${API_URL}${endpoint}`);
 
-      // Agregar token si existe (para formularios autenticados)
-      const token = localStorage.getItem('token');
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      }
+      // Enviar cookies para autenticación
+      xhr.withCredentials = true;
 
       xhr.send(formData);
     });

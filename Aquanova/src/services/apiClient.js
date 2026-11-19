@@ -1,10 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getToken = () => localStorage.getItem('token');
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
 
 export const getAuthHeaders = () => {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return {};
 };
 
 /**
@@ -31,6 +32,7 @@ export async function apiRequest(path, { method = 'GET', headers = {}, body } = 
       method,
       headers: finalHeaders,
       body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+      credentials: 'include',
     });
 
     const data = await res.json().catch(() => null);

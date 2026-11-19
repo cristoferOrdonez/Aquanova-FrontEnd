@@ -59,6 +59,7 @@ function FormCard({
 
   const handleShare = () => {
     if (!share_link) return
+    window.open(share_link, '_blank', 'noopener,noreferrer')
     navigator.clipboard.writeText(share_link).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
