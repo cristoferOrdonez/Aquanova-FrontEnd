@@ -19,7 +19,7 @@ export default function QuestionCard({
   return (
     <div className={`
       w-full border-[1.5px] rounded-[5px] p-5 flex flex-col gap-3 shadow-sm
-      transition-all duration-500
+      transition-all duration-1000 ease-out
       ${isJustUpdated ? 'bg-blue-50 border-[#2138C4] shadow-[0_0_15px_rgba(33,56,196,0.2)]' : 'bg-[var(--card-bg)] border-[var(--card-stroke)]'}
     `}>
       {/* Fila superior: número + badge de tipo */}

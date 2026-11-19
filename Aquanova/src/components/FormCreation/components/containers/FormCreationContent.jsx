@@ -3,11 +3,16 @@ import HeaderSection from './HeaderSection.jsx';
 import QuestionList from './QuestionListSection.jsx';
 import EditingSection from './EditingSection.jsx';
 import CreationButton from './../ui/buttons/CreationButton.jsx';
-import { useEditModeContext } from '../../hooks/useFormCreationContext.js';
+import { useEditModeContext, useEditingSectionContext, useCreationControlsContext } from '../../hooks/useFormCreationContext.js';
 
 export default function FormCreationContent() {
   const mainContainerRef = useRef(null);
   const { isEditMode, isLoadingEdit, editLoadError, exitToList } = useEditModeContext();
+  const { isEditingSectionOpen } = useEditingSectionContext();
+  const { isCreationOn } = useCreationControlsContext();
+  
+  const isMobileEditing = isEditingSectionOpen || isCreationOn;
+  const mobileHideClass = isMobileEditing ? 'hidden tablet:flex' : 'flex';
 
   // Estado de carga para modo edición
   if (isEditMode && isLoadingEdit) {
@@ -61,7 +66,7 @@ export default function FormCreationContent() {
       className="bg-[var(--bg-color-main)] font-work w-full min-h-full flex flex-col items-center justify-start pt-10 pb-20 gap-3 text-left"
     >
       {/* Indicador de modo: creación o edición */}
-      <div className="tablet:w-[653px] w-[90%] flex items-center gap-2 -mb-1">
+      <div className={`tablet:w-[653px] w-[90%] items-center gap-2 -mb-1 ${mobileHideClass}`}>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
           isEditMode
             ? 'bg-blue-50 text-[#2138C4] border-blue-200'
@@ -80,7 +85,9 @@ export default function FormCreationContent() {
         </span>
       </div>
 
-      <HeaderSection />
+      <div className={mobileHideClass}>
+        <HeaderSection />
+      </div>
 
       <QuestionList />
 
@@ -88,7 +95,9 @@ export default function FormCreationContent() {
         <EditingSection id={-1} />
       </div>
 
-      <CreationButton />
+      <div className={mobileHideClass}>
+        <CreationButton />
+      </div>
     </main>
   );
 }

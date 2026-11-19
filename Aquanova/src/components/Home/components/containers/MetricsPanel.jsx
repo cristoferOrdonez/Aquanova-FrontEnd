@@ -23,7 +23,7 @@ function MetricsPanel({ mapData, loading }) {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="animate-pulse">
           <div className="h-6 bg-gray-200 rounded w-48 mb-6"></div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
             ))}
@@ -45,7 +45,7 @@ function MetricsPanel({ mapData, loading }) {
       </h2>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <MetricCard
           title="Total Predios"
           value={metrics.totalLotes}

@@ -9,7 +9,7 @@ function ExitButton() {
             className="
                 group
                 flex items-center gap-2
-                px-3 py-1.5
+                px-3 py-2 min-h-[44px]
                 rounded-lg
                 text-gray-400
                 font-medium text-xs tracking-wide uppercase

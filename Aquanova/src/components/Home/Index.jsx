@@ -443,8 +443,20 @@ function Index() {
                       onFocus={() => setShowSuggestions(true)}
                       placeholder={neighborhoods.length === 0 ? 'Cargando sectores...' : 'Buscar sector...'}
                       disabled={neighborhoods.length === 0}
-                      className="border border-gray-300 rounded-lg px-4 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm disabled:bg-gray-200 text-sm"
+                      className="border border-gray-300 rounded-lg px-4 pr-10 py-2 w-full focus:ring-2 focus:ring-blue-500 outline-none bg-white shadow-sm disabled:bg-gray-200 text-sm"
                     />
+                    {searchText && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchText('')}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                        title="Limpiar búsqueda"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
                     {showSuggestions && filteredNeighborhoods.length > 0 && (
                       <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-56 overflow-y-auto">
                         {filteredNeighborhoods.map((hood) => (

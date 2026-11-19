@@ -30,11 +30,16 @@ function QuestionListSection() {
 
     // Función para eliminar una pregunta por su ID (preserva animación)
     const handleDeleteQuestion = (idToDelete) => {
-        setExitingQuestionId(idToDelete);
-        setTimeout(() => {
-            deleteQuestion(idToDelete);
-            setExitingQuestionId(null);
-        }, FORM_CREATION_CONFIG.animationDelays.exit);
+        const question = questions.find(q => q.id === idToDelete);
+        const questionTitle = question?.title || "esta pregunta";
+        
+        if (window.confirm(`¿Estás seguro de que deseas eliminar "${questionTitle}"? Esta acción no se puede deshacer.`)) {
+            setExitingQuestionId(idToDelete);
+            setTimeout(() => {
+                deleteQuestion(idToDelete);
+                setExitingQuestionId(null);
+            }, FORM_CREATION_CONFIG.animationDelays.exit);
+        }
     };
 
     const handleStartEditing = (questionToEdit) => {
@@ -54,6 +59,18 @@ function QuestionListSection() {
 
     const handleDragEnd = () => {
         setDraggedQuestionId(null);
+    };
+
+    const handleMoveUp = (index) => {
+        if (index > 0) {
+            moveQuestion(index, index - 1);
+        }
+    };
+
+    const handleMoveDown = (index) => {
+        if (index < questions.length - 1) {
+            moveQuestion(index, index + 1);
+        }
     };
 
     const handleDragOver = (e, targetId) => {
@@ -90,13 +107,16 @@ function QuestionListSection() {
                 const isDraggingThis = draggedQuestionId === q.id;
 
                 // Construir clases condicionales una sola vez para evitar duplicación y re-evaluaciones
-                const baseTransition = 'transition-all duration-500 ease-in-out';
+                const baseTransition = 'transition-all duration-700 ease-out';
                 const exitClass = exitingQuestionId === q.id ? 'opacity-50 -translate-x-full max-h-0 scale-10 pointer-events-none' : 'max-h-[500px]';
                 const dimClass = (isEditingAny && !isEditingThis) || creationControls.isCreationOn ? 'opacity-40 grayscale scale-95 pointer-events-none blur-[1px]' : '';
                 const createdClass = justCreatedId === q.id ? 'animate-card-entry' : '';
                 const draggingClass = isDraggingThis ? 'opacity-40 scale-95' : '';
 
-                const outerClass = `flex flex-col tablet:w-[653px] w-[90%] tablet:overflow-visible ${baseTransition} ${exitClass} ${dimClass} ${createdClass} ${draggingClass}`;
+                const isMobileHidden = (isEditingAny && !isEditingThis) || creationControls.isCreationOn;
+                const mobileHideClass = isMobileHidden ? 'hidden tablet:flex' : 'flex';
+
+                const outerClass = `${mobileHideClass} flex-col tablet:w-[653px] w-[90%] tablet:overflow-visible ${baseTransition} ${exitClass} ${dimClass} ${createdClass} ${draggingClass}`;
                 const innerClass = `w-full relative tablet:overflow-visible ${baseTransition} ${exitClass} ${dimClass} ${createdClass} ${isEditingThis ? 'opacity-0 h-0 p-0 mb-0 invisible translate-y-9' : ''}`;
 
                 return (
@@ -112,11 +132,15 @@ function QuestionListSection() {
 
                                 <QuestionControl 
                                     q={q} 
+                                    index={idx}
+                                    totalQuestions={questions.length}
                                     isEditingThis={isEditingThis} 
                                     handleStartEditing={handleStartEditing} 
                                     handleDeleteQuestion={handleDeleteQuestion}
                                     handleDragStart={handleDragStart}
                                     handleDragEnd={handleDragEnd}
+                                    handleMoveUp={handleMoveUp}
+                                    handleMoveDown={handleMoveDown}
                                 />
                             </div>
                             <EditingSection id={q.id} />
