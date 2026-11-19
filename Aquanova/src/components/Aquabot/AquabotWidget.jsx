@@ -1,24 +1,111 @@
 // @ts-nocheck
 // src/components/Aquabot/AquabotWidget.jsx
-import { useEffect, useRef, useState } from 'react';
+import { Children, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useAquabot } from './hooks/useAquabot';
+
+// ── Paleta del asistente ──────────────────────────────────────────────────────
+// Navy profundo para el header, naranja de acento (--orange-base) para la
+// identidad del bot y azul medio para los mensajes del usuario.
+
+const NAVY        = '#16294A';
+const NAVY_SOFT   = '#1E3860';
+const NAVY_TEXT   = '#1B2C4A';
+const ORANGE      = '#DD7A31';
+const ORANGE_DARK = '#C4681E';
+const USER_BLUE   = '#4E85C6';
+const BOT_BG      = '#E8EFF7';
+
+// ── Resaltado de cifras dentro del markdown ──────────────────────────────────
+// Divide las cadenas de texto y envuelve los números en naranja, como en el
+// diseño de referencia ("224 predios", "46", "1,5 familias").
+
+const NUM_SPLIT = /(\d+(?:[.,]\d+)*\s?%?)/g;
+
+function highlightNumbers(children) {
+  return Children.map(children, (child, idx) => {
+    if (typeof child !== 'string') return child;
+    const parts = child.split(NUM_SPLIT);
+    return parts.map((part, i) =>
+      i % 2 === 1
+        ? <span key={`${idx}-${i}`} className="font-semibold text-[#DD7A31]">{part}</span>
+        : part
+    );
+  });
+}
+
+// Renderers del markdown (no hay plugin de typography instalado, así que el
+// estilo de cada nodo se define aquí de forma explícita).
+const MD_COMPONENTS = {
+  p:  ({ children }) => <p className="my-1 first:mt-0 last:mb-0">{highlightNumbers(children)}</p>,
+  strong: ({ children }) => (
+    <strong className="font-bold text-[#16294A]">{highlightNumbers(children)}</strong>
+  ),
+  em: ({ children }) => <em className="italic">{highlightNumbers(children)}</em>,
+  ul: ({ children }) => <ul className="my-1.5 pl-4 list-disc marker:text-[#DD7A31] space-y-0.5">{children}</ul>,
+  ol: ({ children }) => <ol className="my-1.5 pl-4 list-decimal marker:text-[#DD7A31] space-y-0.5">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{highlightNumbers(children)}</li>,
+  h1: ({ children }) => <h1 className="text-sm font-bold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h1>,
+  h2: ({ children }) => <h2 className="text-sm font-bold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h2>,
+  h3: ({ children }) => <h3 className="text-[13px] font-semibold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h3>,
+  a:  ({ children, href }) => (
+    <a href={href} target="_blank" rel="noreferrer"
+       className="text-[#1361C5] underline underline-offset-2 hover:text-[#0D448A]">{children}</a>
+  ),
+  code: ({ children }) => (
+    <code className="bg-white/70 text-[#0D448A] px-1 py-0.5 rounded text-[12px] font-mono">{children}</code>
+  ),
+  pre: ({ children }) => (
+    <pre className="bg-white/70 rounded-lg p-2 my-1.5 overflow-x-auto text-[12px]">{children}</pre>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="border-l-2 border-[#DD7A31]/40 pl-2 my-1.5 text-[#1B2C4A]/80">{children}</blockquote>
+  ),
+  table: ({ children }) => (
+    <div className="my-2 overflow-x-auto">
+      <table className="w-full text-[12px] border-collapse">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="text-left font-semibold text-[#16294A] bg-white/70 px-2 py-1 border-b border-[#16294A]/10">{children}</th>
+  ),
+  td: ({ children }) => (
+    <td className="px-2 py-1 border-b border-[#16294A]/5 align-top">{highlightNumbers(children)}</td>
+  ),
+  hr: () => <hr className="my-2 border-[#16294A]/10" />,
+};
+
+// ── Marca del bot (círculo naranja con la "A") ───────────────────────────────
+
+function BotAvatar({ size = 40, className = '' }) {
+  return (
+    <div
+      className={`rounded-full flex items-center justify-center shrink-0 text-white font-bold select-none ${className}`}
+      style={{
+        width: size,
+        height: size,
+        fontSize: size * 0.45,
+        background: `linear-gradient(145deg, ${ORANGE}, ${ORANGE_DARK})`,
+      }}
+    >
+      A
+    </div>
+  );
+}
 
 // ── Indicador de escritura ────────────────────────────────────────────────────
 
 function TypingIndicator() {
   return (
-    <div className="flex items-end gap-2 max-w-[85%]">
-      <div className="w-7 h-7 rounded-full bg-linear-to-br from-[#1361C5] to-[#0D448A] flex items-center justify-center shrink-0 shadow-sm">
-        <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
-        </svg>
-      </div>
-      <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-        <div className="flex gap-1 items-center h-4">
-          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-          <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+    <div className="flex">
+      <div
+        className="rounded-r-xl px-4 py-3 max-w-[85%]"
+        style={{ background: BOT_BG, borderLeft: `4px solid ${ORANGE}` }}
+      >
+        <div className="flex gap-1.5 items-center h-4">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:300ms]" />
         </div>
       </div>
     </div>
@@ -32,9 +119,9 @@ const API_URL = import.meta.env.VITE_API_URL ?? '';
 function ReportDownloadButtons({ report }) {
   const base = `${API_URL}/chat/report/${report.id}`;
   return (
-    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-      <p className="text-xs font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
-        <svg viewBox="0 0 24 24" fill="#0D448A" className="w-4 h-4 shrink-0">
+    <div className="mt-3 pt-3 border-t border-[#16294A]/10">
+      <p className="text-xs font-semibold text-[#16294A] mb-2 flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" fill={ORANGE} className="w-4 h-4 shrink-0">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-1 9v-3h-2v3H7l5 5 5-5h-3z"/>
         </svg>
         {report.title}
@@ -43,7 +130,7 @@ function ReportDownloadButtons({ report }) {
         <a
           href={`${base}/pdf`}
           download
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D448A] text-white rounded-lg text-xs font-medium hover:bg-[#1361C5] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold bg-[#DD7A31] hover:bg-[#C4681E] transition-colors"
         >
           <svg viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
             <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/>
@@ -53,7 +140,7 @@ function ReportDownloadButtons({ report }) {
         <a
           href={`${base}/xlsx`}
           download
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#16294A]/15 text-[#16294A] text-xs font-semibold hover:border-[#DD7A31] hover:text-[#C4681E] transition-colors"
         >
           <svg viewBox="0 0 24 24" fill="#16a34a" className="w-3.5 h-3.5">
             <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/>
@@ -61,7 +148,7 @@ function ReportDownloadButtons({ report }) {
           Descargar Excel
         </a>
       </div>
-      <p className="text-[10px] text-gray-400 mt-1.5">El enlace expira en 1 hora</p>
+      <p className="text-[10px] text-[#16294A]/40 mt-1.5">El enlace expira en 1 hora</p>
     </div>
   );
 }
@@ -69,14 +156,16 @@ function ReportDownloadButtons({ report }) {
 // ── Burbuja de mensaje ────────────────────────────────────────────────────────
 
 function MessageBubble({ message }) {
-  const isUser      = message.role === 'user';
-  const isError     = message.role === 'error';
-  const isAssistant = message.role === 'assistant';
+  const isUser  = message.role === 'user';
+  const isError = message.role === 'error';
 
   if (isUser) {
     return (
       <div className="flex justify-end">
-        <div className="bg-[#0D448A] text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[82%] text-sm leading-relaxed shadow-sm break-words">
+        <div
+          className="rounded-2xl px-5 py-3 max-w-[80%] text-[13px] text-white leading-relaxed break-words"
+          style={{ background: USER_BLUE }}
+        >
           {message.content}
         </div>
       </div>
@@ -85,53 +174,50 @@ function MessageBubble({ message }) {
 
   if (isError) {
     return (
-      <div className="flex items-end gap-2 max-w-[85%]">
-        <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-          <svg viewBox="0 0 24 24" fill="#ef4444" className="w-4 h-4">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-        </div>
-        <div className="bg-red-50 border border-red-200 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm text-red-700 shadow-sm break-words">
+      <div className="flex">
+        <div
+          className="rounded-r-xl px-4 py-3 max-w-[88%] text-[13px] text-red-700 leading-relaxed break-words"
+          style={{ background: '#FEF2F2', borderLeft: '4px solid #EF4444' }}
+        >
           {message.content}
         </div>
       </div>
     );
   }
 
-  if (isAssistant) {
-    return (
-      <div className="flex items-end gap-2 max-w-[88%]">
-        <div className="w-7 h-7 rounded-full bg-linear-to-br from-[#1361C5] to-[#0D448A] flex items-center justify-center shrink-0 shadow-sm">
-          <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-            <path d="M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0zM12 2a1 1 0 0 1 1 1v1.07A9.003 9.003 0 0 1 20.93 11H22a1 1 0 1 1 0 2h-1.07A9.003 9.003 0 0 1 13 20.93V22a1 1 0 1 1-2 0v-1.07A9.003 9.003 0 0 1 3.07 13H2a1 1 0 1 1 0-2h1.07A9.003 9.003 0 0 1 11 3.07V2a1 1 0 0 1 1-1z"/>
-          </svg>
-        </div>
-        <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 text-sm text-gray-800 shadow-sm leading-relaxed break-words
-          prose prose-sm max-w-none
-          prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5
-          prose-strong:text-gray-900 prose-code:text-[#0D448A] prose-code:bg-blue-50 prose-code:px-1 prose-code:rounded
-          prose-table:text-xs prose-th:bg-gray-50 prose-th:font-semibold
-          prose-headings:text-gray-900 prose-headings:font-semibold">
-          <ReactMarkdown>{message.content}</ReactMarkdown>
-          {message.report && <ReportDownloadButtons report={message.report} />}
-        </div>
+  // assistant
+  return (
+    <div className="flex">
+      <div
+        className="rounded-r-xl px-4 py-3 max-w-[88%] text-[13px] leading-relaxed break-words"
+        style={{ background: BOT_BG, borderLeft: `4px solid ${ORANGE}`, color: NAVY_TEXT }}
+      >
+        <ReactMarkdown components={MD_COMPONENTS}>{message.content}</ReactMarkdown>
+        {message.report && <ReportDownloadButtons report={message.report} />}
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }
 
 // ── Panel del chat (redimensionable) ─────────────────────────────────────────
 
-const MIN_W = 280;
+const MIN_W = 300;
 const MAX_W = 760;
-const MIN_H = 360;
+const MIN_H = 380;
 const MAX_H = 900;
-const DEFAULT_W = 360;
-const DEFAULT_H = 520;
+const DEFAULT_W = 400;
+const DEFAULT_H = 560;
 
-function AquabotPanel({ state }) {
+// Nuevo tamaño a partir del arrastre, respetando la dirección de crecimiento
+// (dirX/dirY) y el espacio disponible hasta el borde de la pantalla.
+function nextSize({ startX, startY, startW, startH, dirX, dirY, maxW, maxH }, clientX, clientY) {
+  return {
+    width:  Math.min(maxW, Math.max(MIN_W, startW + dirX * (clientX - startX))),
+    height: Math.min(maxH, Math.max(MIN_H, startH + dirY * (clientY - startY))),
+  };
+}
+
+function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
   const {
     messages, loading, unavailable,
     input, setInput, inputRef,
@@ -155,11 +241,7 @@ function AquabotPanel({ state }) {
      */
     function (e) {
       if (!resizing.current) return;
-      const { startX, startY, startW, startH } = resizing.current;
-      setSize({
-        width:  Math.min(MAX_W, Math.max(MIN_W, startW + (startX - e.clientX))),
-        height: Math.min(MAX_H, Math.max(MIN_H, startH + (startY - e.clientY))),
-      });
+      setSize(nextSize(resizing.current, e.clientX, e.clientY));
     }
   );
 
@@ -179,11 +261,7 @@ function AquabotPanel({ state }) {
       if (!resizing.current) return;
       e.preventDefault();
       const touch = e.touches[0];
-      const { startX, startY, startW, startH } = resizing.current;
-      setSize({
-        width:  Math.min(MAX_W, Math.max(MIN_W, startW + (startX - touch.clientX))),
-        height: Math.min(MAX_H, Math.max(MIN_H, startH + (startY - touch.clientY))),
-      });
+      setSize(nextSize(resizing.current, touch.clientX, touch.clientY));
     }
   );
 
@@ -209,18 +287,42 @@ function AquabotPanel({ state }) {
     };
   }, []);
 
+  // La esquina del handle es siempre la opuesta al borde anclado del panel:
+  // si el panel está pegado a la derecha, arrastrar hacia la izquierda lo
+  // agranda hacia la izquierda (y no hacia el lado contrario del cursor).
+  // Clases literales: Tailwind no genera utilidades armadas en runtime
+  const handleCorner = anchorAbove
+    ? (anchorRight ? 'top-1 left-1'    : 'top-1 right-1')
+    : (anchorRight ? 'bottom-1 left-1' : 'bottom-1 right-1');
+  const handleCursor = anchorAbove
+    ? (anchorRight ? 'nw-resize' : 'ne-resize')
+    : (anchorRight ? 'sw-resize' : 'se-resize');
+
+  // Snapshot del anclaje y del espacio libre al empezar el arrastre: los
+  // handlers viven en refs creadas al montar y no verían las props nuevas.
+  const beginResize = (clientX, clientY) => ({
+    startX: clientX,
+    startY: clientY,
+    startW: size.width,
+    startH: size.height,
+    dirX:   anchorRight ? -1 : 1,
+    dirY:   anchorAbove ? -1 : 1,
+    maxW:   Math.max(MIN_W, Math.min(MAX_W, availW)),
+    maxH:   Math.max(MIN_H, Math.min(MAX_H, availH)),
+  });
+
   const startResize = (/** @type {React.MouseEvent} */ e) => {
     e.preventDefault();
-    resizing.current = { startX: e.clientX, startY: e.clientY, startW: size.width, startH: size.height };
+    resizing.current = beginResize(e.clientX, e.clientY);
     document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'nw-resize';
+    document.body.style.cursor = handleCursor;
     window.addEventListener('mousemove', onMouseMove.current);
     window.addEventListener('mouseup',   onMouseUp.current);
   };
 
   const startResizeTouch = (/** @type {React.TouchEvent} */ e) => {
     const touch = e.touches[0];
-    resizing.current = { startX: touch.clientX, startY: touch.clientY, startW: size.width, startH: size.height };
+    resizing.current = beginResize(touch.clientX, touch.clientY);
     window.addEventListener('touchmove', onTouchMove.current, { passive: false });
     window.addEventListener('touchend',  onTouchEnd.current);
   };
@@ -229,7 +331,7 @@ function AquabotPanel({ state }) {
 
   return (
     <div
-      className="flex flex-col bg-[#F8FAFC] rounded-2xl shadow-2xl border border-gray-200 overflow-hidden relative"
+      className="flex flex-col bg-white rounded-2xl shadow-2xl border border-[#16294A]/10 overflow-hidden relative"
       style={{
         width:     size.width,
         height:    size.height,
@@ -241,10 +343,12 @@ function AquabotPanel({ state }) {
       <div
         onMouseDown={startResize}
         onTouchStart={startResizeTouch}
-        className="absolute top-1 left-1 w-6 h-6 z-20 flex items-center justify-center rounded cursor-nw-resize hover:bg-black/10 transition-colors group select-none"
+        style={{ cursor: handleCursor }}
+        className={`absolute ${handleCorner} w-6 h-6 z-20 flex items-center justify-center rounded ${anchorAbove ? 'hover:bg-white/10' : 'hover:bg-[#16294A]/10'} transition-colors group select-none`}
         title="Arrastrar para redimensionar"
       >
-        <svg width="10" height="10" viewBox="0 0 10 10" className="opacity-30 group-hover:opacity-60 transition-opacity text-gray-600">
+        <svg width="10" height="10" viewBox="0 0 10 10"
+             className={`opacity-40 group-hover:opacity-80 transition-opacity ${anchorAbove ? 'text-white' : 'text-[#16294A]'}`}>
           <circle cx="1.5" cy="1.5" r="1.2" fill="currentColor"/>
           <circle cx="5"   cy="1.5" r="1.2" fill="currentColor"/>
           <circle cx="1.5" cy="5"   r="1.2" fill="currentColor"/>
@@ -255,34 +359,39 @@ function AquabotPanel({ state }) {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#1361C5] to-[#0D448A] text-white shrink-0">
-        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          <svg viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-            <path d="M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0zM12 2a1 1 0 0 1 1 1v1.07A9.003 9.003 0 0 1 20.93 11H22a1 1 0 1 1 0 2h-1.07A9.003 9.003 0 0 1 13 20.93V22a1 1 0 1 1-2 0v-1.07A9.003 9.003 0 0 1 3.07 13H2a1 1 0 1 1 0-2h1.07A9.003 9.003 0 0 1 11 3.07V2a1 1 0 0 1 1-1z"/>
-          </svg>
-        </div>
+      <div
+        className="flex items-center gap-3 pl-8 pr-4 py-3.5 text-white shrink-0"
+        style={{ background: `linear-gradient(135deg, ${NAVY_SOFT}, ${NAVY})` }}
+      >
+        <BotAvatar size={40} />
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm leading-none">Aquabot</p>
-          <p className="text-white/70 text-xs mt-0.5">Asistente Aquanova · IA</p>
+          <p className="font-bold text-[15px] leading-none tracking-tight">AquaBot</p>
+          <p className="text-white/60 text-[11px] mt-1 flex items-center gap-1.5">
+            <span className="relative flex w-2 h-2 shrink-0">
+              <span className="absolute inline-flex w-full h-full rounded-full bg-green-400 opacity-60 animate-ping" />
+              <span className="relative inline-flex w-2 h-2 rounded-full bg-green-500" />
+            </span>
+            {unavailable ? 'sin conexión con la base del censo' : 'conectado a la base del censo'}
+          </p>
         </div>
         <div className="flex items-center gap-1">
           {messages.length > 0 && (
             <button
               onClick={reset}
-              className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="w-7 h-7 rounded-lg text-white/70 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
               title="Nueva conversación"
             >
-              <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                 <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
               </svg>
             </button>
           )}
           <button
             onClick={close}
-            className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-lg text-white/70 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors"
             aria-label="Cerrar chat"
           >
-            <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
             </svg>
           </button>
@@ -290,17 +399,13 @@ function AquabotPanel({ state }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 scroll-smooth min-h-0">
+      <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4 scroll-smooth min-h-0 bg-white">
         {isEmpty && (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-4">
-            <div className="w-14 h-14 rounded-full bg-linear-to-br from-[#1361C5] to-[#0D448A] flex items-center justify-center shadow-lg shrink-0">
-              <svg viewBox="0 0 24 24" fill="white" className="w-8 h-8">
-                <path d="M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0zM12 2a1 1 0 0 1 1 1v1.07A9.003 9.003 0 0 1 20.93 11H22a1 1 0 1 1 0 2h-1.07A9.003 9.003 0 0 1 13 20.93V22a1 1 0 1 1-2 0v-1.07A9.003 9.003 0 0 1 3.07 13H2a1 1 0 1 1 0-2h1.07A9.003 9.003 0 0 1 11 3.07V2a1 1 0 0 1 1-1z"/>
-              </svg>
-            </div>
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-2">
+            <BotAvatar size={56} className="shadow-lg" />
             <div>
-              <p className="font-semibold text-gray-800 text-sm">Hola, soy Aquabot</p>
-              <p className="text-gray-500 text-xs mt-1 leading-relaxed">
+              <p className="font-bold text-[#16294A] text-sm">Hola, soy AquaBot</p>
+              <p className="text-[#16294A]/60 text-xs mt-1 leading-relaxed">
                 Puedo responder preguntas sobre predios, censo, estadísticas del barrio y más.
               </p>
             </div>
@@ -313,7 +418,7 @@ function AquabotPanel({ state }) {
                 <button
                   key={suggestion}
                   onClick={() => { setInput(suggestion); inputRef.current?.focus(); }}
-                  className="text-xs text-left bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-600 hover:border-[#1361C5] hover:text-[#0D448A] hover:bg-blue-50 transition-colors w-full"
+                  className="text-xs text-left rounded-xl px-3.5 py-2.5 text-[#16294A]/75 bg-[#E8EFF7]/60 border border-transparent hover:border-[#DD7A31] hover:bg-[#E8EFF7] hover:text-[#16294A] transition-colors w-full"
                 >
                   {suggestion}
                 </button>
@@ -329,8 +434,8 @@ function AquabotPanel({ state }) {
         {loading && <TypingIndicator />}
 
         {unavailable && (
-          <div className="text-center text-xs text-gray-400 py-2">
-            Chatbot temporalmente no disponible
+          <div className="text-center text-xs text-[#16294A]/40 py-2">
+            AquaBot temporalmente no disponible
           </div>
         )}
 
@@ -338,8 +443,8 @@ function AquabotPanel({ state }) {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-gray-200 bg-white">
-        <div className="flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 focus-within:border-[#1361C5] focus-within:ring-2 focus-within:ring-[#1361C5]/20 transition-all px-3 py-2">
+      <div className="shrink-0 px-4 pb-4 pt-1 bg-white">
+        <div className="flex items-end gap-2 bg-white rounded-full border border-[#16294A]/12 focus-within:border-[#DD7A31] transition-colors pl-5 pr-1.5 py-1.5 shadow-sm">
           <textarea
             ref={inputRef}
             rows={1}
@@ -351,23 +456,25 @@ function AquabotPanel({ state }) {
             }}
             onKeyDown={handleKeyDown}
             disabled={loading || unavailable}
-            placeholder="Escribe tu pregunta…"
-            className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none resize-none leading-relaxed disabled:opacity-50 min-h-[22px] max-h-[96px] overflow-y-auto"
+            placeholder="Escriba su pregunta…"
+            className="flex-1 bg-transparent text-[13px] text-[#16294A] placeholder-[#16294A]/35 outline-none resize-none leading-relaxed disabled:opacity-50 min-h-[22px] max-h-[96px] overflow-y-auto self-center py-2"
             style={{ height: '22px' }}
           />
           <button
             onClick={send}
             disabled={!input.trim() || loading || unavailable}
-            className="w-8 h-8 rounded-lg bg-[#0D448A] text-white flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1361C5] transition-colors"
+            className="w-9 h-9 rounded-full text-white flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#C4681E] transition-colors"
+            style={{ background: ORANGE }}
             aria-label="Enviar"
           >
-            <svg viewBox="0 0 24 24" fill="white" className="w-4 h-4 -rotate-45">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+                 strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <path d="M5 12h13M13 6l6 6-6 6"/>
             </svg>
           </button>
         </div>
-        <p className="text-center text-[10px] text-gray-300 mt-1.5">
-          Aquabot · Impulsado por Claude (Anthropic)
+        <p className="text-center text-[10px] text-[#16294A]/25 mt-2">
+          AquaBot · Impulsado por Claude (Anthropic)
         </p>
       </div>
     </div>
@@ -481,28 +588,43 @@ export default function AquabotWidget() {
   // El panel se alinea por la derecha si el FAB está en la mitad derecha, y por la izquierda si no
   const alignRight = x + FAB_SIZE > vw / 2;
 
-  const panelLeft = alignRight
-    ? Math.max(8, x + FAB_SIZE - 360)   // alinea el borde derecho del panel con el FAB
-    : Math.min(x, vw - 360 - 8);        // alinea el borde izquierdo del panel con el FAB
+  // Se fija el borde que el resize NO debe mover: con el FAB a la derecha se
+  // ancla `right`, de modo que al ensanchar el panel crece hacia la izquierda.
+  const panelX = alignRight
+    ? { right: Math.max(8, vw - x - FAB_SIZE) }   // borde derecho alineado con el FAB
+    : { left:  Math.max(8, Math.min(x, vw - MIN_W - 8)) }; // borde izquierdo alineado con el FAB
 
-  const panelStyle = showAbove
+  const panelY = showAbove
     ? { bottom: vh - y + PANEL_GAP }
     : { top:    y + FAB_SIZE + PANEL_GAP };
 
-  const panelOrigin = `${showAbove ? 'origin-bottom' : 'origin-top'}-${alignRight ? 'right' : 'left'}`;
+  // Espacio libre hasta el borde de pantalla desde la esquina anclada
+  const availW = alignRight ? x + FAB_SIZE - 8 : vw - x - 8;
+  const availH = showAbove ? y - PANEL_GAP - 8 : vh - y - FAB_SIZE - PANEL_GAP - 8;
+
+  // Clases literales (Tailwind no detecta nombres construidos en runtime)
+  const panelOrigin = showAbove
+    ? (alignRight ? 'origin-bottom-right' : 'origin-bottom-left')
+    : (alignRight ? 'origin-top-right'    : 'origin-top-left');
 
   return (
     <>
       {/* Panel */}
       <div
-        style={{ position: 'fixed', left: panelLeft, zIndex: 50, ...panelStyle }}
+        style={{ position: 'fixed', zIndex: 50, ...panelX, ...panelY }}
         className={`transition-all duration-300 ease-out ${panelOrigin} ${
           isOpen
             ? 'opacity-100 scale-100 pointer-events-auto'
             : 'opacity-0 scale-95 pointer-events-none'
         }`}
       >
-        <AquabotPanel state={state} />
+        <AquabotPanel
+          state={state}
+          anchorRight={alignRight}
+          anchorAbove={showAbove}
+          availW={availW}
+          availH={availH}
+        />
       </div>
 
       {/* FAB arrastrable */}
@@ -512,15 +634,13 @@ export default function AquabotWidget() {
         onTouchStart={startDragTouch}
       >
         <button
-          className={`
-            w-14 h-14 rounded-full shadow-lg flex items-center justify-center
-            transition-colors duration-300 select-none
-            ${isOpen
-              ? 'bg-gray-600 hover:bg-gray-700'
-              : 'bg-linear-to-br from-[#1361C5] to-[#0D448A] hover:shadow-xl'
-            }
-          `}
-          aria-label={isOpen ? 'Cerrar Aquabot' : 'Abrir Aquabot'}
+          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 select-none text-white font-bold text-xl hover:shadow-xl"
+          style={{
+            background: isOpen
+              ? `linear-gradient(135deg, ${NAVY_SOFT}, ${NAVY})`
+              : `linear-gradient(145deg, ${ORANGE}, ${ORANGE_DARK})`,
+          }}
+          aria-label={isOpen ? 'Cerrar AquaBot' : 'Abrir AquaBot'}
         >
           <div className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}>
             {isOpen ? (
@@ -528,9 +648,7 @@ export default function AquabotWidget() {
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
               </svg>
             ) : (
-              <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                <path d="M17.5 12a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0zM12 2a1 1 0 0 1 1 1v1.07A9.003 9.003 0 0 1 20.93 11H22a1 1 0 1 1 0 2h-1.07A9.003 9.003 0 0 1 13 20.93V22a1 1 0 1 1-2 0v-1.07A9.003 9.003 0 0 1 3.07 13H2a1 1 0 1 1 0-2h1.07A9.003 9.003 0 0 1 11 3.07V2a1 1 0 0 1 1-1z"/>
-              </svg>
+              <span className="leading-none">A</span>
             )}
           </div>
         </button>

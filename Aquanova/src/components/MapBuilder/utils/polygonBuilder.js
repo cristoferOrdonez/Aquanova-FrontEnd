@@ -199,6 +199,72 @@ export function isPolygonClosed(vertices, threshold = MAP_BUILDER_CONFIG.POLYGON
 }
 
 /**
+ * Envolvente convexa de un conjunto de puntos (algoritmo de cadena monótona).
+ *
+ * @param {Array<{x: number, y: number}>} points - Puntos de entrada
+ * @returns {Array<{x: number, y: number}>} Vértices de la envolvente en orden
+ */
+export function convexHull(points) {
+  if (!points || points.length < 3) return points ? [...points] : [];
+
+  // Deduplicar: los puntos repetidos degeneran el algoritmo
+  const unique = [];
+  const seen = new Set();
+  for (const p of points) {
+    if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) continue;
+    const key = `${p.x.toFixed(3)}|${p.y.toFixed(3)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(p);
+  }
+
+  if (unique.length < 3) return unique;
+
+  const sorted = [...unique].sort((a, b) => (a.x - b.x) || (a.y - b.y));
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+  const buildChain = (pts) => {
+    const chain = [];
+    for (const p of pts) {
+      while (chain.length >= 2 && cross(chain[chain.length - 2], chain[chain.length - 1], p) <= 0) {
+        chain.pop();
+      }
+      chain.push(p);
+    }
+    chain.pop(); // el último punto lo aporta la otra cadena
+    return chain;
+  };
+
+  const hull = [...buildChain(sorted), ...buildChain([...sorted].reverse())];
+
+  // Si todos los puntos son colineales el hull degenera: devolver los originales
+  return hull.length >= 3 ? hull : unique;
+}
+
+/**
+ * Deriva la geometría de una manzana a partir de los paths de sus predios.
+ *
+ * Se usa cuando la manzana llega sin geometría real (el placeholder `M0,0 Z`
+ * que sembró el proceso legado). Sin esto la manzana no existe como polígono
+ * en el editor, sus predios quedan huérfanos y se descartan al guardar.
+ *
+ * @param {Array<string>} lotPaths - Paths SVG de los predios de la manzana
+ * @returns {Array<{x: number, y: number}>} Vértices de la manzana derivada
+ */
+export function deriveBlockVerticesFromLots(lotPaths) {
+  if (!lotPaths || lotPaths.length === 0) return [];
+
+  const points = [];
+  for (const path of lotPaths) {
+    if (path) points.push(...svgPathToVertices(path));
+  }
+
+  if (points.length < 3) return [];
+
+  return convexHull(points);
+}
+
+/**
  * Crea 4 vértices de un rectángulo a partir de dos esquinas opuestas.
  * Los vértices se generan en sentido horario desde la esquina superior-izquierda.
  *

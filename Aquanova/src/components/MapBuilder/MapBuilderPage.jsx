@@ -28,9 +28,13 @@ import {
   svgPathToVertices as svgPathToVerticesUtil,
   verticesToSvgPath,
   generateId,
+  deriveBlockVerticesFromLots,
 } from './utils/polygonBuilder';
 import { calculateArea, calculateCentroid } from './utils/areaCalculator';
-import { isPointInPolygon } from './utils/geometryValidation';
+import { isPointInPolygon, inferHierarchy } from './utils/geometryValidation';
+
+// Manzanas sembradas por el proceso legado que llegan sin geometría real
+const PLACEHOLDER_BLOCK_PATH = 'M0,0 Z';
 
 export default function MapBuilderPage() {
   const navigate = useNavigate();
@@ -145,14 +149,25 @@ export default function MapBuilderPage() {
         const polygons = [];
 
         for (const block of mapData.blocks) {
-          // Agregar bloque como polígono de tipo 'block'
-          if (block.geom_path && block.geom_path !== 'M0,0 Z') {
+          const blockLots = block.lots || [];
+          const hasRealGeometry =
+            Boolean(block.geom_path) && block.geom_path.trim() !== PLACEHOLDER_BLOCK_PATH;
+
+          // Toda manzana debe existir como polígono en el editor. Si llega con el
+          // placeholder del seed, se deriva su contorno de los predios que contiene:
+          // de lo contrario esos predios quedan huérfanos (no aparecen en la
+          // jerarquía) y `polygonsToBlocks` los descarta al guardar.
+          const blockVertices = hasRealGeometry
+            ? svgPathToVerticesUtil(block.geom_path)
+            : deriveBlockVerticesFromLots(blockLots.map((lot) => lot.svg_path));
+
+          if (blockVertices.length >= 3) {
             polygons.push({
               id: block.id,
-              vertices: svgPathToVerticesUtil(block.geom_path),
-              svgPath: block.geom_path,
-              centroid: block.label_position || null,
-              area: 0,
+              vertices: blockVertices,
+              svgPath: hasRealGeometry ? block.geom_path : verticesToSvgPath(blockVertices),
+              centroid: block.label_position || calculateCentroid(blockVertices),
+              area: calculateArea(blockVertices),
               type: 'block',
               parentId: null,
               code: block.code,
@@ -162,7 +177,7 @@ export default function MapBuilderPage() {
           }
 
           // Agregar cada lote como polígono de tipo 'lot'
-          for (const lot of (block.lots || [])) {
+          for (const lot of blockLots) {
             if (lot.svg_path) {
               polygons.push({
                 id: lot.id,
@@ -202,7 +217,16 @@ export default function MapBuilderPage() {
   const handleDraftRestore = useCallback((restore) => {
     setShowDraftPrompt(false);
     if (restore && pendingDraft) {
-      dispatch({ type: ACTIONS.LOAD_DRAFT, payload: pendingDraft });
+      // El borrador llega envuelto en el registro de la BD: el estado del editor
+      // vive en `canvasState`.
+      const canvasState = pendingDraft.canvasState || pendingDraft;
+      loadFromServer({
+        neighborhoodId: pendingDraft.neighborhoodId || state.neighborhoodId,
+        polygons: canvasState.polygons || [],
+        viewBox: canvasState.viewBox,
+        gridSize: canvasState.gridSize,
+        showGrid: canvasState.showGrid,
+      });
     } else {
       // Discard draft and load from server
       if (state.neighborhoodId) {
@@ -212,11 +236,103 @@ export default function MapBuilderPage() {
     }
     setPendingDraft(null);
     setLoadingMap(false);
-  }, [pendingDraft, dispatch, deleteDraft, state.neighborhoodId]);
+  }, [pendingDraft, loadFromServer, deleteDraft, state.neighborhoodId]);
+
+  // ─── Auto-asignación por contención ─────────────────────────────────────────
+  // Un polígono recién dibujado o importado nace 'unassigned', y el guardado solo
+  // persiste manzanas con sus predios. Esto resuelve la jerarquía de una vez en
+  // lugar de obligar a asignar cada polígono a mano desde el menú contextual.
+  const handleAutoAssign = useCallback(() => {
+    const inferred = inferHierarchy(state.polygons);
+    const typeById = new Map(state.polygons.map((p) => [p.id, p.type]));
+    const isUnassigned = (id) => typeById.get(id) === POLYGON_TYPES.UNASSIGNED;
+
+    const newBlockIds = inferred.blocks.filter(isUnassigned);
+    const newLots = inferred.lots.filter((lot) => isUnassigned(lot.id));
+
+    if (newBlockIds.length === 0 && newLots.length === 0) return;
+
+    // Códigos y números se generan aquí: los dispatch son síncronos y los memos
+    // de `nextBlockCode` / `nextLotNumber` no se recalculan entre uno y otro.
+    const usedCodes = new Set(
+      state.polygons
+        .filter((p) => p.type === POLYGON_TYPES.BLOCK)
+        .map((p) => p.code)
+        .filter(Boolean)
+    );
+    let blockSeq = 0;
+    const nextCode = () => {
+      let code;
+      do {
+        blockSeq += 1;
+        code = `MZ-${String(blockSeq).padStart(2, '0')}`;
+      } while (usedCodes.has(code));
+      usedCodes.add(code);
+      return code;
+    };
+
+    const lastLotNumber = new Map();
+    for (const p of state.polygons) {
+      if (p.type === POLYGON_TYPES.LOT && p.parentId) {
+        lastLotNumber.set(
+          p.parentId,
+          Math.max(lastLotNumber.get(p.parentId) || 0, Number(p.number) || 0)
+        );
+      }
+    }
+    const nextNumber = (blockId) => {
+      const next = (lastLotNumber.get(blockId) || 0) + 1;
+      lastLotNumber.set(blockId, next);
+      return String(next);
+    };
+
+    // Un solo snapshot para toda la operación (deshacer de una vez)
+    pushHistorySnapshot();
+
+    for (const id of newBlockIds) {
+      dispatch({ type: ACTIONS.ASSIGN_AS_BLOCK, payload: { polygonId: id, code: nextCode() } });
+    }
+    for (const lot of newLots) {
+      dispatch({
+        type: ACTIONS.ASSIGN_AS_LOT,
+        payload: { polygonId: lot.id, blockId: lot.parentId, number: nextNumber(lot.parentId) },
+      });
+    }
+  }, [state.polygons, pushHistorySnapshot, dispatch]);
 
   // ─── Save handler ────────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (!state.neighborhoodId || isSaving) return;
+
+    // El guardado solo persiste manzanas y los predios que cuelgan de ellas.
+    // Sin estas comprobaciones el resto se descartaba en silencio: el servidor
+    // respondía "Mapa guardado exitosamente" sin escribir nada y el Panel de
+    // Control seguía mostrando el barrio vacío.
+    const unassigned = state.polygons.filter((p) => p.type === POLYGON_TYPES.UNASSIGNED);
+    if (unassigned.length > 0) {
+      setError(
+        `Hay ${unassigned.length} polígono(s) sin asignar y no se guardarían. ` +
+        'Usa "Auto-asignar" en el panel de jerarquía, o asígnalos como manzana o predio con clic derecho.'
+      );
+      return;
+    }
+
+    const blockIds = new Set(blocks.map((b) => b.id));
+    const orphanLots = state.polygons.filter(
+      (p) => p.type === POLYGON_TYPES.LOT && !blockIds.has(p.parentId)
+    );
+    if (orphanLots.length > 0) {
+      setError(
+        `Hay ${orphanLots.length} predio(s) cuya manzana ya no existe y no se guardarían. ` +
+        'Reasígnalos a una manzana con clic derecho.'
+      );
+      return;
+    }
+
+    if (blocks.length === 0) {
+      setError('El mapa no tiene ninguna manzana: dibuja al menos un polígono y asígnalo como manzana.');
+      return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -236,7 +352,7 @@ export default function MapBuilderPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [state.neighborhoodId, isSaving, serialize, dispatch, deleteDraft]);
+  }, [state.neighborhoodId, state.polygons, blocks, isSaving, serialize, dispatch, deleteDraft]);
 
   // ─── Canvas event wrappers ───────────────────────────────────────────────────
   const closeContextMenu = useCallback(() => {
@@ -686,11 +802,6 @@ export default function MapBuilderPage() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Error indicator */}
-        {error && (
-          <span className="text-red-400 text-xs">{error}</span>
-        )}
-
         {/* Save status */}
         {saveStatus.label && (
           <span className={`text-xs font-medium ${saveStatus.className}`}>
@@ -706,6 +817,22 @@ export default function MapBuilderPage() {
           <span className="text-red-400 text-xs" title="Hay errores de validación">✕</span>
         )}
       </header>
+
+      {/* Banda de error: los avisos de guardado son largos y en el header
+          quedaban truncados junto al resto de controles. */}
+      {error && (
+        <div className="flex items-start gap-3 px-4 py-2 bg-red-900/40 border-b border-red-800 text-red-200 text-sm shrink-0">
+          <span className="flex-1">{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="text-red-300 hover:text-white shrink-0"
+            title="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ─── Body: Toolbar + Canvas + Panels ────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
@@ -792,6 +919,7 @@ export default function MapBuilderPage() {
               onSelect={(id) => dispatch({ type: ACTIONS.SELECT_POLYGON, payload: id })}
               onRename={(id, name) => updatePolygon(id, { code: name })}
               onContextMenu={handleHierarchyContextMenu}
+              onAutoAssign={handleAutoAssign}
             />
           </div>
 

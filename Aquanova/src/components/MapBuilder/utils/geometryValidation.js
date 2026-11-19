@@ -260,3 +260,54 @@ export function validateAllPolygons(polygons) {
     overlaps,
   };
 }
+
+/**
+ * Infiere la jerarquía manzana → predio de un conjunto de polígonos por
+ * contención geométrica.
+ *
+ * Regla: un polígono cuyo centroide cae dentro de otro más grande es predio de
+ * ese contenedor (el más ajustado, si hay varios anidados). Un polígono sin
+ * contenedor solo puede ser manzana: `lots.block_id` es NOT NULL, así que un
+ * predio sin padre no es representable en el modelo de datos.
+ *
+ * @param {Array} polygons - Polígonos del editor (con `vertices`, `centroid`, `area`)
+ * @returns {{blocks: Array<string>, lots: Array<{id: string, parentId: string}>}}
+ */
+export function inferHierarchy(polygons) {
+  const candidates = (polygons || []).filter(
+    (p) => p && p.vertices && p.vertices.length >= 3
+  );
+
+  const areaOf = (p) => Math.abs(p.area ?? 0);
+  const parentOf = new Map();
+
+  for (const child of candidates) {
+    const point = child.centroid || child.vertices[0];
+    let container = null;
+
+    for (const parent of candidates) {
+      if (parent.id === child.id) continue;
+      // El contenedor debe ser estrictamente mayor: evita que dos polígonos
+      // casi idénticos se declaren padre el uno del otro.
+      if (areaOf(parent) <= areaOf(child)) continue;
+      if (!isPointInPolygon(point, parent.vertices)) continue;
+      // Con polígonos anidados gana el más ajustado
+      if (!container || areaOf(parent) < areaOf(container)) container = parent;
+    }
+
+    if (container) parentOf.set(child.id, container.id);
+  }
+
+  const blocks = [];
+  const lots = [];
+
+  for (const polygon of candidates) {
+    if (parentOf.has(polygon.id)) {
+      lots.push({ id: polygon.id, parentId: parentOf.get(polygon.id) });
+    } else {
+      blocks.push(polygon.id);
+    }
+  }
+
+  return { blocks, lots };
+}

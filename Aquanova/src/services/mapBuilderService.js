@@ -57,13 +57,27 @@ export const mapBuilderService = {
    * @returns {Promise<object>} Respuesta del servidor
    */
   async saveMap(payload) {
-    const { polygons, neighborhoodId, viewBox, gridSize, showGrid, exportedAt } = payload;
+    const {
+      polygons,
+      neighborhoodId,
+      viewBox,
+      gridSize,
+      showGrid,
+      exportedAt,
+      deletedBlockIds,
+      deletedLotIds,
+    } = payload;
+
     return apiRequest('/map-builder/save', {
       method: 'POST',
       headers: getAuthHeaders(),
       body: {
         neighborhoodId,
         blocks: polygonsToBlocks(polygons),
+        // El backend borra por ID explícito; omitirlos dejaba en la BD las
+        // manzanas y predios eliminados en el editor.
+        deletedBlockIds: deletedBlockIds || [],
+        deletedLotIds: deletedLotIds || [],
         viewBox,
         gridSize,
         showGrid,
@@ -119,7 +133,10 @@ export const mapBuilderService = {
 
   /**
    * Guarda un borrador del mapa actual.
-   * Transforma los polígonos del editor al formato blocks/lots del backend.
+   *
+   * A diferencia de `saveMap`, el borrador guarda los polígonos crudos del editor
+   * dentro de `canvasState` (que es lo que espera el endpoint): convertirlos a
+   * blocks/lots perdería los vértices y los polígonos aún sin asignar.
    *
    * @param {object} payload - Estado actual del mapa (polygons, metadata, neighborhoodId)
    * @returns {Promise<object>} Confirmación del borrador guardado
@@ -131,11 +148,13 @@ export const mapBuilderService = {
       headers: getAuthHeaders(),
       body: {
         neighborhoodId,
-        blocks: polygonsToBlocks(polygons),
-        viewBox,
-        gridSize,
-        showGrid,
-        savedAt,
+        canvasState: {
+          polygons,
+          viewBox,
+          gridSize,
+          showGrid,
+          savedAt,
+        },
       },
     });
   },
