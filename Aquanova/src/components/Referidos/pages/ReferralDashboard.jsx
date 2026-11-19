@@ -119,17 +119,17 @@ function RankingTable({ data, loading, partial, navigate, onRowHref, pointsLabel
                     <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{row.name}</td>
                     <td className="px-4 py-3">
                       {row.referral_code
-                        ? <span className="font-mono text-xs bg-blue-50 text-[#0D448A] px-2 py-0.5 rounded-md">{row.referral_code}</span>
+                        ? <span className="font-mono text-xs bg-[#EEF2FF] text-[#0B3954] px-2 py-0.5 rounded-md">{row.referral_code}</span>
                         : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="px-4 py-3 font-bold text-[#0D448A]">{row.total_points}</td>
+                    <td className="px-4 py-3 font-bold text-[#0B3954]">{row.total_points}</td>
                     <td className="px-4 py-3 text-gray-600">{row.total_referrals ?? row.referrals_count}</td>
                     <td className="px-4 py-3 text-gray-600">{row.successful_referrals ?? '—'}</td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmt(row.last_activity)}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => navigate(onRowHref(row.user_id))}
-                        className="text-xs text-[#1361C5] hover:underline whitespace-nowrap"
+                        className="text-xs text-[#4F46E5] hover:underline whitespace-nowrap"
                       >
                         Ver perfil →
                       </button>
@@ -268,7 +268,7 @@ function GiveawayPanel({ campaign, metrics, loading }) {
                         {row.referrals_converted}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 font-semibold text-[#0D448A]">
+                    <td className="px-4 py-2.5 font-semibold text-[#0B3954]">
                       {row.points_awarded > 0 ? `+${row.points_awarded}` : '—'}
                     </td>
                   </tr>
@@ -464,7 +464,7 @@ export default function ReferralDashboard() {
             <h2 className="font-semibold text-gray-800">{selected.form_title}</h2>
             <button
               onClick={() => navigate(`/referidos/campana/${selected.form_id}`)}
-              className="text-xs text-[#1361C5] hover:underline"
+              className="text-xs text-[#4F46E5] hover:underline"
             >
               Abrir detalle completo →
             </button>
@@ -515,7 +515,7 @@ export default function ReferralDashboard() {
                 onClick={() => updateParams({ tab: tab.id })}
                 className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                   currentTab === tab.id
-                    ? 'bg-[#0D448A] text-white shadow-sm'
+                    ? 'bg-[#0B3954] text-white shadow-sm'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >

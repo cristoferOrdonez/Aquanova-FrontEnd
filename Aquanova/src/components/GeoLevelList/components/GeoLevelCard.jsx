@@ -71,7 +71,7 @@ const GeoLevelCard = ({ neighborhood }) => {
         overflow-hidden
         w-full h-full
         bg-white
-        border rounded-2xl font-work shadow-md
+        border rounded-2xl font-sans shadow-md
         hover:shadow-xl transition-all hover:-translate-y-1 duration-300
         text-center
         ${active
@@ -103,7 +103,7 @@ const GeoLevelCard = ({ neighborhood }) => {
 
       <div className="flex flex-col flex-1 p-5">
         <h2
-          className="font-work text-xl font-semibold text-gray-900 line-clamp-2 leading-tight mb-3"
+          className="font-display text-xl font-semibold text-gray-900 line-clamp-2 leading-tight mb-3"
           title={name}
         >
           {name}
@@ -130,7 +130,7 @@ const GeoLevelCard = ({ neighborhood }) => {
         </div>
 
         <p className="text-sm text-gray-600 mb-2">
-          <span className="font-medium">Código:</span> {code}
+          <span className="font-medium">Código:</span> <span className="font-mono">{code}</span>
         </p>
 
         <div className="flex-1 mb-6 h-[60px]">
@@ -143,7 +143,7 @@ const GeoLevelCard = ({ neighborhood }) => {
           <button
             type="button"
             onClick={onEdit}
-            className="p-2 rounded-full text-(--blue-buttons) hover:bg-blue-100 transition-colors"
+            className="p-2 rounded-full text-(--blue-buttons) hover:bg-[var(--color-primary)]/10 transition-colors"
             aria-label="Editar"
           >
             <PencilIcon className="h-5 w-5" />

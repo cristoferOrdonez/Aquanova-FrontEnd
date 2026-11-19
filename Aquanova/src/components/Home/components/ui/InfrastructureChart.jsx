@@ -2,8 +2,8 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 
 const COLORS = {
-  con: '#4CAF50',
-  sin: '#E0E0E0',
+  con: '#00A896',
+  sin: '#E2E8F0',
 };
 
 const CustomTooltip = ({ active, payload, label }) => {

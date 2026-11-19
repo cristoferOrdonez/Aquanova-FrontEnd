@@ -662,9 +662,9 @@ export default function MapBuilderPage() {
 
   // ─── Determine save status label ────────────────────────────────────────────
   const getSaveStatus = () => {
-    if (isSaving) return { label: 'Guardando...', className: 'text-blue-400 animate-pulse' };
-    if (state.isDirty) return { label: 'Sin guardar', className: 'text-yellow-400' };
-    if (lastSavedAt) return { label: 'Guardado', className: 'text-green-400' };
+    if (isSaving) return { label: 'Guardando...', className: 'text-[#00A896] animate-pulse' };
+    if (state.isDirty) return { label: 'Sin guardar', className: 'text-[#F59E0B]' };
+    if (lastSavedAt) return { label: 'Guardado', className: 'text-[#10B981]' };
     return { label: '', className: '' };
   };
   const saveStatus = getSaveStatus();
@@ -693,7 +693,7 @@ export default function MapBuilderPage() {
             </div>
           ) : (
             <select
-              className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00A896] focus:border-transparent"
               defaultValue=""
               onChange={(e) => handleNeighborhoodSelect(e.target.value)}
             >
@@ -721,7 +721,7 @@ export default function MapBuilderPage() {
     return (
       <div className="h-screen w-screen bg-gray-900 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin h-10 w-10 text-[#00A896]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
@@ -744,7 +744,7 @@ export default function MapBuilderPage() {
             <button
               type="button"
               onClick={() => handleDraftRestore(true)}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              className="flex-1 bg-[#00A896] hover:bg-[#008F80] text-white font-medium py-2 px-4 rounded-lg transition-colors"
             >
               Restaurar borrador
             </button>
@@ -781,7 +781,7 @@ export default function MapBuilderPage() {
 
         {/* Neighborhood selector */}
         <select
-          className="bg-gray-700 border border-gray-600 text-white text-sm rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-gray-700 border border-gray-600 text-white text-sm rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#00A896]"
           value={state.neighborhoodId || ''}
           onChange={(e) => handleNeighborhoodSelect(e.target.value)}
         >

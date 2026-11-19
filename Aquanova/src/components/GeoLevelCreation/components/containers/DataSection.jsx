@@ -15,7 +15,7 @@ const DataSection = () => {
     const { selectedGeoLevel, isEditMode, isLoadingEdit, editLoadError } = useGeoLevelSelectionContext();
 
     return (
-        <div className="w-full h-full bg-gray-900 relative flex flex-col font-work overflow-hidden border-r border-white/5">
+        <div className="w-full h-full bg-gray-900 relative flex flex-col font-sans overflow-hidden border-r border-white/5">
             
             {/* Contenido */}
             <div className="relative z-10 w-full h-full flex flex-col p-6 overflow-y-auto custom-scrollbar">

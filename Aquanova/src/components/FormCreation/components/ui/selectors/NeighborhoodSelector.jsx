@@ -70,7 +70,7 @@ const NeighborhoodSelector = ({ options = null }) => {
                     <input
                         type="text"
                         placeholder="Buscar barrio..."
-                        className="w-full text-sm py-1.5 px-3 border border-[var(--card-stroke)] rounded-[8px] focus:outline-none focus:border-[#2138C4]"
+                        className="w-full text-sm py-1.5 px-3 border border-[var(--card-stroke)] rounded-[8px] focus:outline-none focus:border-[#4F46E5]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onClick={(e) => e.stopPropagation()}

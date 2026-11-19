@@ -2,7 +2,7 @@ import FORM_CREATION_CONFIG from './../../../config/formCreationConfig';
 
 const TYPE_BADGE = {
   'Opción multiple':             { label: 'Opción múltiple',    cls: 'bg-violet-50 text-violet-600 border-violet-200' },
-  'Casillas de verificación':    { label: 'Casillas',           cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+  'Casillas de verificación':    { label: 'Casillas',           cls: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
   'Lista desplegable':           { label: 'Desplegable',        cls: 'bg-cyan-50 text-cyan-600 border-cyan-200' },
   'Respuesta textual':           { label: 'Texto',              cls: 'bg-gray-100 text-gray-500 border-gray-200' },
   'Numérico':                    { label: 'Numérico',           cls: 'bg-orange-50 text-orange-600 border-orange-200' },
@@ -20,20 +20,20 @@ export default function QuestionCard({
     <div className={`
       w-full border-[1.5px] rounded-[5px] p-5 flex flex-col gap-3 shadow-sm
       transition-all duration-1000 ease-out
-      ${isJustUpdated ? 'bg-blue-50 border-[#2138C4] shadow-[0_0_15px_rgba(33,56,196,0.2)]' : 'bg-[var(--card-bg)] border-[var(--card-stroke)]'}
+      ${isJustUpdated ? 'bg-[#EEF2FF] border-[#4F46E5] shadow-[0_0_15px_rgba(79,70,229,0.2)]' : 'bg-[var(--card-bg)] border-[var(--card-stroke)]'}
     `}>
       {/* Fila superior: número + badge de tipo */}
       <div className="flex items-center justify-between gap-2">
         {index !== undefined && (
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-            isJustUpdated ? 'bg-[#2138C4]/10 text-[#2138C4] border-[#2138C4]/20' : 'bg-[var(--bg-color-main)] text-gray-400 border-[var(--card-stroke)]'
+            isJustUpdated ? 'bg-[#4F46E5]/10 text-[#4F46E5] border-[#4F46E5]/20' : 'bg-[var(--bg-color-main)] text-gray-400 border-[var(--card-stroke)]'
           }`}>
             #{index + 1}
           </span>
         )}
         {badge && q.type !== FORM_CREATION_CONFIG.defaultType && (
           <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ml-auto ${
-            isJustUpdated ? 'bg-[#2138C4]/10 text-[#2138C4] border-[#2138C4]/20' : badge.cls
+            isJustUpdated ? 'bg-[#4F46E5]/10 text-[#4F46E5] border-[#4F46E5]/20' : badge.cls
           }`}>
             {badge.label}
           </span>

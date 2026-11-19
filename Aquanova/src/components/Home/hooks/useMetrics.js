@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
 
+// Colores de estado — paleta Aquanova. SINCRONIZADO con MapEngine.jsx y
+// MapLegend.jsx. Son valores presentacionales (no afectan el conteo).
 export const STATUS_COLORS = {
-  sin_informacion: '#9E9E9E',
-  censado: '#4CAF50',
-  registrado: '#2196F3',
+  sin_informacion: '#94A3B8',
+  censado: '#10B981',
+  registrado: '#00A896',
 };
 
 export const STATUS_LABELS = {

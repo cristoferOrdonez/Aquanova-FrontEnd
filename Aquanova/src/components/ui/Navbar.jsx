@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import logo from './../../assets/images/logo_frog.png'
+import logo from './../../assets/images/logo_aquanova.png'
 import { UserCircleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../../services/authService'
@@ -79,10 +79,10 @@ function Navbar() {
         >
           <img
             src={logo}
-            width={36}
-            height={36}
-            className='shrink-0'
-            alt='Logo'
+            width={40}
+            height={40}
+            className='shrink-0 h-10 w-10 rounded-full object-cover bg-white/95 ring-2 ring-white/60 shadow-md p-0.5'
+            alt='Aquanova'
             onClick={() => navigate('/')}
             style={{ cursor: 'pointer' }}
           />
@@ -98,7 +98,7 @@ function Navbar() {
                 key={link.path}
                 type='button'
                 onClick={() => navigate(link.path)}
-                className='relative text-sm font-semibold text-white group pb-4'
+                className='relative text-sm font-display font-semibold text-white group pb-4'
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.1 }}
@@ -107,13 +107,13 @@ function Navbar() {
               >
                 {link.name}
                 <motion.span
-                  className='absolute bottom-0 left-0 h-0.5 bg-white rounded-full'
+                  className='absolute bottom-0 left-0 h-0.5 bg-[var(--color-secondary)] rounded-full'
                   initial={false}
                   animate={{ width: active ? '100%' : '0%' }}
                   transition={{ duration: 0.25 }}
                 />
                 {!active && (
-                  <span className='absolute bottom-0 left-0 h-0.5 w-0 bg-white/50 rounded-full transition-all duration-300 group-hover:w-full' />
+                  <span className='absolute bottom-0 left-0 h-0.5 w-0 bg-[var(--color-secondary)]/50 rounded-full transition-all duration-300 group-hover:w-full' />
                 )}
               </motion.button>
             )
@@ -244,7 +244,7 @@ function Navbar() {
                       key={link.path}
                       type='button'
                       onClick={() => handleNavLink(link.path)}
-                      className={`text-left px-6 py-3.5 text-base font-semibold transition-colors ${active ? 'text-white bg-white/15 border-l-4 border-white' : 'text-white/80 hover:text-white hover:bg-white/10 border-l-4 border-transparent'}`}
+                      className={`text-left px-6 py-3.5 text-base font-display font-semibold transition-colors ${active ? 'text-white bg-white/15 border-l-4 border-[var(--color-secondary)]' : 'text-white/80 hover:text-white hover:bg-white/10 border-l-4 border-transparent'}`}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.07 }}

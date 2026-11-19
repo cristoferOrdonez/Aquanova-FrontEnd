@@ -3,18 +3,18 @@
 import { Children, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useAquabot } from './hooks/useAquabot';
+import mascot from '../../assets/images/logo_aquanova.png';
 
-// ── Paleta del asistente ──────────────────────────────────────────────────────
-// Navy profundo para el header, naranja de acento (--orange-base) para la
-// identidad del bot y azul medio para los mensajes del usuario.
+// ── Paleta del asistente (identidad Aquanova) ────────────────────────────────
+// Azul Abisal para el header, Índigo Lupa como acento del bot y Cian/Índigo
+// para los mensajes del usuario.
 
-const NAVY        = '#16294A';
-const NAVY_SOFT   = '#1E3860';
-const NAVY_TEXT   = '#1B2C4A';
-const ORANGE      = '#DD7A31';
-const ORANGE_DARK = '#C4681E';
-const USER_BLUE   = '#4E85C6';
-const BOT_BG      = '#E8EFF7';
+const NAVY        = '#0B3954'; // Azul Abisal
+const NAVY_SOFT   = '#0E4A6E';
+const NAVY_TEXT   = '#0F172A';
+const ACCENT      = '#4F46E5'; // Índigo Lupa (acento del bot)
+const USER_BLUE   = '#00A896'; // Cian Cartográfico (burbuja del usuario)
+const BOT_BG      = '#EEF2FF'; // Índigo soft (burbuja del asistente)
 
 // ── Resaltado de cifras dentro del markdown ──────────────────────────────────
 // Divide las cadenas de texto y envuelve los números en naranja, como en el
@@ -28,7 +28,7 @@ function highlightNumbers(children) {
     const parts = child.split(NUM_SPLIT);
     return parts.map((part, i) =>
       i % 2 === 1
-        ? <span key={`${idx}-${i}`} className="font-semibold text-[#DD7A31]">{part}</span>
+        ? <span key={`${idx}-${i}`} className="font-semibold text-[#4F46E5]">{part}</span>
         : part
     );
   });
@@ -39,27 +39,27 @@ function highlightNumbers(children) {
 const MD_COMPONENTS = {
   p:  ({ children }) => <p className="my-1 first:mt-0 last:mb-0">{highlightNumbers(children)}</p>,
   strong: ({ children }) => (
-    <strong className="font-bold text-[#16294A]">{highlightNumbers(children)}</strong>
+    <strong className="font-bold text-[#0B3954]">{highlightNumbers(children)}</strong>
   ),
   em: ({ children }) => <em className="italic">{highlightNumbers(children)}</em>,
-  ul: ({ children }) => <ul className="my-1.5 pl-4 list-disc marker:text-[#DD7A31] space-y-0.5">{children}</ul>,
-  ol: ({ children }) => <ol className="my-1.5 pl-4 list-decimal marker:text-[#DD7A31] space-y-0.5">{children}</ol>,
+  ul: ({ children }) => <ul className="my-1.5 pl-4 list-disc marker:text-[#4F46E5] space-y-0.5">{children}</ul>,
+  ol: ({ children }) => <ol className="my-1.5 pl-4 list-decimal marker:text-[#4F46E5] space-y-0.5">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{highlightNumbers(children)}</li>,
-  h1: ({ children }) => <h1 className="text-sm font-bold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h1>,
-  h2: ({ children }) => <h2 className="text-sm font-bold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h2>,
-  h3: ({ children }) => <h3 className="text-[13px] font-semibold text-[#16294A] mt-2 mb-1 first:mt-0">{children}</h3>,
+  h1: ({ children }) => <h1 className="text-sm font-bold text-[#0B3954] mt-2 mb-1 first:mt-0">{children}</h1>,
+  h2: ({ children }) => <h2 className="text-sm font-bold text-[#0B3954] mt-2 mb-1 first:mt-0">{children}</h2>,
+  h3: ({ children }) => <h3 className="text-[13px] font-semibold text-[#0B3954] mt-2 mb-1 first:mt-0">{children}</h3>,
   a:  ({ children, href }) => (
     <a href={href} target="_blank" rel="noreferrer"
-       className="text-[#1361C5] underline underline-offset-2 hover:text-[#0D448A]">{children}</a>
+       className="text-[#4F46E5] underline underline-offset-2 hover:text-[#0B3954]">{children}</a>
   ),
   code: ({ children }) => (
-    <code className="bg-white/70 text-[#0D448A] px-1 py-0.5 rounded text-[12px] font-mono">{children}</code>
+    <code className="bg-white/70 text-[#0B3954] px-1 py-0.5 rounded text-[12px] font-mono">{children}</code>
   ),
   pre: ({ children }) => (
     <pre className="bg-white/70 rounded-lg p-2 my-1.5 overflow-x-auto text-[12px]">{children}</pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-[#DD7A31]/40 pl-2 my-1.5 text-[#1B2C4A]/80">{children}</blockquote>
+    <blockquote className="border-l-2 border-[#4F46E5]/40 pl-2 my-1.5 text-[#0F172A]/80">{children}</blockquote>
   ),
   table: ({ children }) => (
     <div className="my-2 overflow-x-auto">
@@ -67,12 +67,12 @@ const MD_COMPONENTS = {
     </div>
   ),
   th: ({ children }) => (
-    <th className="text-left font-semibold text-[#16294A] bg-white/70 px-2 py-1 border-b border-[#16294A]/10">{children}</th>
+    <th className="text-left font-semibold text-[#0B3954] bg-white/70 px-2 py-1 border-b border-[#0B3954]/10">{children}</th>
   ),
   td: ({ children }) => (
-    <td className="px-2 py-1 border-b border-[#16294A]/5 align-top">{highlightNumbers(children)}</td>
+    <td className="px-2 py-1 border-b border-[#0B3954]/5 align-top">{highlightNumbers(children)}</td>
   ),
-  hr: () => <hr className="my-2 border-[#16294A]/10" />,
+  hr: () => <hr className="my-2 border-[#0B3954]/10" />,
 };
 
 // ── Marca del bot (círculo naranja con la "A") ───────────────────────────────
@@ -80,15 +80,15 @@ const MD_COMPONENTS = {
 function BotAvatar({ size = 40, className = '' }) {
   return (
     <div
-      className={`rounded-full flex items-center justify-center shrink-0 text-white font-bold select-none ${className}`}
-      style={{
-        width: size,
-        height: size,
-        fontSize: size * 0.45,
-        background: `linear-gradient(145deg, ${ORANGE}, ${ORANGE_DARK})`,
-      }}
+      className={`rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white ring-2 ring-white/70 shadow-sm select-none ${className}`}
+      style={{ width: size, height: size }}
     >
-      A
+      <img
+        src={mascot}
+        alt="Aquabot"
+        className="w-full h-full object-cover p-0.5"
+        draggable={false}
+      />
     </div>
   );
 }
@@ -100,12 +100,12 @@ function TypingIndicator() {
     <div className="flex">
       <div
         className="rounded-r-xl px-4 py-3 max-w-[85%]"
-        style={{ background: BOT_BG, borderLeft: `4px solid ${ORANGE}` }}
+        style={{ background: BOT_BG, borderLeft: `4px solid ${ACCENT}` }}
       >
         <div className="flex gap-1.5 items-center h-4">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:0ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:150ms]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#DD7A31] animate-bounce [animation-delay:300ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce [animation-delay:0ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce [animation-delay:150ms]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-bounce [animation-delay:300ms]" />
         </div>
       </div>
     </div>
@@ -119,9 +119,9 @@ const API_URL = import.meta.env.VITE_API_URL ?? '';
 function ReportDownloadButtons({ report }) {
   const base = `${API_URL}/chat/report/${report.id}`;
   return (
-    <div className="mt-3 pt-3 border-t border-[#16294A]/10">
-      <p className="text-xs font-semibold text-[#16294A] mb-2 flex items-center gap-1.5">
-        <svg viewBox="0 0 24 24" fill={ORANGE} className="w-4 h-4 shrink-0">
+    <div className="mt-3 pt-3 border-t border-[#0B3954]/10">
+      <p className="text-xs font-semibold text-[#0B3954] mb-2 flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" fill={ACCENT} className="w-4 h-4 shrink-0">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zm-1 9v-3h-2v3H7l5 5 5-5h-3z"/>
         </svg>
         {report.title}
@@ -130,7 +130,7 @@ function ReportDownloadButtons({ report }) {
         <a
           href={`${base}/pdf`}
           download
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold bg-[#DD7A31] hover:bg-[#C4681E] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold bg-[#4F46E5] hover:bg-[#4338CA] transition-colors"
         >
           <svg viewBox="0 0 24 24" fill="white" className="w-3.5 h-3.5">
             <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/>
@@ -140,15 +140,15 @@ function ReportDownloadButtons({ report }) {
         <a
           href={`${base}/xlsx`}
           download
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#16294A]/15 text-[#16294A] text-xs font-semibold hover:border-[#DD7A31] hover:text-[#C4681E] transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#0B3954]/15 text-[#0B3954] text-xs font-semibold hover:border-[#4F46E5] hover:text-[#4338CA] transition-colors"
         >
-          <svg viewBox="0 0 24 24" fill="#16a34a" className="w-3.5 h-3.5">
+          <svg viewBox="0 0 24 24" fill="#10B981" className="w-3.5 h-3.5">
             <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v6h5.66V9h3.84L12 2z"/>
           </svg>
           Descargar Excel
         </a>
       </div>
-      <p className="text-[10px] text-[#16294A]/40 mt-1.5">El enlace expira en 1 hora</p>
+      <p className="text-[10px] text-[#0B3954]/40 mt-1.5">El enlace expira en 1 hora</p>
     </div>
   );
 }
@@ -190,7 +190,7 @@ function MessageBubble({ message }) {
     <div className="flex">
       <div
         className="rounded-r-xl px-4 py-3 max-w-[88%] text-[13px] leading-relaxed break-words"
-        style={{ background: BOT_BG, borderLeft: `4px solid ${ORANGE}`, color: NAVY_TEXT }}
+        style={{ background: BOT_BG, borderLeft: `4px solid ${ACCENT}`, color: NAVY_TEXT }}
       >
         <ReactMarkdown components={MD_COMPONENTS}>{message.content}</ReactMarkdown>
         {message.report && <ReportDownloadButtons report={message.report} />}
@@ -331,7 +331,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
 
   return (
     <div
-      className="flex flex-col bg-white rounded-2xl shadow-2xl border border-[#16294A]/10 overflow-hidden relative"
+      className="flex flex-col bg-white rounded-2xl shadow-2xl border border-[#0B3954]/10 overflow-hidden relative"
       style={{
         width:     size.width,
         height:    size.height,
@@ -344,11 +344,11 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
         onMouseDown={startResize}
         onTouchStart={startResizeTouch}
         style={{ cursor: handleCursor }}
-        className={`absolute ${handleCorner} w-6 h-6 z-20 flex items-center justify-center rounded ${anchorAbove ? 'hover:bg-white/10' : 'hover:bg-[#16294A]/10'} transition-colors group select-none`}
+        className={`absolute ${handleCorner} w-6 h-6 z-20 flex items-center justify-center rounded ${anchorAbove ? 'hover:bg-white/10' : 'hover:bg-[#0B3954]/10'} transition-colors group select-none`}
         title="Arrastrar para redimensionar"
       >
         <svg width="10" height="10" viewBox="0 0 10 10"
-             className={`opacity-40 group-hover:opacity-80 transition-opacity ${anchorAbove ? 'text-white' : 'text-[#16294A]'}`}>
+             className={`opacity-40 group-hover:opacity-80 transition-opacity ${anchorAbove ? 'text-white' : 'text-[#0B3954]'}`}>
           <circle cx="1.5" cy="1.5" r="1.2" fill="currentColor"/>
           <circle cx="5"   cy="1.5" r="1.2" fill="currentColor"/>
           <circle cx="1.5" cy="5"   r="1.2" fill="currentColor"/>
@@ -365,7 +365,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
       >
         <BotAvatar size={40} />
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-[15px] leading-none tracking-tight">AquaBot</p>
+          <p className="font-display font-bold text-[15px] leading-none tracking-tight">AquaBot</p>
           <p className="text-white/60 text-[11px] mt-1 flex items-center gap-1.5">
             <span className="relative flex w-2 h-2 shrink-0">
               <span className="absolute inline-flex w-full h-full rounded-full bg-green-400 opacity-60 animate-ping" />
@@ -404,8 +404,8 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-2">
             <BotAvatar size={56} className="shadow-lg" />
             <div>
-              <p className="font-bold text-[#16294A] text-sm">Hola, soy AquaBot</p>
-              <p className="text-[#16294A]/60 text-xs mt-1 leading-relaxed">
+              <p className="font-bold text-[#0B3954] text-sm">Hola, soy AquaBot</p>
+              <p className="text-[#0B3954]/60 text-xs mt-1 leading-relaxed">
                 Puedo responder preguntas sobre predios, censo, estadísticas del barrio y más.
               </p>
             </div>
@@ -418,7 +418,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
                 <button
                   key={suggestion}
                   onClick={() => { setInput(suggestion); inputRef.current?.focus(); }}
-                  className="text-xs text-left rounded-xl px-3.5 py-2.5 text-[#16294A]/75 bg-[#E8EFF7]/60 border border-transparent hover:border-[#DD7A31] hover:bg-[#E8EFF7] hover:text-[#16294A] transition-colors w-full"
+                  className="text-xs text-left rounded-xl px-3.5 py-2.5 text-[#0B3954]/75 bg-[#EEF2FF]/60 border border-transparent hover:border-[#4F46E5] hover:bg-[#EEF2FF] hover:text-[#0B3954] transition-colors w-full"
                 >
                   {suggestion}
                 </button>
@@ -434,7 +434,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
         {loading && <TypingIndicator />}
 
         {unavailable && (
-          <div className="text-center text-xs text-[#16294A]/40 py-2">
+          <div className="text-center text-xs text-[#0B3954]/40 py-2">
             AquaBot temporalmente no disponible
           </div>
         )}
@@ -444,7 +444,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
 
       {/* Input */}
       <div className="shrink-0 px-4 pb-4 pt-1 bg-white">
-        <div className="flex items-end gap-2 bg-white rounded-full border border-[#16294A]/12 focus-within:border-[#DD7A31] transition-colors pl-5 pr-1.5 py-1.5 shadow-sm">
+        <div className="flex items-end gap-2 bg-white rounded-full border border-[#0B3954]/12 focus-within:border-[#4F46E5] transition-colors pl-5 pr-1.5 py-1.5 shadow-sm">
           <textarea
             ref={inputRef}
             rows={1}
@@ -457,14 +457,14 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
             onKeyDown={handleKeyDown}
             disabled={loading || unavailable}
             placeholder="Escriba su pregunta…"
-            className="flex-1 bg-transparent text-[13px] text-[#16294A] placeholder-[#16294A]/35 outline-none resize-none leading-relaxed disabled:opacity-50 min-h-[22px] max-h-[96px] overflow-y-auto self-center py-2"
+            className="flex-1 bg-transparent text-[13px] text-[#0B3954] placeholder-[#0B3954]/35 outline-none resize-none leading-relaxed disabled:opacity-50 min-h-[22px] max-h-[96px] overflow-y-auto self-center py-2"
             style={{ height: '22px' }}
           />
           <button
             onClick={send}
             disabled={!input.trim() || loading || unavailable}
-            className="w-9 h-9 rounded-full text-white flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#C4681E] transition-colors"
-            style={{ background: ORANGE }}
+            className="w-9 h-9 rounded-full text-white flex items-center justify-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#4338CA] transition-colors"
+            style={{ background: ACCENT }}
             aria-label="Enviar"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
@@ -473,7 +473,7 @@ function AquabotPanel({ state, anchorRight, anchorAbove, availW, availH }) {
             </svg>
           </button>
         </div>
-        <p className="text-center text-[10px] text-[#16294A]/25 mt-2">
+        <p className="text-center text-[10px] text-[#0B3954]/25 mt-2">
           AquaBot · Impulsado por Claude (Anthropic)
         </p>
       </div>
@@ -634,23 +634,28 @@ export default function AquabotWidget() {
         onTouchStart={startDragTouch}
       >
         <button
-          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 select-none text-white font-bold text-xl hover:shadow-xl"
+          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 select-none text-white hover:shadow-xl overflow-hidden ring-2 ring-white/70"
           style={{
             background: isOpen
               ? `linear-gradient(135deg, ${NAVY_SOFT}, ${NAVY})`
-              : `linear-gradient(145deg, ${ORANGE}, ${ORANGE_DARK})`,
+              : '#FFFFFF',
           }}
           aria-label={isOpen ? 'Cerrar AquaBot' : 'Abrir AquaBot'}
         >
-          <div className={`transition-transform duration-300 ${isOpen ? 'rotate-90' : 'rotate-0'}`}>
-            {isOpen ? (
+          {isOpen ? (
+            <div className="transition-transform duration-300 rotate-90">
               <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
               </svg>
-            ) : (
-              <span className="leading-none">A</span>
-            )}
-          </div>
+            </div>
+          ) : (
+            <img
+              src={mascot}
+              alt="Abrir AquaBot"
+              className="w-full h-full object-cover p-1 pointer-events-none"
+              draggable={false}
+            />
+          )}
         </button>
       </div>
     </>

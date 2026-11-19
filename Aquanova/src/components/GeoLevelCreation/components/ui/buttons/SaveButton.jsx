@@ -4,7 +4,7 @@ function SaveButton({ onClick, disabled = false, children = 'Guardar', loadingTe
             onClick={onClick}
             disabled={disabled}
             aria-busy={disabled}
-            className={`mt-2 w-full py-3 min-h-[44px] ${disabled ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500'} text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-blue-900/20`}
+            className={`mt-2 w-full py-3 min-h-[44px] ${disabled ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#00A896] hover:bg-[#008F80]'} text-white text-sm font-semibold rounded-lg transition-colors shadow-lg shadow-[#00A896]/20`}
         >
             {disabled ? loadingText : children}
         </button>

@@ -17,16 +17,16 @@ export default function FormCreationContent() {
   // Estado de carga para modo edición
   if (isEditMode && isLoadingEdit) {
     return (
-      <div className="bg-[var(--bg-color-main)] font-work w-screen h-full flex flex-col items-center justify-start pt-10 gap-4 overflow-y-auto">
+      <div className="bg-[var(--bg-color-main)] font-sans w-screen h-full flex flex-col items-center justify-start pt-10 gap-4 overflow-y-auto">
         {/* Skeleton del header */}
         <div className="tablet:w-[653px] w-[90%] bg-[var(--card-bg)] border-[1.5px] border-[var(--card-stroke)] rounded-[5px] px-6 py-4 flex phone:flex-row flex-col gap-6 animate-pulse">
-          <div className="phone:w-[44%] w-full h-48 bg-[#E0EEFF] rounded-[14px]" />
+          <div className="phone:w-[44%] w-full h-48 bg-[#E0E7FF] rounded-[14px]" />
           <div className="flex-1 flex flex-col gap-3 justify-center">
             <div className="w-3/4 h-6 bg-gray-200 rounded-[5px]" />
             <div className="w-full h-4 bg-gray-200 rounded-[5px]" />
             <div className="w-5/6 h-4 bg-gray-200 rounded-[5px]" />
             <div className="w-2/3 h-4 bg-gray-200 rounded-[5px]" />
-            <div className="w-1/2 h-10 bg-[#E0EEFF] rounded-[14px] mt-2" />
+            <div className="w-1/2 h-10 bg-[#E0E7FF] rounded-[14px] mt-2" />
           </div>
         </div>
         {/* Skeleton de preguntas */}
@@ -47,11 +47,11 @@ export default function FormCreationContent() {
   // Estado de error para modo edición
   if (isEditMode && editLoadError) {
     return (
-      <div className="bg-[var(--bg-color-main)] font-work w-screen h-full flex flex-col items-center justify-center gap-4">
+      <div className="bg-[var(--bg-color-main)] font-sans w-screen h-full flex flex-col items-center justify-center gap-4">
         <p className="text-red-500 text-lg">{editLoadError}</p>
         <button
           onClick={exitToList}
-          className="text-blue-500 underline"
+          className="text-[var(--color-primary)] underline"
         >
           Volver a la lista
         </button>
@@ -63,13 +63,13 @@ export default function FormCreationContent() {
     <main
       ref={mainContainerRef}
       role="main"
-      className="bg-[var(--bg-color-main)] font-work w-full min-h-full flex flex-col items-center justify-start pt-10 pb-20 gap-3 text-left"
+      className="bg-[var(--bg-color-main)] font-sans w-full min-h-full flex flex-col items-center justify-start pt-10 pb-20 gap-3 text-left"
     >
       {/* Indicador de modo: creación o edición */}
       <div className={`tablet:w-[653px] w-[90%] items-center gap-2 -mb-1 ${mobileHideClass}`}>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
           isEditMode
-            ? 'bg-blue-50 text-[#2138C4] border-blue-200'
+            ? 'bg-[#EEF2FF] text-[#4F46E5] border-[#C7D2FE]'
             : 'bg-emerald-50 text-emerald-700 border-emerald-200'
         }`}>
           {isEditMode ? (

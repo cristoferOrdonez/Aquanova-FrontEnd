@@ -24,7 +24,7 @@ function CampaignCard({ campaign, selected, onSelect }) {
       aria-pressed={selected}
       className={`text-left rounded-2xl border p-4 transition-all shrink-0 w-64 ${
         selected
-          ? 'border-[#0D448A] bg-blue-50/60 shadow-sm ring-1 ring-[#0D448A]/20'
+          ? 'border-[#0B3954] bg-[#EEF2FF]/60 shadow-sm ring-1 ring-[#0B3954]/20'
           : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
       }`}
     >
@@ -51,7 +51,7 @@ function CampaignCard({ campaign, selected, onSelect }) {
         </span>
 
         <span className="text-gray-400">Puntos</span>
-        <span className="text-right font-semibold text-[#0D448A]">
+        <span className="text-right font-semibold text-[#0B3954]">
           {c.total_points_distributed}
         </span>
       </div>
@@ -96,7 +96,7 @@ export default function CampaignSelector({
         <p className="text-sm text-red-700">{error}</p>
         <button
           onClick={onRetry}
-          className="text-sm font-medium text-[#1361C5] hover:underline"
+          className="text-sm font-medium text-[#4F46E5] hover:underline"
         >
           Reintentar
         </button>
@@ -140,7 +140,7 @@ export default function CampaignSelector({
             type="button"
             onClick={() => onScopeChange('campaign')}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              scope === 'campaign' ? 'bg-[#0D448A] text-white' : 'text-gray-500 hover:text-gray-700'
+              scope === 'campaign' ? 'bg-[#0B3954] text-white' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Por campaña
@@ -149,7 +149,7 @@ export default function CampaignSelector({
             type="button"
             onClick={() => onScopeChange('global')}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              scope === 'global' ? 'bg-[#0D448A] text-white' : 'text-gray-500 hover:text-gray-700'
+              scope === 'global' ? 'bg-[#0B3954] text-white' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             Todas

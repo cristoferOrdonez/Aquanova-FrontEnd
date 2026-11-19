@@ -127,7 +127,7 @@ function ImportSVGModal({ isOpen, onClose, onImport }) {
             className={`
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
               ${isDragging
-                ? 'border-blue-400 bg-blue-500/10'
+                ? 'border-[#00A896] bg-[#00A896]/10'
                 : 'border-gray-600 hover:border-gray-500 hover:bg-gray-700/30'}
             `}
           >
@@ -235,7 +235,7 @@ function ImportSVGModal({ isOpen, onClose, onImport }) {
               className={`
                 text-sm px-4 py-2 rounded-lg transition-colors
                 ${parseResult.validPolygons.length > 0
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  ? 'bg-[#00A896] text-white hover:bg-[#008F80]'
                   : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
               `}
             >

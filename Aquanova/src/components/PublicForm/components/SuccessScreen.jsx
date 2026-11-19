@@ -1,6 +1,7 @@
 // src/components/PublicForm/components/SuccessScreen.jsx
 import { useState } from 'react';
 import { CheckCircleIcon, ClipboardDocumentIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
+import mascot from '../../../assets/images/logo_aquanova.png';
 
 /**
  * Pantalla de éxito que se muestra al completar el onboarding.
@@ -32,14 +33,19 @@ function SuccessScreen({ result, giveaway }) {
 
   return (
     <div className="flex flex-col items-center gap-6 py-6 text-center">
-      {/* Ícono de éxito */}
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-        <CheckCircleIcon className="h-11 w-11 text-green-500" />
+      {/* Mascota Aquanova + ícono de éxito */}
+      <div className="relative">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[var(--color-success-soft)] ring-4 ring-[var(--color-success)]/15 overflow-hidden">
+          <img src={mascot} alt="Aquanova" className="h-20 w-20 object-cover" draggable={false} />
+        </div>
+        <span className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-md">
+          <CheckCircleIcon className="h-8 w-8 text-[var(--color-success)]" />
+        </span>
       </div>
 
       {/* Mensaje de bienvenida */}
       <div className="flex flex-col gap-1">
-        <h2 className="font-work text-2xl font-bold text-gray-900">
+        <h2 className="font-display text-2xl font-bold text-[var(--text-strong)]">
           ¡Registro exitoso, {result.user?.name?.split(' ')[0]}!
         </h2>
         <p className="text-sm text-[var(--gray-subtitles)]">

@@ -57,7 +57,7 @@ function Index() {
       variants={containerVariants}
       initial='hidden'
       animate='visible'
-      className='w-full max-w-4xl mx-auto font-work'
+      className='w-full max-w-4xl mx-auto font-sans'
     >
       <div className='rounded-2xl border border-[var(--card-stroke)] bg-[var(--card-bg)] overflow-hidden shadow-sm'>
         <motion.header variants={itemVariants} className='bg-[var(--blue-navbar)] px-6 py-5 text-white'>
@@ -76,7 +76,7 @@ function Index() {
             <button
               type='button'
               onClick={() => navigate('/user-management')}
-              className='w-full sm:w-auto rounded-full bg-[var(--blue-buttons)] px-6 py-3 text-white font-semibold shadow-sm hover:bg-blue-600 transition-colors'
+              className='w-full sm:w-auto rounded-full bg-[var(--blue-buttons)] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[var(--color-primary-hover)] transition-colors'
             >
               Acceder a gestion de usuarios
             </button>

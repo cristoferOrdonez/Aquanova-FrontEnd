@@ -2,11 +2,13 @@
 import React from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
-// Colores oficiales según la guía de integración frontend
+// Colores oficiales según la guía de integración frontend — alineados a la
+// paleta Aquanova (censado→Esmeralda, registrado→Cian Cartográfico, sin
+// información→neutro). Deben mantenerse SINCRONIZADOS con MapLegend.jsx.
 const STATUS_COLORS = {
-  sin_informacion: '#9E9E9E',
-  censado:         '#4CAF50',
-  registrado:      '#2196F3',
+  sin_informacion: '#94A3B8',
+  censado:         '#10B981',
+  registrado:      '#00A896',
 };
 
 // Manzanas sembradas por el proceso legado que no tienen geometría real
@@ -91,9 +93,9 @@ const LotPolygon = React.memo(({ lot, isSelected, onClick }) => {
   // Si no hay path válido, no renderizar este lote (evita huecos o errores SVG)
   if (!svgPath) return null;
 
-  // Estilo de auditoría topológica: lotes mal asignados tienen borde naranja punteado
+  // Estilo de auditoría topológica: lotes mal asignados tienen borde ámbar punteado
   const hasMismatch = lot.topology_mismatch === true;
-  const strokeColor = hasMismatch ? '#F97316' : (isSelected ? '#FBBF24' : '#ffffff');
+  const strokeColor = hasMismatch ? '#F59E0B' : (isSelected ? '#4F46E5' : '#ffffff');
   const strokeW = (hasMismatch || isSelected) ? 2 : 0.3;
   const strokeDash = hasMismatch ? '3,2' : undefined;
 

@@ -67,14 +67,14 @@ function FormCard({
   }
 
   return (
-    <article className="group flex flex-col w-full h-full bg-white border border-[var(--stroke-selectors-and-search-bars)] rounded-2xl font-work shadow-md hover:shadow-xl transition-all hover:-translate-y-1 duration-300 text-center relative">
+    <article className="group flex flex-col w-full h-full bg-white border border-[var(--stroke-selectors-and-search-bars)] rounded-2xl font-sans shadow-md hover:shadow-xl transition-all hover:-translate-y-1 duration-300 text-center relative">
       <div className="relative h-48 overflow-hidden bg-gray-100 rounded-t-2xl">
         <img src={imageUrl || defaultImage} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={`Portada: ${title}`} onError={(e) => { e.currentTarget.src = defaultImage }} loading="lazy" />
         <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
       </div>
 
       <div className="flex flex-col flex-1 p-5">
-        <h2 className="font-work text-xl font-semibold text-gray-900 line-clamp-2 leading-tight mb-3" title={title}>
+        <h2 className="font-display text-xl font-semibold text-gray-900 line-clamp-2 leading-tight mb-3" title={title}>
           {title}
         </h2>
 
@@ -143,7 +143,7 @@ function FormCard({
                 )}
               </div>
 
-              <button type="button" onClick={onEdit} className="p-2 rounded-full text-[var(--blue-buttons)] hover:bg-blue-100 transition-colors" aria-label="Editar formulario">
+              <button type="button" onClick={onEdit} className="p-2 rounded-full text-[var(--blue-buttons)] hover:bg-[var(--color-primary-soft)] transition-colors" aria-label="Editar formulario">
                 <PencilIcon className="h-5 w-5" />
               </button>
 

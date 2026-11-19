@@ -43,7 +43,7 @@ const Gallery = () => {
       {/* --- HEADER --- */}
       <div className="relative z-10 text-center mb-8 max-w-lg px-4 animate-fade-in-down">
         <h2 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-xl mb-2">
-          Imagen {selectedGeoLevel === 'localidad' ? 'de la ' : 'del '} <span className="text-blue-400">{selectedGeoLevel}</span>
+          Imagen {selectedGeoLevel === 'localidad' ? 'de la ' : 'del '} <span className="text-[#00A896]">{selectedGeoLevel}</span>
         </h2>
         <p className="text-gray-300 text-base font-light leading-relaxed">
           {isEditMode
@@ -81,12 +81,12 @@ const Gallery = () => {
             onClick={() => triggerInput(0)}
             className="
               flex items-center gap-3 px-6 py-3
-              bg-blue-600/80 hover:bg-blue-500 
+              bg-[#00A896]/80 hover:bg-[#008F80] 
               text-white font-medium text-sm
               rounded-full backdrop-blur-md
-              border border-blue-400/30
+              border border-[#00A896]/30
               transition-all duration-300
-              hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25
+              hover:scale-105 hover:shadow-lg hover:shadow-[#00A896]/25
               active:scale-95
             "
           >

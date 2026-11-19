@@ -19,7 +19,7 @@ function ToolButton({ title, active, disabled, onClick, children }) {
       onClick={onClick}
       className={`
         w-10 h-10 flex items-center justify-center rounded-lg transition-colors
-        ${active ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+        ${active ? 'bg-[#00A896] text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
         ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >

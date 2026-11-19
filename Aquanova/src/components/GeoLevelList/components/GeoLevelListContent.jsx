@@ -68,7 +68,7 @@ const GeoLevelListContent = () => {
 
         <Link
           to={GEOLEVEL_CONFIG.ROUTES.CREATE}
-          className="flex flex-row gap-3 whitespace-nowrap bg-[var(--blue-buttons)] rounded-4xl font-work text-white justify-center items-center p-3 hover:bg-blue-600 transition-colors"
+          className="flex flex-row gap-3 whitespace-nowrap bg-[var(--blue-buttons)] rounded-4xl font-sans text-white justify-center items-center p-3 hover:bg-[var(--color-primary-hover)] transition-colors"
         >
           <PlusIcon className="h-6 w-6" />
           {GEOLEVEL_CONFIG.TEXT.NEW_LEVEL_BUTTON}

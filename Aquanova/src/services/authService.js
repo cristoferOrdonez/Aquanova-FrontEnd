@@ -6,8 +6,13 @@ export const authService = {
       method: 'POST',
       body: { document_number, password },
     });
-    if (response.ok && response.user) {
-      localStorage.setItem('user', JSON.stringify(response.user));
+    if (response.ok) {
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+      }
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
     }
     return response;
   },
@@ -23,7 +28,8 @@ export const authService = {
   },
 
   saveSession({ token, user }) {
-    localStorage.setItem('user', JSON.stringify(user));
+    if (token) localStorage.setItem('token', token);
+    if (user) localStorage.setItem('user', JSON.stringify(user));
   },
 
   getUser() {

@@ -23,9 +23,9 @@ const FormPreviewContent = () => {
     handleCheckboxChange,
   } = useFormPreviewContext();
 
-  if (loading) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.LOADING}</div>;
-  if (error) return <div className="p-10 text-center text-red-500 font-work">{error}</div>;
-  if (!form) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.NOT_FOUND}</div>;
+  if (loading) return <div className="p-10 text-center font-display">{DEFAULT_TEXTS.LOADING}</div>;
+  if (error) return <div className="p-10 text-center text-red-500 font-display">{error}</div>;
+  if (!form) return <div className="p-10 text-center font-display">{DEFAULT_TEXTS.NOT_FOUND}</div>;
 
   let fields = form.schema || form.questions || form.fields || [];
   if (typeof fields === 'string') {
@@ -55,7 +55,7 @@ const FormPreviewContent = () => {
                   <button onClick={handleHeaderRemove} className="p-2 bg-white rounded-full shadow-sm hover:bg-red-50 hover:text-red-500 text-gray-600 transition-colors transform hover:scale-110">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                   </button>
-                  <label className="p-2 bg-white rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-gray-600 transition-colors transform hover:scale-110 cursor-pointer">
+                  <label className="p-2 bg-white rounded-full shadow-sm hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] text-gray-600 transition-colors transform hover:scale-110 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if (file) handleHeaderReplace(file); }} />
                   </label>
@@ -94,12 +94,12 @@ const FormPreviewContent = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-work overflow-hidden">
+    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-sans overflow-hidden">
       <div className="absolute top-6 right-6 z-50 flex bg-white rounded-lg shadow-md p-1.5 border border-gray-200 gap-2">
-        <button onClick={() => setViewMode('mobile')} className={`p-2 rounded-md transition-colors ${viewMode === 'mobile' ? 'bg-blue-50 text-[var(--blue-buttons)]' : 'text-gray-400 hover:text-gray-600'}`} title="Vista Móvil">
+        <button onClick={() => setViewMode('mobile')} className={`p-2 rounded-md transition-colors ${viewMode === 'mobile' ? 'bg-[var(--color-primary-soft)] text-[var(--blue-buttons)]' : 'text-gray-400 hover:text-gray-600'}`} title="Vista Móvil">
           <DevicePhoneMobileIcon className="w-6 h-6" />
         </button>
-        <button onClick={() => setViewMode('desktop')} className={`p-2 rounded-md transition-colors ${viewMode === 'desktop' ? 'bg-blue-50 text-[var(--blue-buttons)]' : 'text-gray-400 hover:text-gray-600'}`} title="Vista Ordenador">
+        <button onClick={() => setViewMode('desktop')} className={`p-2 rounded-md transition-colors ${viewMode === 'desktop' ? 'bg-[var(--color-primary-soft)] text-[var(--blue-buttons)]' : 'text-gray-400 hover:text-gray-600'}`} title="Vista Ordenador">
           <ComputerDesktopIcon className="w-6 h-6" />
         </button>
       </div>

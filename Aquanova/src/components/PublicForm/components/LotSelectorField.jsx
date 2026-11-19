@@ -4,9 +4,9 @@ import { prediosService } from '../../../services/prediosService';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 const STATUS_COLORS = {
-  sin_informacion: '#9E9E9E',
-  censado:         '#4CAF50',
-  registrado:      '#2196F3',
+  sin_informacion: '#94A3B8',
+  censado:         '#10B981',
+  registrado:      '#00A896',
 };
 
 /**
@@ -125,21 +125,21 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
                 <button
                   type="button"
                   onClick={() => zoomIn()}
-                  className="w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
+                  className="w-11 h-11 min-h-[44px] bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
                 >
                   +
                 </button>
                 <button
                   type="button"
                   onClick={() => zoomOut()}
-                  className="w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
+                  className="w-11 h-11 min-h-[44px] bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold"
                 >
                   −
                 </button>
                 <button
                   type="button"
                   onClick={() => resetTransform()}
-                  className="w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 text-base"
+                  className="w-11 h-11 min-h-[44px] bg-white rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-100 text-base"
                   title="Restablecer vista"
                 >
                   ↺
@@ -164,8 +164,8 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
                           <path
                             key={lot.id}
                             d={svgPath}
-                            fill={isSelected ? '#1565C0' : STATUS_COLORS[lot.status] ?? STATUS_COLORS.sin_informacion}
-                            stroke={isSelected ? '#0D47A1' : '#ffffff'}
+                            fill={isSelected ? '#4F46E5' : STATUS_COLORS[lot.status] ?? STATUS_COLORS.sin_informacion}
+                            stroke={isSelected ? '#4338CA' : '#ffffff'}
                             strokeWidth={isSelected ? 1.5 : 0.5}
                             opacity={isSelected ? 1 : 0.85}
                             style={{ cursor: 'pointer', transition: 'fill 0.15s, opacity 0.15s' }}
@@ -204,15 +204,15 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
         {/* Leyenda */}
         <div className="absolute bottom-2 left-2 bg-white/95 rounded-lg px-3 py-1.5 text-xs shadow-sm border border-gray-100 flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#9E9E9E' }} />
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#94A3B8' }} />
             Sin información
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#2196F3' }} />
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#10B981' }} />
             Censado
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#4CAF50' }} />
+            <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: '#00A896' }} />
             Registrado
           </span>
         </div>
@@ -220,18 +220,18 @@ function LotSelectorField({ neighborhoodId, value, onChange, error }) {
 
       {/* Predio seleccionado */}
       {selectedLot ? (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+        <div className="flex items-center justify-between min-h-[44px] bg-[var(--color-secondary-soft)] border border-[var(--color-secondary)]/40 rounded-lg px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-sm inline-block" style={{ backgroundColor: '#1565C0' }} />
-            <span className="text-sm font-medium text-blue-800">
+            <span className="w-4 h-4 rounded-sm inline-block" style={{ backgroundColor: '#4F46E5' }} />
+            <span className="text-sm font-medium text-[var(--color-secondary-hover)]">
               Predio seleccionado:{' '}
-              <strong>{selectedLot.display_id || selectedLot.number?.replace('Lote-', '') || selectedLot.id}</strong>
+              <strong className="font-mono">{selectedLot.display_id || selectedLot.number?.replace('Lote-', '') || selectedLot.id}</strong>
             </span>
           </div>
           <button
             type="button"
             onClick={handleClearSelection}
-            className="text-blue-600 hover:text-blue-800 text-sm underline"
+            className="min-h-[44px] px-3 py-2.5 text-[var(--color-secondary)] hover:text-[var(--color-secondary-hover)] text-sm underline"
           >
             Cambiar
           </button>

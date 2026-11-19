@@ -11,14 +11,14 @@ function CommonField({
  }) {
     return (
         <div className="flex flex-col group w-full">
-            <label className="mb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-colors group-focus-within:text-blue-400">
+            <label className="mb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider transition-colors group-focus-within:text-[#00A896]">
                 {label}
             </label>
             {multiline ? (
                 <textarea
                     placeholder={placeholder}
                     className={
-                        `w-full px-4 py-3 min-h-[44px] rounded-lg bg-gray-800/50 border border-gray-700 text-gray-100 text-sm placeholder-gray-600 outline-none transition-all duration-200 focus:bg-gray-800 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 hover:border-gray-600 resize-none ${fixedHeightClass} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`
+                        `w-full px-4 py-3 min-h-[44px] rounded-lg bg-gray-800/50 border border-gray-700 text-gray-100 text-sm placeholder-gray-600 outline-none transition-all duration-200 focus:bg-gray-800 focus:border-[#00A896]/50 focus:ring-1 focus:ring-[#00A896]/50 hover:border-gray-600 resize-none ${fixedHeightClass} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`
                     }
                     onInput={onInput}
                     value={value}
@@ -42,8 +42,8 @@ function CommonField({
                         transition-all duration-200
                         
                         focus:bg-gray-800
-                        focus:border-blue-500/50
-                        focus:ring-1 focus:ring-blue-500/50
+                        focus:border-[#00A896]/50
+                        focus:ring-1 focus:ring-[#00A896]/50
                         
                         hover:border-gray-600
                         disabled:opacity-60 disabled:cursor-not-allowed

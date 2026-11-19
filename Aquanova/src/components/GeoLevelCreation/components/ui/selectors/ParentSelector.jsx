@@ -29,7 +29,7 @@ const CommonSelector = ({
                     transition-all duration-200
                     group
                     hover:bg-gray-800 hover:border-gray-600
-                    ${isGeoLevelParentSelectorOpen ? 'border-blue-500/50 ring-1 ring-blue-500/50 bg-gray-800' : ''}
+                    ${isGeoLevelParentSelectorOpen ? 'border-[#00A896]/50 ring-1 ring-[#00A896]/50 bg-gray-800' : ''}
                 `}
             >
                 <span className={`text-sm font-medium truncate ${displayLabel.includes('Seleccione') ? 'text-gray-500' : 'text-gray-200'}`}>
@@ -37,7 +37,7 @@ const CommonSelector = ({
                 </span>
 
                 <svg
-                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 group-hover:text-gray-300 ${isGeoLevelParentSelectorOpen ? 'rotate-180 text-blue-400' : ''}`}
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 group-hover:text-gray-300 ${isGeoLevelParentSelectorOpen ? 'rotate-180 text-[#00A896]' : ''}`}
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"

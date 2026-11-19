@@ -73,7 +73,7 @@ function QRModal({ campaign, referralCode, onClose }) {
 
         {loading && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#1361C5]" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[#4F46E5]" />
             <p className="text-sm text-gray-400">Generando QR…</p>
           </div>
         )}
@@ -97,7 +97,7 @@ function QRModal({ campaign, referralCode, onClose }) {
             </div>
 
             <div className="text-center">
-              <span className="font-mono text-sm font-bold text-[#0D448A] bg-blue-50 px-3 py-1 rounded-lg">
+              <span className="font-mono text-sm font-bold text-[#0B3954] bg-[#EEF2FF] px-3 py-1 rounded-lg">
                 {referralCode}
               </span>
               <p className="text-xs text-gray-400 mt-2 break-all">{qr.referral_url}</p>
@@ -115,7 +115,7 @@ function QRModal({ campaign, referralCode, onClose }) {
                     text: '¡Ayuda a tu comunidad completando esta campaña!',
                     url: qr.referral_url,
                   })}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1361C5] hover:brightness-110 transition-all"
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#4F46E5] hover:brightness-110 transition-all"
                 >
                   Compartir
                 </button>
@@ -123,7 +123,7 @@ function QRModal({ campaign, referralCode, onClose }) {
               <button
                 onClick={handleDownload}
                 disabled={downloading}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#0D448A] border border-[#0D448A]/30 hover:bg-blue-50 transition-all disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#0B3954] border border-[#0B3954]/30 hover:bg-[#EEF2FF] transition-all disabled:opacity-60"
               >
                 {downloading ? 'Descargando…' : 'Descargar PNG'}
               </button>
@@ -171,7 +171,7 @@ function CampaignRow({ campaign, referralCode, selected, onSelect }) {
     <>
       <div
         className={`rounded-2xl border transition-all ${
-          selected ? 'border-[#0D448A] bg-blue-50/40 shadow-sm' : 'border-gray-200 bg-white'
+          selected ? 'border-[#0B3954] bg-[#EEF2FF]/50 shadow-sm' : 'border-gray-200 bg-white'
         }`}
       >
         <button
@@ -188,7 +188,7 @@ function CampaignRow({ campaign, referralCode, selected, onSelect }) {
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-xl font-bold text-[#0D448A]">{campaign.points_in_campaign}</p>
+            <p className="text-xl font-bold text-[#0B3954]">{campaign.points_in_campaign}</p>
             <p className="text-[10px] text-gray-400">puntos aquí</p>
           </div>
           <svg
@@ -212,7 +212,7 @@ function CampaignRow({ campaign, referralCode, selected, onSelect }) {
               <>
                 <label className="text-xs text-gray-400 mb-1 block">Link de invitación</label>
                 <div
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 font-mono cursor-pointer hover:border-[#1361C5] transition-colors break-all"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 font-mono cursor-pointer hover:border-[#4F46E5] transition-colors break-all"
                   onClick={copyLink}
                   title="Clic para copiar"
                 >
@@ -243,7 +243,7 @@ function CampaignRow({ campaign, referralCode, selected, onSelect }) {
 
                   <button
                     onClick={shareLink}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1361C5] hover:brightness-110 transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#4F46E5] hover:brightness-110 transition-all"
                   >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                       <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
@@ -351,7 +351,7 @@ export default function ReferralProfilePage() {
       {error && !loading && (
         <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
           <p className="text-red-700 font-medium">{error}</p>
-          <button onClick={retry} className="mt-3 text-sm text-[#1361C5] hover:underline">
+          <button onClick={retry} className="mt-3 text-sm text-[#4F46E5] hover:underline">
             Reintentar
           </button>
         </div>
@@ -363,12 +363,12 @@ export default function ReferralProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-500">Tu código</span>
-              <span className="font-mono font-bold text-[#0D448A] bg-blue-50 px-3 py-1 rounded-lg text-sm tracking-widest">
+              <span className="font-mono font-bold text-[#0B3954] bg-[#EEF2FF] px-3 py-1 rounded-lg text-sm tracking-widest">
                 {result.referral_code}
               </span>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-[#0D448A]">{totalPoints}</p>
+              <p className="text-2xl font-bold text-[#0B3954]">{totalPoints}</p>
               <p className="text-[11px] text-gray-400">
                 puntos · suma de todas las campañas
               </p>

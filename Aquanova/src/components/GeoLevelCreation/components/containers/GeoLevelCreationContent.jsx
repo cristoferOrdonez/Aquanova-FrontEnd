@@ -14,7 +14,7 @@ const GeoLevelCreationContent = () => {
     const { leftWidth, sidebarRef, startResizing } = useResizablePanelContext();
 
     return (
-        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col md:flex-row font-work overflow-x-hidden md:overflow-hidden select-none bg-black">
+        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col md:flex-row font-sans overflow-x-hidden md:overflow-hidden select-none bg-black">
             
         {/* PANEL IZQUIERDO */}
             <div 
@@ -31,7 +31,7 @@ const GeoLevelCreationContent = () => {
                     className="
                         hidden md:block
                         w-1 h-full 
-                        hover:bg-blue-500/30 
+                        hover:bg-[#00A896]/30 
                         cursor-col-resize 
                         transition-colors duration-300 
                         z-30 absolute

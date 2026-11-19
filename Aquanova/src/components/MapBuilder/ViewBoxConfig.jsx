@@ -84,7 +84,7 @@ function ViewBoxConfigContent({ viewBox, onChange, onClose }) {
               onChange={(e) => setWidth(Number(e.target.value))}
               min={100}
               max={10000}
-              className="w-full bg-gray-900 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-blue-500"
+              className="w-full bg-gray-900 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-[#00A896] font-mono"
             />
           </div>
           <div className="flex-1">
@@ -95,7 +95,7 @@ function ViewBoxConfigContent({ viewBox, onChange, onClose }) {
               onChange={(e) => setHeight(Number(e.target.value))}
               min={100}
               max={10000}
-              className="w-full bg-gray-900 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-blue-500"
+              className="w-full bg-gray-900 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-[#00A896] font-mono"
             />
           </div>
         </div>
@@ -109,9 +109,9 @@ function ViewBoxConfigContent({ viewBox, onChange, onClose }) {
                 key={preset.label}
                 onClick={() => handlePreset(preset)}
                 className={`
-                  text-xs px-2 py-1 rounded transition-colors
+                  text-xs px-2 py-1 rounded transition-colors font-mono
                   ${width === preset.width && height === preset.height
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#00A896] text-white'
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
                 `}
               >
@@ -131,7 +131,7 @@ function ViewBoxConfigContent({ viewBox, onChange, onClose }) {
           </button>
           <button
             onClick={handleApply}
-            className="text-sm px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+            className="text-sm px-3 py-1.5 rounded bg-[#00A896] text-white hover:bg-[#008F80] transition-colors"
           >
             Aplicar
           </button>

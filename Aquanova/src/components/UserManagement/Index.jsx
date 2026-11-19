@@ -35,7 +35,7 @@ const rowVariants = {
 function ActionButton({ title, icon: Icon, tone = 'default', onClick }) {
   const toneClass = tone === 'danger'
     ? 'text-[var(--red-base)] hover:bg-red-50'
-    : 'text-[var(--blue-buttons)] hover:bg-blue-50'
+    : 'text-[var(--blue-buttons)] hover:bg-[var(--color-primary-soft)]'
 
   return (
     <button
@@ -84,7 +84,7 @@ function Index() {
       variants={containerVariants}
       initial='hidden'
       animate='visible'
-      className='w-full max-w-5xl mx-auto font-work relative min-h-[70vh]'
+      className='w-full max-w-5xl mx-auto font-sans relative min-h-[70vh]'
     >
       <div className='rounded-2xl border border-[var(--card-stroke)] bg-[var(--card-bg)] shadow-sm p-4 sm:p-6 lg:p-8'>
         <motion.div variants={rowVariants} className='flex items-center gap-3 mb-6'>
@@ -160,7 +160,7 @@ function Index() {
         variants={rowVariants}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
-        className='fixed right-14 bottom-14 h-18 w-18 rounded-full bg-[var(--blue-buttons)] text-white shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center z-50'
+        className='fixed right-14 bottom-14 h-18 w-18 rounded-full bg-[var(--blue-buttons)] text-white shadow-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center justify-center z-50'
         title='Agregar usuario'
         aria-label='Agregar usuario'
       >

@@ -59,7 +59,7 @@ export default function FormReferralDetail() {
     return (
       <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
         <p className="text-red-700 font-medium">{error}</p>
-        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#1361C5] hover:underline">
+        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#4F46E5] hover:underline">
           ← Volver al panel
         </button>
       </div>
@@ -140,7 +140,7 @@ export default function FormReferralDetail() {
                           {row.referrals_converted}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 font-semibold text-[#0D448A]">
+                      <td className="px-4 py-2.5 font-semibold text-[#0B3954]">
                         {row.points_awarded > 0 ? `+${row.points_awarded}` : '—'}
                       </td>
                     </tr>
@@ -169,10 +169,10 @@ export default function FormReferralDetail() {
                     </span>
                     <span className="flex-1 font-medium text-gray-900 text-sm truncate">{row.name}</span>
                     <span className="text-xs text-gray-400">{row.referrals_count} refs</span>
-                    <span className="font-bold text-[#0D448A] text-sm ml-2">{row.total_points} pts</span>
+                    <span className="font-bold text-[#0B3954] text-sm ml-2">{row.total_points} pts</span>
                     <button
                       onClick={() => navigate(`/referidos/campana/${formId}/usuario/${row.user_id}`)}
-                      className="text-xs text-[#1361C5] hover:underline ml-1 shrink-0"
+                      className="text-xs text-[#4F46E5] hover:underline ml-1 shrink-0"
                     >
                       Ver →
                     </button>

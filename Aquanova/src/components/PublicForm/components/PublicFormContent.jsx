@@ -1,5 +1,6 @@
 // src/components/PublicForm/components/PublicFormContent.jsx
 import defaultImage from '../../../assets/images/humedal.jpg';
+import mascot from '../../../assets/images/logo_aquanova.png';
 import GiveawayBanner from './GiveawayBanner';
 import FormFieldRenderer from './FormFieldRenderer';
 import RegistrationFields from './RegistrationFields';
@@ -25,8 +26,16 @@ function ErrorState({ status, message }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="flex flex-col items-center gap-4 text-center max-w-sm">
-        <div className="text-5xl">{status === 404 ? '🔍' : '⚠️'}</div>
-        <h2 className="font-work text-xl font-semibold text-gray-900">
+        <div className="relative">
+          <img
+            src={mascot}
+            alt="Aquanova"
+            className="h-28 w-28 rounded-full object-cover bg-[var(--surface-muted)] ring-4 ring-[var(--surface-border)] p-1"
+            draggable={false}
+          />
+          <span className="absolute -bottom-1 -right-1 text-3xl">{status === 404 ? '🔍' : '⚠️'}</span>
+        </div>
+        <h2 className="font-display text-xl font-bold text-[var(--text-strong)]">
           {status === 404 ? 'Formulario no encontrado' : 'Algo salió mal'}
         </h2>
         <p className="text-sm text-[var(--gray-subtitles)]">{message}</p>
@@ -85,7 +94,7 @@ function PublicFormContent() {
 
           {/* Encabezado */}
           <div className="flex flex-col gap-1.5">
-            <h1 className="font-work text-2xl font-bold text-gray-900">{formData.title}</h1>
+            <h1 className="font-display text-2xl font-bold text-gray-900">{formData.title}</h1>
           </div>
 
           {/* Banner de sorteo */}
@@ -95,7 +104,7 @@ function PublicFormContent() {
 
           {/* Banner de invitación — solo aparece si llegaron por un link/QR */}
           {referralCode && (
-            <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-800">
+            <div className="flex items-start gap-3 rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary-soft)] px-5 py-4 text-sm text-[var(--color-primary)]">
               <span className="mt-0.5 text-lg leading-none">🔗</span>
               <p>
                 Estás llenando este formulario <span className="font-semibold">por invitación</span>.
@@ -125,8 +134,8 @@ function PublicFormContent() {
 
           {/* Barra de progreso de subida */}
           {uploadProgress && (
-            <div className="flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-              <div className="flex items-center justify-between text-xs text-blue-800">
+            <div className="flex flex-col gap-2 rounded-xl border border-[var(--color-secondary)]/30 bg-[var(--color-secondary-soft)] px-4 py-3">
+              <div className="flex items-center justify-between text-xs text-[var(--color-secondary-hover)]">
                 <span className="font-medium">
                   {uploadProgress.fileName && `Subiendo: ${uploadProgress.fileName}`}
                   {!uploadProgress.fileName && 'Subiendo archivos...'}
@@ -135,14 +144,14 @@ function PublicFormContent() {
                   {uploadProgress.current}/{uploadProgress.total} ({uploadProgress.percent}%)
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-secondary-soft)]">
                 <div
                   className="h-full bg-[var(--blue-buttons)] transition-all duration-300 ease-out"
                   style={{ width: `${uploadProgress.percent}%` }}
                 />
               </div>
               {uploadProgress.fieldLabel && (
-                <span className="text-xs text-blue-600">
+                <span className="text-xs text-[var(--color-secondary)]">
                   Campo: {uploadProgress.fieldLabel}
                 </span>
               )}

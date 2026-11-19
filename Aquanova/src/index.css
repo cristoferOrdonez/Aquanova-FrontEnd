@@ -1,59 +1,144 @@
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+/* ───────────────────────────────────────────────────────────────────────────
+   Aquanova — Design Tokens
+   Tipografías de marca (Google Fonts):
+     · Plus Jakarta Sans → títulos y marca   (font-display)
+     · Inter             → interfaz y lectura (font-sans)
+     · JetBrains Mono    → datos y coordenadas(font-mono)
+   ─────────────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
-
 :root {
-  --bg-color-main: #F8FAFC;
-  --card-bg: #FFFFFF;
-  --card-stroke: #CBD5E1;
-  --instruction-text:#000000;
-  --text:#000000;
-  --stroke-selectors-and-search-bars: #CBD5E1;
-  --selectors-and-search-bars: #EDEDED;
-  --red-base: #EF4444;
-  --orange-base: #F97316;
-  --blue-buttons: #0D448A;
-  --blue-navbar: #1361C5;
-  --gray-subtitles: #64748B;
-  --green-buttons: #10B981;
-  --navbar-gradient: linear-gradient(to right, #2674b5, #154170);
+  /* ── Paleta institucional Aquanova (nace de la mascota: carpincho explorador) ── */
+
+  /* Primario — Azul Abisal: rigor técnico, profundidad hídrica, ribete del chaleco */
+  --color-primary: #0B3954;
+  --color-primary-hover: #07273A;
+  --color-primary-soft: #E6EEF3;
+
+  /* Secundario — Cian Cartográfico: flujo de agua, datos vivos, conectividad */
+  --color-secondary: #00A896;
+  --color-secondary-hover: #008F80;
+  --color-secondary-soft: #E3F6F3;
+
+  /* Acento de Descubrimiento — Índigo Lupa: hallazgos, búsqueda/análisis, Aquabot */
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-accent-soft: #EEF2FF;
+
+  /* Territorio y Naturaleza — Verde Musgo: capas ambientales, categorías de predios */
+  --color-territory: #6B7C5C;
+  --color-territory-hover: #586749;
+  --color-territory-soft: #F2F5F0;
+
+  /* Tierra y Calidez — Terracota Carpincho: ilustraciones, bordes cálidos, neutros */
+  --color-earth: #9A6B4C;
+  --color-earth-light: #A97B69;
+  --color-earth-soft: #F4ECE6;
+
+  /* ── Estados semánticos ── */
+  --color-success: #10B981; /* Éxito / Sincronizado  — Esmeralda */
+  --color-warning: #F59E0B; /* Advertencia / Offline — Ámbar     */
+  --color-error:   #EF4444; /* Error / Alerta        — Coral     */
+  --color-success-soft: #ECFDF5;
+  --color-warning-soft: #FFFBEB;
+  --color-error-soft:   #FEF2F2;
+
+  /* ── Superficies y fondos (alto contraste para uso en campo) ── */
+  --surface-app:        #F8FAFC; /* Blanco Hielo  — fondo base de la app        */
+  --surface-card:       #FFFFFF; /* Blanco Puro   — tarjetas y paneles          */
+  --surface-muted:      #F1F5F9; /* Niebla        — inputs / superficies 2.ª    */
+  --surface-border:     #E2E8F0; /* Borde sutil de tarjetas                     */
+
+  /* ── Texto ── */
+  --text-strong:    #0F172A; /* Pizarra Profundo — texto principal   */
+  --text-muted:     #475569; /* Pizarra Medio    — texto secundario  */
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     Variables heredadas (compatibilidad). Se conservan los NOMBRES para no
+     romper componentes existentes, pero se REPUNTAN a la paleta Aquanova.
+     ───────────────────────────────────────────────────────────────────────── */
+  --bg-color-main: var(--surface-app);
+  --card-bg: var(--surface-card);
+  --card-stroke: var(--surface-border);
+  --instruction-text: var(--text-strong);
+  --text: var(--text-strong);
+  --stroke-selectors-and-search-bars: var(--surface-border);
+  --selectors-and-search-bars: var(--surface-muted);
+  --red-base: var(--color-error);
+  --orange-base: var(--color-accent);        /* el antiguo naranja → Índigo Lupa */
+  --blue-buttons: var(--color-primary);      /* botones → Azul Abisal            */
+  --blue-navbar: var(--color-primary);       /* navbar  → Azul Abisal            */
+  --gray-subtitles: var(--text-muted);
+  --green-buttons: var(--color-success);
+  --navbar-gradient: linear-gradient(to right, #0E4A6E, #07273A);
 }
 
-/* Clases de gradiente del navbar — background-color como fallback
-   sólido para cuando Chrome descarta la capa de composición GPU
-   al cambiar de tab (flash negro/blanco). background-image se
-   renderiza encima del color sólido cuando el GPU está listo. */
+/* Clases de gradiente del navbar — background-color como fallback sólido para
+   cuando Chrome descarta la capa de composición GPU al cambiar de tab. */
 .navbar-gradient {
-  background-color: #1d5d9b;            /* color de emergencia (punto medio) */
-  background-image: linear-gradient(to right, #2674b5, #154170);
+  background-color: #0B3954;              /* Azul Abisal de emergencia */
+  background-image: linear-gradient(to right, #0E4A6E, #07273A);
 }
 .navbar-gradient-vertical {
-  background-color: #1d5d9b;
-  background-image: linear-gradient(to bottom, #2674b5, #154170);
+  background-color: #0B3954;
+  background-image: linear-gradient(to bottom, #0E4A6E, #07273A);
 }
 
 /* Estabilidad del contenedor raíz de la app */
 .App {
-  isolation: isolate;                   /* contexto de apilamiento propio */
+  isolation: isolate;                     /* contexto de apilamiento propio */
 }
 
+#root {
+  height: 100%;
+  overflow: hidden;
+}
 
 html, body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background-color: #154170; /* mismo tono oscuro del gradiente del navbar —
-                                evita el flash negro/blanco si el GPU
-                                descarta la capa de composición */
+  background-color: #07273A; /* tono oscuro del gradiente — evita flash al
+                                descartarse la capa de composición GPU */
 }
 
 @theme {
-  --font-work: "Work Sans", sans-serif; 
+  /* Tipografías de marca */
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
   --breakpoint-tablet: 1075px;
   --breakpoint-phone: 700px;
+
+  /* Colores expuestos como utilidades Tailwind (bg-primary, text-secondary, …) */
+  --color-primary: #0B3954;
+  --color-primary-hover: #07273A;
+  --color-primary-soft: #E6EEF3;
+  --color-secondary: #00A896;
+  --color-secondary-hover: #008F80;
+  --color-secondary-soft: #E3F6F3;
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-accent-soft: #EEF2FF;
+  --color-territory: #6B7C5C;
+  --color-territory-hover: #586749;
+  --color-territory-soft: #F2F5F0;
+  --color-earth: #9A6B4C;
+  --color-earth-light: #A97B69;
+  --color-earth-soft: #F4ECE6;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-ink: #0F172A;
+  --color-ink-muted: #475569;
+  --color-ice: #F8FAFC;
+  --color-mist: #F1F5F9;
+  --color-hairline: #E2E8F0;
 }
 
-/* index.css */
+/* index.css — animaciones y ajustes nativos */
 
 @keyframes smoothEntry {
   0% {
@@ -67,7 +152,6 @@ html, body {
 }
 
 .animate-card-entry {
-  /* Usamos la misma duración y curva que tu botón verde para consistencia */
   animation: smoothEntry 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
@@ -85,4 +169,3 @@ input[type="number"] {
 input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
 }
-

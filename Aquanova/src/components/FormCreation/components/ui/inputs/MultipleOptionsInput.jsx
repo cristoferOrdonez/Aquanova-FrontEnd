@@ -63,7 +63,7 @@ export default function MultipleOptionsInput({
                     flex-1 bg-transparent 
                     border-b-[1px] border-transparent 
                     hover:border-[var(--stroke-selectors-and-search-bars)] 
-                    focus:border-[#2138C4] focus:outline-none
+                    focus:border-[#4F46E5] focus:outline-none
                     py-1 tablet:text-sm text-[13px] text-[var(--text)] opacity-90
                     transition-colors duration-200
                     resize-none overflow-hidden block
@@ -117,7 +117,7 @@ export default function MultipleOptionsInput({
                 <div className="
                     p-1.5 rounded-full 
                     text-[var(--text)] opacity-50 
-                    group-hover:bg-[#E0EEFF] group-hover:text-[#2138C4] group-hover:opacity-100
+                    group-hover:bg-[#E0E7FF] group-hover:text-[#4F46E5] group-hover:opacity-100
                     transition-colors duration-300
                 ">
                 <svg 
@@ -135,7 +135,7 @@ export default function MultipleOptionsInput({
                 <span className="
                     max-w-0 opacity-0 overflow-hidden whitespace-nowrap
                     group-hover:max-w-[150px] group-hover:opacity-100 group-hover:ml-2
-                    tablet:text-sm text-[13px] font-medium text-[#2138C4]
+                    tablet:text-sm text-[13px] font-medium text-[#4F46E5]
                     transition-all duration-300 ease-out
                 ">
                 Agregar opción

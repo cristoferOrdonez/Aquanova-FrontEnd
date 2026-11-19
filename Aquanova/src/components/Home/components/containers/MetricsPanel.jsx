@@ -40,7 +40,7 @@ function MetricsPanel({ mapData, loading }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-bold text-gray-800 mb-4">
+      <h2 className="text-lg font-display font-bold text-[var(--text-strong)] mb-4">
         Métricas del Sector
       </h2>
 
@@ -70,7 +70,7 @@ function MetricsPanel({ mapData, loading }) {
           title="Cobertura"
           value={`${metrics.cobertura}%`}
           subtitle="censados + registrados"
-          color="#0D448A"
+          color="#0B3954"
         />
         <MetricCard
           title="Área Total"

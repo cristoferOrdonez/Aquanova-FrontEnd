@@ -10,7 +10,7 @@ function GeoLevelCompactButton({
             className={`
                 flex items-center gap-3 px-4 py-2.5 text-left transition-colors
                 ${selectedGeoLevel === opt.id 
-                    ? 'bg-blue-900/20 text-blue-400 font-medium' 
+                    ? 'bg-[#00A896]/20 text-[#00A896] font-medium' 
                     : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'}
             `}
         >

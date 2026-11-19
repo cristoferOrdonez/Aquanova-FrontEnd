@@ -85,7 +85,7 @@ const SearchBar = ({
       <div className="relative">
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-full pl-4 pr-10 py-2.5 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+          className="w-full border border-[var(--surface-border)] rounded-full pl-4 pr-10 py-2.5 text-sm text-[var(--text-strong)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)] focus:border-transparent transition-all shadow-sm"
           placeholder={placeholder}
           value={query}
           onChange={handleChange}
@@ -105,7 +105,7 @@ const SearchBar = ({
           )}
 
           {isLoading ? (
-            <ArrowPathIcon className="h-5 w-5 text-blue-500 animate-spin" />
+            <ArrowPathIcon className="h-5 w-5 text-[var(--color-secondary)] animate-spin" />
           ) : (
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 pointer-events-none" />
           )}

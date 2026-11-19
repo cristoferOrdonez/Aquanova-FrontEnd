@@ -132,7 +132,7 @@ function MiniMap({ polygons, viewBox, currentView, onNavigate }) {
             y={currentView.y}
             width={currentView.width}
             height={currentView.height}
-            fill="rgba(59, 130, 246, 0.15)"
+            fill="rgba(0, 168, 150, 0.15)"
             stroke="#3b82f6"
             strokeWidth={Math.max(1.5, canvasBounds.width / 400)}
             strokeDasharray={`${canvasBounds.width / 200} ${canvasBounds.width / 400}`}

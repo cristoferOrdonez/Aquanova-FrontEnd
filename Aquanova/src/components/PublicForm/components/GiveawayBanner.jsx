@@ -7,8 +7,8 @@
  */
 function GiveawayBanner({ points }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-yellow-200 bg-yellow-50 px-5 py-4 text-sm text-yellow-800">
-      <span className="mt-0.5 text-lg leading-none">✦</span>
+    <div className="flex items-start gap-3 rounded-2xl border border-[var(--color-warning)]/30 bg-[var(--color-warning-soft)] px-5 py-4 text-sm text-[#92610A]">
+      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-warning)] text-white text-xs leading-none">✦</span>
       <p>
         Completa esta encuesta y gana{' '}
         <span className="font-semibold">{points} puntos</span> por cada persona

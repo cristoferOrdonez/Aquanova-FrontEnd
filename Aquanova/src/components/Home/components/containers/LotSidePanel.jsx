@@ -17,13 +17,13 @@ function LotSidePanel({ lot, onSave, onDeselect, onCenterMap }) {
       {/* Cabecera del Panel */}
       <div className="p-4 border-b border-gray-200 bg-slate-50 flex items-center justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-bold text-gray-800 truncate">Predio {lot.display_id}</h3>
-          <p className="text-xs text-gray-500 truncate">ID Físico: {lot.id.substring(0, 8)}...</p>
+          <h3 className="text-lg font-display font-bold text-[var(--text-strong)] truncate">Predio {lot.display_id}</h3>
+          <p className="text-xs text-gray-500 truncate font-mono">ID Físico: {lot.id.substring(0, 8)}...</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onCenterMap(lot.id)}
-            className="py-1.5 px-3 bg-[#154170] text-white text-xs font-semibold rounded-lg hover:bg-[#2674b5] transition-colors flex items-center justify-center gap-1 shadow-sm"
+            className="py-1.5 px-3 bg-[var(--color-primary)] text-white text-xs font-semibold rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center justify-center gap-1 shadow-sm"
           >
             🔍 Centrar
           </button>
@@ -55,7 +55,7 @@ function LotSidePanel({ lot, onSave, onDeselect, onCenterMap }) {
             </div>
             <div>
               <p className="text-xs text-gray-400">Medidor / Registro</p>
-              <p className="font-semibold text-blue-600 font-mono">{lot.water_meter_code || 'No registra'}</p>
+              <p className="font-semibold text-[var(--color-secondary)] font-mono">{lot.water_meter_code || 'No registra'}</p>
             </div>
             <div>
               <p className="text-xs text-gray-400">Dirección</p>

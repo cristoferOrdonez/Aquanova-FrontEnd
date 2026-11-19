@@ -1,24 +1,25 @@
 // src/components/mapa/MapLegend.jsx
 import React, { useState } from 'react';
 
-// Colores oficiales según la guía de integración frontend
+// Colores oficiales según la guía de integración frontend — paleta Aquanova.
+// SINCRONIZADO con STATUS_COLORS de MapEngine.jsx.
 const ITEMS_CATASTRALES = [
-  { label: 'Registrado',      hex: '#2196F3' },
-  { label: 'Censado',         hex: '#4CAF50' },
-  { label: 'Sin Información', hex: '#9E9E9E' },
+  { label: 'Registrado',      hex: '#00A896' },
+  { label: 'Censado',         hex: '#10B981' },
+  { label: 'Sin Información', hex: '#94A3B8' },
 ];
 
 const ITEMS_ESTADO_PREDIO = [
   // Estados originales
-  { label: 'Predio Demolido',        hex: '#EF4444' }, // Rojo
+  { label: 'Predio Demolido',        hex: '#EF4444' }, // Coral
   { label: 'Predio Solo (Habitado)', hex: '#8B5CF6' }, // Morado
-  { label: 'Predio Desocupado',      hex: '#F59E0B' }, // Ambar
-  { label: 'Predio en Obra',         hex: '#06B6D4' }, // Cyan
+  { label: 'Predio Desocupado',      hex: '#F59E0B' }, // Ámbar
+  { label: 'Predio en Obra',         hex: '#06B6D4' }, // Cian
   // Nuevos estados
-  { label: 'Predio solo',                         hex: '#1E3A8A' }, // Azul oscuro
+  { label: 'Predio solo',                         hex: '#0B3954' }, // Azul Abisal
   { label: 'Predio para vincular',                hex: '#EC4899' }, // Rosado
   { label: 'Predio sin construir (solo)',         hex: '#10B981' }, // Verde
-  { label: 'Lote en construcción o en obras',     hex: '#F97316' }, // Naranja
+  { label: 'Lote en construcción o en obras',     hex: '#4F46E5' }, // Índigo Lupa
   { label: 'Lote con cuenta contrato - vinculado',hex: '#EAB308' }, // Amarillo
 ];
 

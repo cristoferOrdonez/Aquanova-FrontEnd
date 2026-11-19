@@ -116,9 +116,9 @@ function renderField(field, answers, setAnswer, form) {
 export default function FormSubmissionContent() {
   const { form, loading, error, answers, setAnswer, submit, isSubmitting, uploadProgress, signature, setSignature, signatureError } = useFormSubmissionContext();
 
-  if (loading) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.LOADING}</div>;
-  if (error) return <div className="p-10 text-center text-red-500 font-work">{error}</div>;
-  if (!form) return <div className="p-10 text-center font-work">{DEFAULT_TEXTS.NOT_FOUND}</div>;
+  if (loading) return <div className="p-10 text-center font-display">{DEFAULT_TEXTS.LOADING}</div>;
+  if (error) return <div className="p-10 text-center text-red-500 font-display">{error}</div>;
+  if (!form) return <div className="p-10 text-center font-display">{DEFAULT_TEXTS.NOT_FOUND}</div>;
 
   const renderFormContent = (isMobile) => {
     const cardPadding = 'p-6';
@@ -216,8 +216,8 @@ export default function FormSubmissionContent() {
 
         {/* Barra de progreso de subida */}
         {uploadProgress && (
-          <div className="w-full flex flex-col gap-2 rounded-[5px] border-[1.5px] border-blue-200 bg-blue-50 px-4 py-3">
-            <div className="flex items-center justify-between text-xs text-blue-800">
+          <div className="w-full flex flex-col gap-2 rounded-[5px] border-[1.5px] border-[var(--color-secondary)]/30 bg-[var(--color-secondary-soft)] px-4 py-3">
+            <div className="flex items-center justify-between text-xs text-[var(--color-secondary-hover)]">
               <span className="font-medium">
                 {uploadProgress.fileName && `Subiendo: ${uploadProgress.fileName}`}
                 {!uploadProgress.fileName && 'Subiendo archivos...'}
@@ -226,14 +226,14 @@ export default function FormSubmissionContent() {
                 {uploadProgress.current}/{uploadProgress.total} ({uploadProgress.percent}%)
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-blue-100">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--color-secondary-soft)]">
               <div
                 className="h-full bg-[var(--blue-buttons)] transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress.percent}%` }}
               />
             </div>
             {uploadProgress.fieldLabel && (
-              <span className="text-xs text-blue-600">
+              <span className="text-xs text-[var(--color-secondary)]">
                 Campo: {uploadProgress.fieldLabel}
               </span>
             )}
@@ -265,7 +265,7 @@ export default function FormSubmissionContent() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-work overflow-hidden">
+    <div className="fixed inset-0 bg-gray-100 flex items-center justify-center font-sans overflow-hidden">
       <div className="w-full h-full overflow-y-auto bg-[#F0EBf8] bg-[var(--bg-color-main)]">
         <div className="w-full min-h-full py-10 px-4 flex justify-center">{renderFormContent(false)}</div>
       </div>

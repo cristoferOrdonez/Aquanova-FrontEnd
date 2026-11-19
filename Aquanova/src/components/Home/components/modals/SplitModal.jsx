@@ -64,13 +64,13 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
         <div className="px-6 pt-6 pb-4 border-b border-slate-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 rounded-xl bg-[var(--color-secondary-soft)] flex items-center justify-center">
+                <svg className="w-5 h-5 text-[var(--color-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12M8 12h7M8 17h4M4 6h.01M4 12h.01M4 18h.01" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-base font-bold text-slate-800">Dividir Predio</h2>
+                <h2 className="text-base font-display font-bold text-slate-800">Dividir Predio</h2>
                 <p className="text-xs text-slate-400 mt-0.5">
                   {lotDisplayId ? `Predio: ${lotDisplayId}` : ''}
                   {' '}· Paso {step} de 2
@@ -88,8 +88,8 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
           </div>
           {/* Progress bar */}
           <div className="mt-4 flex gap-1.5">
-            <div className="h-1 flex-1 rounded-full bg-purple-500 transition-all" />
-            <div className={`h-1 flex-1 rounded-full transition-all ${step >= 2 ? 'bg-purple-500' : 'bg-slate-200'}`} />
+            <div className="h-1 flex-1 rounded-full bg-[var(--color-secondary)] transition-all" />
+            <div className={`h-1 flex-1 rounded-full transition-all ${step >= 2 ? 'bg-[var(--color-secondary)]' : 'bg-slate-200'}`} />
           </div>
         </div>
 
@@ -104,22 +104,22 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
               {/* Opción: Corte Lateral */}
               <button
                 onClick={() => handleDirectionSelect('depth')}
-                className="group flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-slate-200 hover:border-purple-400 hover:bg-purple-50 transition-all text-left"
+                className="group flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-slate-200 hover:border-[var(--color-secondary)] hover:bg-[var(--color-secondary-soft)] transition-all text-left"
               >
                 {/* Ilustración: predios lado a lado (cada uno con frente a calle) */}
-                <div className="w-full h-20 rounded-lg bg-slate-100 group-hover:bg-purple-100 transition-colors relative overflow-hidden flex items-end">
-                  <div className="absolute bottom-0 left-0 right-0 h-3 bg-slate-300 group-hover:bg-purple-200 transition-colors" />
+                <div className="w-full h-20 rounded-lg bg-slate-100 group-hover:bg-[var(--color-secondary-soft)] transition-colors relative overflow-hidden flex items-end">
+                  <div className="absolute bottom-0 left-0 right-0 h-3 bg-slate-300 group-hover:bg-[var(--color-secondary)]/30 transition-colors" />
                   <div className="absolute bottom-3 left-2 right-2 flex gap-0.5 h-12">
-                    <div className="flex-1 bg-purple-400 rounded-t-sm opacity-80" />
-                    <div className="flex-1 bg-purple-500 rounded-t-sm" />
-                    <div className="flex-1 bg-purple-400 rounded-t-sm opacity-80" />
+                    <div className="flex-1 bg-[var(--color-secondary)] rounded-t-sm opacity-70" />
+                    <div className="flex-1 bg-[var(--color-secondary)] rounded-t-sm" />
+                    <div className="flex-1 bg-[var(--color-secondary)] rounded-t-sm opacity-70" />
                   </div>
-                  <span className="absolute bottom-0.5 left-0 right-0 text-center text-[8px] font-bold text-slate-500 group-hover:text-purple-700">
+                  <span className="absolute bottom-0.5 left-0 right-0 text-center text-[8px] font-bold text-slate-500 group-hover:text-[var(--color-secondary-hover)]">
                     CALLE
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-700 group-hover:text-purple-700">Corte Lateral</p>
+                  <p className="text-sm font-semibold text-slate-700 group-hover:text-[var(--color-secondary-hover)]">Corte Lateral</p>
                   <p className="text-xs text-slate-400 mt-0.5 leading-snug">
                     Cada parte tiene su propio frente a la calle. División como predios urbanos típicos.
                   </p>
@@ -165,7 +165,7 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
         {step === 2 && (
           <div className="px-6 py-5">
             <div className="flex items-center gap-2 mb-4">
-              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${direction === 'depth' ? 'bg-purple-100 text-purple-700' : 'bg-indigo-100 text-indigo-700'}`}>
+              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${direction === 'depth' ? 'bg-[var(--color-secondary-soft)] text-[var(--color-secondary-hover)]' : 'bg-indigo-100 text-indigo-700'}`}>
                 {direction === 'depth' ? '↔ Corte Lateral' : '↕ Corte en Profundidad'}
               </span>
               <button
@@ -188,7 +188,7 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
                   onClick={() => { setParts(n); setPartsError(''); }}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold border-2 transition-all ${
                     parseInt(parts) === n
-                      ? 'border-purple-500 bg-purple-50 text-purple-700'
+                      ? 'border-[var(--color-secondary)] bg-[var(--color-secondary-soft)] text-[var(--color-secondary-hover)]'
                       : 'border-slate-200 text-slate-500 hover:border-slate-300'
                   }`}
                 >
@@ -204,7 +204,7 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
                   onChange={handlePartsChange}
                   placeholder="Otro"
                   className={`w-full py-2.5 px-3 rounded-lg text-sm font-semibold border-2 text-center outline-none transition-all ${
-                    partsError ? 'border-red-400 bg-red-50 text-red-700' : 'border-slate-200 focus:border-purple-400 text-slate-700'
+                    partsError ? 'border-red-400 bg-red-50 text-red-700' : 'border-slate-200 focus:border-[var(--color-secondary)] text-slate-700'
                   }`}
                 />
               </div>
@@ -229,7 +229,7 @@ const SplitModal = ({ isOpen, onConfirm, onCancel, lotDisplayId }) => {
                 onClick={handleConfirm}
                 disabled={!!isConfirmDisabled}
                 className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: isConfirmDisabled ? undefined : 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}
+                style={{ background: isConfirmDisabled ? undefined : 'linear-gradient(135deg, #0B3954, #00A896)' }}
               >
                 Dividir en {parseInt(parts) > 0 ? parseInt(parts) : '?'} partes
               </button>

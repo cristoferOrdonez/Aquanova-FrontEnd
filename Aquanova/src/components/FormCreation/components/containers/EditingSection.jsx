@@ -164,7 +164,7 @@ function EditingSection({ id }) {
                                 border-[1.5px] border-[var(--card-stroke)]
                                 rounded-[8px] outline-none
                                 placeholder:text-gray-300
-                                focus:border-[#2138C4] focus:bg-blue-50/30
+                                focus:border-[#4F46E5] focus:bg-[#EEF2FF]/30
                                 transition-all duration-300 ease-in-out
                                 "
                         />

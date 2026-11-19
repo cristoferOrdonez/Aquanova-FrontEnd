@@ -78,7 +78,7 @@ function HeaderSection() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={`
-                    bg-[#E0EEFF] border-[1.5px] border-[var(--card-stroke)] rounded-[14px] 
+                    bg-[#E0E7FF] border-[1.5px] border-[var(--card-stroke)] rounded-[14px] 
                     items-center justify-center flex flex-col group 
                     ${!imagePreview ? 'hover:cursor-pointer hover:bg-[#CBDFF2] [@media(pointer:coarse)]:active:bg-[#CBDFF2]' : ''} transition-colors
                     relative overflow-hidden h-50 w-full
@@ -97,7 +97,7 @@ function HeaderSection() {
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-white mb-2 animate-bounce">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
                         </svg>
-                        <span className="text-white font-work font-bold text-lg drop-shadow-md">
+                        <span className="text-white font-sans font-bold text-lg drop-shadow-md">
                             Suelte la imagen aquí
                         </span>
                     </div>
@@ -117,7 +117,7 @@ function HeaderSection() {
                                 onClick={(e) => e.stopPropagation()} // Evita clicks accidentales en el fondo
                                 className="
                                 absolute inset-0 z-10 rounded-[12px]
-                                bg-[#E0EEFF]/90 backdrop-blur-[1px]
+                                bg-[#E0E7FF]/90 backdrop-blur-[1px]
                                 flex items-center justify-center gap-4
                                 opacity-0 group-hover/overlay:opacity-100
                                 transition-all duration-300 ease-in-out
@@ -138,7 +138,7 @@ function HeaderSection() {
                                 <button 
                                     onClick={handleReplaceImage}
                                     title="Cambiar imagen"
-                                    className="p-2 bg-white rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-gray-600 transition-colors transform hover:scale-110"
+                                    className="p-2 bg-white rounded-full shadow-sm hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] text-gray-600 transition-colors transform hover:scale-110"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
@@ -165,12 +165,12 @@ function HeaderSection() {
                         viewBox="0 0 24 24"
                         strokeWidth={0.75}
                         stroke="currentColor"
-                        className="w-30 h-30 text-[#2138C4] translate-y-7 group-hover:translate-y-0 [@media(pointer:coarse)]:translate-y-0 group-hover:scale-110 [@media(pointer:coarse)]:group-active:scale-110 transition-transform"
+                        className="w-30 h-30 text-[#4F46E5] translate-y-7 group-hover:translate-y-0 [@media(pointer:coarse)]:translate-y-0 group-hover:scale-110 [@media(pointer:coarse)]:group-active:scale-110 transition-transform"
                         >
                         <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                         </svg>
                         <span className="
-                        text-center tablet:text-sm text-[13px] text-[#2138C4] mt-2
+                        text-center tablet:text-sm text-[13px] text-[#4F46E5] mt-2
                         opacity-0 max-h-10 translate-y-2 overflow-hidden
                         group-hover:opacity-100 group-hover:-translate-y-2
                         transition-all duration-300 ease-in-out
@@ -212,7 +212,7 @@ function HeaderSection() {
                                         p-1 tablet:text-lg text-[16px] text-[var(--text)]
                                         border-[1.5px] border-transparent
                                         rounded-[5px] outline-none
-                                        focus:border-[#2138C4]
+                                        focus:border-[#4F46E5]
                                         transition-all duration-500 ease-in-out
                                         "
                                 />
@@ -225,7 +225,7 @@ function HeaderSection() {
                     onChange={(e) => setDescription(e.target.value)}
                     className="resize-none h-24 p-2 border-[1.5px] border-[var(--stroke-selectors-and-search-bars)] rounded-[14px] 
                     tablet:text-xs text-[16px]
-                    focus:outline-none focus:border-[#2138C4] 
+                    focus:outline-none focus:border-[#4F46E5] 
                     transition-all duration-500 ease-in-out"
                     />
                 </div>

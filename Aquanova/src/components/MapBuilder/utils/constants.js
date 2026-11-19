@@ -62,15 +62,15 @@ export const STYLES = {
   drawing: {
     preview: { fill: '#8b5cf6', fillOpacity: 0.15, stroke: '#6d28d9', strokeWidth: 1.5, strokeDasharray: '5 3' },
     point: { fill: '#ffffff', stroke: '#6d28d9', strokeWidth: 2, r: 4 },
-    firstPoint: { fill: '#f97316', stroke: '#ea580c', strokeWidth: 2, r: 6 },
+    firstPoint: { fill: '#4F46E5', stroke: '#4338CA', strokeWidth: 2, r: 6 },
   },
   validation: {
     error: { fill: '#ef4444', fillOpacity: 0.3, stroke: '#b91c1c', strokeWidth: 2 },
     warning: { fill: '#f59e0b', fillOpacity: 0.3, stroke: '#d97706', strokeWidth: 2 },
   },
   snap: {
-    indicator: { fill: 'none', stroke: '#f97316', strokeWidth: 2, r: 6 },
-    crosshair: { stroke: '#f97316', strokeWidth: 1, strokeDasharray: '3 3' },
+    indicator: { fill: 'none', stroke: '#4F46E5', strokeWidth: 2, r: 6 },
+    crosshair: { stroke: '#4F46E5', strokeWidth: 1, strokeDasharray: '3 3' },
   },
   grid: {
     major: { stroke: '#d1d5db', strokeWidth: 0.5 },

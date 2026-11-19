@@ -35,7 +35,7 @@ export const CompactGeoLevelControl = () => {
                     ${isEditMode ? 'opacity-60 cursor-not-allowed' : ''}
                 `}
             >
-                <span className="text-gray-400 group-hover:text-blue-400">
+                <span className="text-gray-400 group-hover:text-[#00A896]">
                     {(() => {
                         const found = geoLevelOptions?.find(o => o.id === selectedGeoLevel);
                         if (found?.icon) return React.cloneElement(found.icon, { width: 16, height: 16 });

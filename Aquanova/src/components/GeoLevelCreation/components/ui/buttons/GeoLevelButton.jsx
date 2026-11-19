@@ -21,7 +21,7 @@ function GeoLevelButton({
             <div className="
                 p-3 rounded-full bg-gray-700/50 text-gray-400
                 transition-colors duration-300 
-                group-hover:bg-blue-600 group-hover:text-white
+                group-hover:bg-[#00A896] group-hover:text-white
             ">
                 {React.cloneElement(opt.icon, { width: 32, height: 32, strokeWidth: 1.5 })}
             </div>

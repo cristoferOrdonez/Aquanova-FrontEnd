@@ -26,7 +26,7 @@ const ContentRenderer = ({ loading, error, forms, reload, handleDelete, handleEx
     return (
       <div className="text-center text-red-500 py-10">
         <p>{error}</p>
-        <button onClick={reload} className="text-blue-500 underline mt-2">Intentar de nuevo</button>
+        <button onClick={reload} className="text-[var(--color-primary)] underline mt-2">Intentar de nuevo</button>
       </div>
     );
   }
@@ -81,7 +81,7 @@ function FormListContent() {
         <button
           type="button"
           onClick={() => navigate('/form_creation')}
-          className="flex flex-row gap-2 whitespace-nowrap bg-[var(--blue-buttons)] rounded-full font-work text-white justify-center items-center px-6 py-3 hover:bg-blue-600 transition-colors w-full sm:w-auto shadow-md"
+          className="flex flex-row gap-2 whitespace-nowrap bg-[var(--blue-buttons)] rounded-full font-sans text-white justify-center items-center px-6 py-3 hover:bg-[var(--color-primary-hover)] transition-colors w-full sm:w-auto shadow-md"
         >
           <PlusIcon className="h-5 w-5"/>
           <span className="font-semibold">Nueva campaña</span>

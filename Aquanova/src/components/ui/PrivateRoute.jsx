@@ -8,8 +8,9 @@ import { authService } from '../../services/authService'
  */
 function PrivateRoute({ children }) {
   const user = authService.getUser()
+  const token = localStorage.getItem('token')
 
-  if (!user) {
+  if (!user || !token) {
     return <Navigate to='/login' replace />
   }
 

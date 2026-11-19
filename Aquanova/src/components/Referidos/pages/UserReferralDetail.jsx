@@ -53,7 +53,7 @@ export default function UserReferralDetail() {
     return (
       <div className="rounded-xl bg-red-50 border border-red-200 p-6 text-center">
         <p className="text-red-700 font-medium">{error}</p>
-        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#1361C5] hover:underline">
+        <button onClick={() => navigate(backTo)} className="mt-3 text-sm text-[#4F46E5] hover:underline">
           ← Volver al panel
         </button>
       </div>
@@ -87,7 +87,7 @@ export default function UserReferralDetail() {
                 {profile.phone && <p className="text-sm text-gray-400">{profile.phone}</p>}
               </div>
               <div className="text-right shrink-0">
-                <span className="font-mono text-sm bg-blue-50 text-[#0D448A] px-3 py-1 rounded-lg font-semibold">
+                <span className="font-mono text-sm bg-[#EEF2FF] text-[#0B3954] px-3 py-1 rounded-lg font-semibold">
                   {profile.referral_code}
                 </span>
                 <p className="text-xs text-gray-400 mt-1">Código de referido</p>
@@ -96,15 +96,15 @@ export default function UserReferralDetail() {
 
             {/* Puntos en la campaña — el dato que importa en alcance acotado */}
             {scoped && (
-              <div className="mt-5 rounded-xl border border-[#0D448A]/20 bg-blue-50/60 p-4">
-                <p className="text-xs font-medium text-[#0D448A] uppercase tracking-wide">
+              <div className="mt-5 rounded-xl border border-[#0B3954]/20 bg-[#EEF2FF]/60 p-4">
+                <p className="text-xs font-medium text-[#0B3954] uppercase tracking-wide">
                   En esta campaña
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5 truncate">
                   {campaign?.form_title ?? 'Campaña seleccionada'}
                 </p>
                 <div className="flex items-baseline gap-4 mt-2">
-                  <span className="text-2xl font-bold text-[#0D448A]">
+                  <span className="text-2xl font-bold text-[#0B3954]">
                     {campaign?.points_earned ?? 0}
                   </span>
                   <span className="text-sm text-gray-500">
@@ -118,7 +118,7 @@ export default function UserReferralDetail() {
             {/* Mini KPIs — RN-05: en alcance de campaña son el acumulado global */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
               {[
-                { label: scoped ? 'Puntos (todas)' : 'Puntos acumulados', value: profile.total_accumulated_points, cls: 'text-[#0D448A]' },
+                { label: scoped ? 'Puntos (todas)' : 'Puntos acumulados', value: profile.total_accumulated_points, cls: 'text-[#0B3954]' },
                 { label: scoped ? 'Referidos (todas)' : 'Total referidos', value: profile.total_referrals },
                 { label: 'Exitosos',          value: profile.successful_referrals, cls: 'text-green-600' },
                 { label: 'Pendientes',        value: profile.pending_referrals,   cls: 'text-yellow-600' },
@@ -154,7 +154,7 @@ export default function UserReferralDetail() {
             {scoped && (
               <button
                 onClick={() => navigate(`/referidos/usuario/${userId}`)}
-                className="text-xs text-[#1361C5] hover:underline whitespace-nowrap"
+                className="text-xs text-[#4F46E5] hover:underline whitespace-nowrap"
               >
                 Ver todas →
               </button>
@@ -177,7 +177,7 @@ export default function UserReferralDetail() {
                     <tr key={g.form_id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800 max-w-[180px] truncate">{g.form_title}</td>
                       <td className="px-4 py-3 text-gray-600">{g.referrals_in_giveaway}</td>
-                      <td className="px-4 py-3 font-bold text-[#0D448A]">{g.points_earned}</td>
+                      <td className="px-4 py-3 font-bold text-[#0B3954]">{g.points_earned}</td>
                     </tr>
                   ))}
                 </tbody>

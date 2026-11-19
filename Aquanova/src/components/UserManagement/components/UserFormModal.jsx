@@ -267,7 +267,7 @@ export default function UserFormModal({ isOpen, onClose, onSubmit, isSubmitting 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-[var(--blue-buttons)] text-white shadow-sm hover:bg-blue-600 transition-colors disabled:opacity-70 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-[var(--blue-buttons)] text-white shadow-sm hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-70 flex items-center gap-2"
                 >
                   {isSubmitting ? (
                     <>

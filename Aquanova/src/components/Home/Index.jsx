@@ -463,8 +463,8 @@ function Index() {
                           <li
                             key={hood.id}
                             onMouseDown={() => handleSelectNeighborhood(hood)}
-                            className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 ${
-                              hood.id === selectedNeighborhoodId ? 'bg-blue-100 font-semibold text-blue-700' : 'text-gray-700'
+                            className={`px-4 py-2 text-sm cursor-pointer hover:bg-[var(--color-primary-soft)] ${
+                              hood.id === selectedNeighborhoodId ? 'bg-[var(--color-primary-soft)] font-semibold text-[var(--color-primary)]' : 'text-gray-700'
                             }`}
                           >
                             {hood.name} <span className="text-gray-400">({hood.code})</span>
@@ -487,7 +487,7 @@ function Index() {
                   <button
                     disabled={isProcessing}
                     onClick={handleSplitLot}
-                    className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm"
+                    className="bg-[var(--color-secondary)] hover:bg-[var(--color-secondary-hover)] disabled:opacity-50 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm"
                   >
                     {isProcessing ? 'Procesando...' : '✂ Dividir Predio'}
                   </button>

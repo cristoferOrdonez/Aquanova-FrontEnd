@@ -12,7 +12,7 @@ function ReadonlyField({ label, value }) {
   return (
     <div className="flex flex-col gap-0.5">
       <label className="text-xs text-gray-400">{label}</label>
-      <div className="bg-gray-900 text-gray-300 text-sm px-2 py-1.5 rounded border border-gray-700">
+      <div className="bg-gray-900 text-gray-300 text-sm px-2 py-1.5 rounded border border-gray-700 font-mono">
         {value}
       </div>
     </div>
@@ -37,7 +37,7 @@ function EditableField({ label, value, onChange, placeholder }) {
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="bg-gray-800 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-blue-500 transition-colors"
+        className="bg-gray-800 text-white text-sm px-2 py-1.5 rounded border border-gray-600 outline-none focus:border-[#00A896] transition-colors font-mono"
       />
     </div>
   );

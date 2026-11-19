@@ -20,9 +20,9 @@ const ICONS = {
 };
 
 const STYLES = {
-  success: 'bg-emerald-600 text-white',
-  error:   'bg-red-600 text-white',
-  warning: 'bg-amber-500 text-white',
+  success: 'bg-[var(--color-success)] text-white',
+  error:   'bg-[var(--color-error)] text-white',
+  warning: 'bg-[var(--color-warning)] text-white',
 };
 
 /**

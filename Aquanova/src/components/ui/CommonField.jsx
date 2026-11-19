@@ -33,16 +33,16 @@ export default function CommonField({
         onKeyDown={onKeyDown}
         disabled={disabled}
         className={`
-          border border-[#0000004d]
-          bg-[#EDEDED]
-          rounded-[10px]
+          border border-[var(--surface-border)]
+          bg-[var(--surface-muted)]
+          rounded-xl
           p-3 text-left outline-none
               transition-all duration-300 ease-in-out
           group-hover:scale-[1.03]
           group-hover:translate-y-1
-          focus:bg-[#f0f0f0]
-          focus:border-[#1361C5]
-          focus:ring-4 focus:ring-[#1361C5]/20
+          focus:bg-white
+          focus:border-[var(--color-secondary)]
+          focus:ring-4 focus:ring-[var(--color-secondary)]/20
           focus:shadow-lg
           
           /* --- Clases para ocultar las flechas numéricas --- */

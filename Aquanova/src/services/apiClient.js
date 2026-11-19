@@ -5,7 +5,8 @@ export const getToken = () => {
 };
 
 export const getAuthHeaders = () => {
-  return {};
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 /**
@@ -21,11 +22,13 @@ export const getAuthHeaders = () => {
  */
 export async function apiRequest(path, { method = 'GET', headers = {}, body } = {}) {
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const token = getToken();
+  const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
   // Construir headers: NO incluir Content-Type para FormData (el browser lo asigna con boundary)
   const finalHeaders = isFormData
-    ? { ...headers }
-    : { 'Content-Type': 'application/json', ...headers };
+    ? { ...authHeader, ...headers }
+    : { 'Content-Type': 'application/json', ...authHeader, ...headers };
 
   try {
     const res = await fetch(`${API_URL}${path}`, {
@@ -38,6 +41,14 @@ export async function apiRequest(path, { method = 'GET', headers = {}, body } = 
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
+      if ((res.status === 401 || (res.status === 403 && data?.message?.includes('token'))) &&
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/login') &&
+          !window.location.pathname.startsWith('/formulario')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
       const msg = data?.message || `HTTP ${res.status}: ${res.statusText || 'Error desconocido'}`;
       const err = new Error(msg);
       err.status = res.status;

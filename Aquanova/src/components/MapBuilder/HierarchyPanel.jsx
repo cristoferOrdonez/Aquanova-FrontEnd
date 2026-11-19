@@ -43,7 +43,7 @@ function HierarchyItem({ polygon, isSelected, onSelect, onRename, onContextMenu,
     <div
       className={`
         flex items-center gap-1 px-2 py-1 cursor-pointer rounded text-sm
-        ${isSelected ? 'bg-blue-900/40 text-blue-200' : 'text-gray-300 hover:bg-gray-700/50'}
+        ${isSelected ? 'bg-[#00A896]/20 text-[#00A896]' : 'text-gray-300 hover:bg-gray-700/50'}
       `}
       style={{ paddingLeft: `${indent * 16 + 8}px` }}
       onClick={() => onSelect(polygon.id)}
@@ -93,7 +93,7 @@ function BlockGroup({ block, lots, selectedIds, onSelect, onRename, onContextMen
       <div
         className={`
           flex items-center gap-1 px-2 py-1 cursor-pointer rounded text-sm
-          ${isSelected ? 'bg-blue-900/40 text-blue-200' : 'text-gray-300 hover:bg-gray-700/50'}
+          ${isSelected ? 'bg-[#00A896]/20 text-[#00A896]' : 'text-gray-300 hover:bg-gray-700/50'}
         `}
         onClick={() => {
           onSelect(block.id);

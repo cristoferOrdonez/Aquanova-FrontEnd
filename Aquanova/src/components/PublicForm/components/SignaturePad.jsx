@@ -113,7 +113,7 @@ const SignaturePad = ({ onChange, error }) => {
         <button
           type="button"
           onClick={clear}
-          className="absolute top-2 right-2 px-2 py-1 text-xs bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 text-gray-700"
+          className="absolute top-2 right-2 min-h-[44px] px-4 py-2.5 text-xs font-medium bg-[var(--color-secondary-soft)] border border-[var(--color-secondary)] rounded-lg hover:bg-[var(--color-secondary)] hover:text-white text-[var(--color-secondary-hover)] transition-colors"
         >
           Limpiar
         </button>
